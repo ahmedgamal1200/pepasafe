@@ -1,0 +1,148 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\PlanResource\Pages;
+use App\Filament\Resources\PlanResource\RelationManagers;
+use App\Models\Plan;
+use Filament\Forms;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+
+class PlanResource extends Resource
+{
+    protected static ?string $model = Plan::class;
+
+    protected static ?string $navigationGroup = 'Subscriptions';
+
+    protected static ?string $navigationIcon = 'heroicon-o-credit-card';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasAnyPermission([
+            'add plan',
+            'full access',
+        ]);
+    }
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\TextInput::make('name')
+                ->required()
+                ->label('Plan Name')
+                ->maxLength(255),
+                Forms\Components\TextInput::make('price')
+                ->required()
+                ->label('Price after discount')
+                ->maxLength(255)
+                ->minLength(0),
+                Forms\Components\TextInput::make('compare_price')
+                ->label('Price before discount')
+                ->maxLength(255),
+                Forms\Components\TextInput::make('credit_amount')
+                ->required()
+                ->label('Credit Amount')
+                ->numeric()
+                ->minValue(0),
+                Forms\Components\TextInput::make('duration_days')
+                ->required()
+                ->label('Duration Days')
+                ->placeholder('30 days')
+                ->maxLength(255)
+                ->minValue(0)
+                ->numeric(),
+                // ✅ خيار ترحيل الرصيد
+                Checkbox::make('carry_over_credit')
+                    ->label('السماح بترحيل الرصيد المتبقي عند التجديد ؟')
+                    ->default(false),
+
+                TextInput::make('max_users')
+                    ->required()
+                    ->label('Maximum Users')
+                    ->numeric()
+                    ->minValue(0),
+
+                Checkbox::make('enable_attendance')
+                    ->label('تفعيل الحضور في هذه الباقة؟')
+                    ->default(false),
+
+                Select::make('enabled_channels.documents')
+                    ->label('قنوات إرسال الوثائق')
+                    ->multiple()
+                    ->options([
+                        'email' => 'Email',
+                        'sms' => 'SMS',
+                        'whatsapp' => 'WhatsApp',
+                    ])
+                    ->columnSpanFull(),
+
+                Select::make('enabled_channels.attendance')
+                    ->label('قنوات إرسال الحضور')
+                    ->multiple()
+                    ->options([
+                        'email' => 'Email',
+                        'sms' => 'SMS',
+                        'whatsapp' => 'WhatsApp',
+                    ])
+                    ->columnSpanFull(),
+
+
+                Forms\Components\RichEditor::make('feature')
+                    ->label('Features')
+                    ->required(),
+            ]);
+
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('price')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('compare_price')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('credit_amount')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('duration_days')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('feature')->html(),
+                Tables\Columns\TextColumn::make('carry_over_credit')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('max_users')->searchable()->sortable(),
+                Tables\Columns\IconColumn::make('enable_attendance')->boolean(),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListPlans::route('/'),
+            'create' => Pages\CreatePlan::route('/create'),
+            'edit' => Pages\EditPlan::route('/{record}/edit'),
+        ];
+    }
+}
