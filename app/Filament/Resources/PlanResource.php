@@ -7,11 +7,13 @@ use App\Filament\Resources\PlanResource\RelationManagers;
 use App\Models\Plan;
 use Filament\Forms;
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -60,10 +62,6 @@ class PlanResource extends Resource
                 ->maxLength(255)
                 ->minValue(0)
                 ->numeric(),
-                // ✅ خيار ترحيل الرصيد
-                Checkbox::make('carry_over_credit')
-                    ->label('السماح بترحيل الرصيد المتبقي عند التجديد ؟')
-                    ->default(false),
 
                 TextInput::make('max_users')
                     ->required()
@@ -71,9 +69,31 @@ class PlanResource extends Resource
                     ->numeric()
                     ->minValue(0),
 
-                Checkbox::make('enable_attendance')
-                    ->label('تفعيل الحضور في هذه الباقة؟')
-                    ->default(false),
+                TextInput::make('document_price_in_plan')
+                    ->label('In-Plan Document Price (Within Plan)')
+                    ->required()
+                    ->numeric()
+                    ->minValue(0),
+
+                TextInput::make('document_price_outside_plan')
+                    ->label('Pay-As-You-Go Document Price (Outside Plan)')
+                    ->required()
+                    ->numeric()
+                    ->minValue(0),
+
+
+                Grid::make(2)
+                // ✅ خيار ترحيل الرصيد
+                    ->schema([
+                        Checkbox::make('carry_over_credit')
+                            ->label('السماح بترحيل الرصيد المتبقي عند التجديد ؟')
+                            ->default(false),
+
+                        Checkbox::make('enable_attendance')
+                            ->label('تفعيل الحضور في هذه الباقة ؟')
+                            ->default(false),
+                    ]),
+
 
                 Select::make('enabled_channels.documents')
                     ->label('قنوات إرسال الوثائق')
@@ -116,6 +136,8 @@ class PlanResource extends Resource
                 Tables\Columns\TextColumn::make('carry_over_credit')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('max_users')->searchable()->sortable(),
                 Tables\Columns\IconColumn::make('enable_attendance')->boolean(),
+                TextColumn::make('document_price_in_plan')->sortable(),
+                TextColumn::make('document_price_outside_plan')->sortable(),
             ])
             ->filters([
                 //

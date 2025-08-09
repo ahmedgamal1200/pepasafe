@@ -33,7 +33,7 @@ class CategoryResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
+                Forms\Components\TextInput::make('type')
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('icon')
@@ -46,7 +46,7 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name')->searchable(),
+                TextColumn::make('type')->searchable(),
                 TextColumn::make('icon'),
             ])
             ->filters([
@@ -54,6 +54,7 @@ class CategoryResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

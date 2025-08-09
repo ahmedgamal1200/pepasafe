@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,8 +9,15 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
 </head>
-<body class="bg-[#F9FAFB] flex items-center justify-center min-h-screen p-4">
-<div class="bg-white w-full max-w-3xl rounded-2xl shadow-lg p-6 sm:p-8 relative">
+<body>
+    @if(auth()->check())
+        @include('partials.auth-navbar')
+    @else
+        @include('partials.navbar')
+    @endif
+
+    <div class="min-h-screen flex items-center justify-center bg-gray-100 py-10 px-4">
+        <div class="bg-white w-full max-w-3xl rounded-2xl shadow-lg p-6 sm:p-8 relative">
     <!-- Title -->
     <h1 class="text-center text-xl sm:text-2xl font-bold mb-4">تحقق من الوثيقة</h1>
 
@@ -24,11 +31,31 @@
     <div class="flex flex-col md:flex-row items-start mb-6">
         <!-- Left Side Image -->
         <div class="w-full md:w-1/2 md:pr-6 mb-6 md:mb-0 flex justify-center">
-            <iframe id="cert-image" src="{{ asset('storage/' . $document->file_path) }}" class="w-full h-auto max-w-sm object-cover rounded-lg border cursor-pointer"></iframe>
-{{--            <img id="cert-image" src="WhatsApp Image 2025-06-08 at 14.52.50_0c97859f.jpg"--}}
-{{--                 alt="صورة الشهادة"--}}
-{{--                 class="w-full h-auto max-w-sm object-cover rounded-lg border cursor-pointer" />--}}
+            <div class="relative w-full max-w-sm">
+
+                {{-- الشهادة --}}
+                <iframe
+                    id="cert-image"
+                    src="{{ asset('storage/' . $document->file_path) }}"
+                    class="w-full h-auto object-cover rounded-lg border transition-all duration-300
+                   {{ auth()->check() ? '' : 'blur-sm' }}">
+                </iframe>
+
+                @guest
+                    {{-- بلور مع قفل وزر تسجيل الدخول --}}
+                    <div class="absolute inset-0 flex flex-col justify-center items-center text-white text-center space-y-2 bg-transparent">
+                        <i class="fas fa-lock text-3xl text-gray-800 drop-shadow-md"></i>
+                        <a href="{{ route('login') }}"
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium shadow-md">
+                            سجل الدخول لعرض الشهادة
+                        </a>
+                    </div>
+                @endguest
+
+            </div>
         </div>
+
+
 
         <!-- Divider -->
         <div class="hidden md:block w-px bg-gray-200 self-stretch mx-4"></div>
@@ -52,6 +79,17 @@
                 <span class="text-gray-600">تاريخ الإصدار:</span>
                 <span class="font-medium">{{ $document->template->send_at->format('Y-m-d')}}</span>
             </div>
+            <div class="flex justify-between mb-3">
+                <span class="text-gray-600">الصلاحية:</span>
+                <span class="font-medium">
+                    @if($document->template->validity === 'permanent')
+                        دائمة
+                    @elseif($document->template->validity === 'temporary')
+                        مؤقتة
+                    @endif
+                </span>
+            </div>
+
             <div class="flex justify-between mb-3">
                 <span class="text-gray-600">اسم المستخدم:</span>
                 <span class="font-medium">{{ $document->recipient->user->name }}</span>
@@ -104,6 +142,7 @@
         </div>
     </div>
 </div>
+    </div>
 
 <!-- Image Modal -->
 <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">

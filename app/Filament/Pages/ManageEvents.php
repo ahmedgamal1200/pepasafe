@@ -121,6 +121,7 @@ class ManageEvents extends Page implements HasForms
                     'search for a document'   => 'Search for a document',
                     'search by QR code'     => 'Search by QR code',
                     'create an event'          => 'Create an event',
+                    'manage events'            => 'Manage Events',
                     'edit events'           => 'Edit events',
                     'delete event'           => 'Delete event',
                 ])

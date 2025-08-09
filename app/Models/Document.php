@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Document extends Model
 {
+    /**
+     * @var bool|mixed
+     */
     protected $guarded = ['id'];
 
     public function recipient(): BelongsTo

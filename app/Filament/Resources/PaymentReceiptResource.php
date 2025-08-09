@@ -58,13 +58,11 @@ class PaymentReceiptResource extends Resource
                 Forms\Components\Select::make('user_id')
                     ->label('User Name')
                     ->relationship('user', 'name') // لو في علاقة user
-                    ->searchable()
                     ->preload()
                     ->required(),
                 Forms\Components\Select::make('plan_id')
                     ->label('Plan Name')
                     ->relationship('plan', 'name') // لو في علاقة user
-                    ->searchable()
                     ->preload()
                     ->required(),
                 Forms\Components\FileUpload::make('image_path')
@@ -88,8 +86,8 @@ class PaymentReceiptResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name'),
-                Tables\Columns\TextColumn::make('plan.name'),
+                Tables\Columns\TextColumn::make('user.name')->searchable(),
+                Tables\Columns\TextColumn::make('plan.name')->searchable(),
 //                ImageColumn::make('image_path')
 //                    ->label('Receipt')
 //                    ->disk('public')

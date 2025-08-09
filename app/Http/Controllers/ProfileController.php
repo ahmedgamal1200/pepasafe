@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Document;
+use App\Models\User;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,8 +21,15 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $documents = collect();
+
+        $documents = auth()->user()->documents()->with(['template.event', 'recipient'])->get();
+
+
+
         return view('profile.edit', [
             'user' => $request->user(),
+            'documents' => $documents,
         ]);
     }
 
@@ -50,6 +61,11 @@ class ProfileController extends Controller
             $request->user()->email_verified_at = null;
         }
 
+        // لو حابب تتعامل مع bio صراحة (اختياري)
+        if ($request->filled('bio')) {
+            $request->user()->bio = $request->input('bio');
+        }
+
         $request->user()->save();
 
         // إعادة التوجيه لصفحة تعديل البروفايل مع رسالة نجاح
@@ -76,4 +92,22 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
+
+    public function generateLinkToShare($slug): \Illuminate\Contracts\View\View|Application|Factory
+    {
+        $user = User::where('slug', $slug)->firstOrFail();
+
+        return view('profile.partials.share-profile', compact('user'));
+    }
+
+    public function showProfileToGuest(User $user): View
+    {
+        $documents = $user->documents()
+            ->where('visible_on_profile', true)
+            ->with(['template.event'])
+            ->get();
+
+        return view('profile.partials.show-profile-guest', compact('user', 'documents'));
+    }
+
 }

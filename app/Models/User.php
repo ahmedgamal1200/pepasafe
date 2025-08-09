@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -22,6 +23,12 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     protected $fillable = [
         'name',
         'email',
@@ -30,6 +37,7 @@ class User extends Authenticatable
         'category_id',
         'profile_picture',
         'max_users',
+        'slug',
     ];
 
     /**
@@ -88,10 +96,20 @@ class User extends Authenticatable
     }
 
 
+
+
 //    // الطلبات اللي راجعها الأدمن
 //    public function reviewedRechargeRequests()
 //    {
 //        return $this->hasMany(WalletRechargeRequestController::class, 'admin_id');
 //    }
+
+    // انشاء slug لكل المستخدمين
+    protected static  function booted()
+    {
+        static::creating(function ($user) {
+            $user->slug = Str::slug($user->name . '-' . Str::random(4));
+        });
+    }
 
 }

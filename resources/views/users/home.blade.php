@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,16 +7,41 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+
 
     <link rel="stylesheet" href=" {{ asset('css/eventor-home.css') }} ">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <style>
+        /* Basic box model reset - Tailwind's preflight handles most of this */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        /* Custom font if 'Inter' is not part of default Tailwind sans-serif stack */
+        body {
+            font-family: "Inter", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; /* لون خلفية خفيف لرؤية الناف بار بوضوح */
+        }
+        </style>
+
 </head>
 <body class="space-y-12 bg-white">
 
 @include('partials.auth-navbar')
 
-@include('partials.search-bar')
+<div dir="rtl" class="text-left">
+    @include('partials.search-bar')
+</div>
+
+@include('components.cookie-banner')
+
+
 
 
 
@@ -54,15 +79,80 @@
 </section>
 @endif
 
+
+
+@if(request()->has('query') && $event)
+{{--                   section search for event --}}
+    <a href="#">
+        <section class="max-w-xs bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105
+                        mr-4 ml-auto px-4 sm:px-0">
+
+            <div class="p-3 space-y-2 text-right">
+                <h2 class="text-xl font-bold mb-3">
+                    {{ trans_db('search.event.title') }}: {{ $event->title }}
+                </h2>
+
+                <div class="flex items-center text-gray-600 text-sm justify-start">
+                    <i class="bi bi-calendar-check-fill text-lg text-blue-600"></i>
+                    <span class="font-medium ml-4">
+                        {{ trans_db('search.event.start.date') }}: {{ $event->start_date }}
+                    </span>
+                </div>
+
+                <div class="flex items-center text-gray-600 text-sm justify-start">
+                    <i class="bi bi-send-fill text-lg text-gray-500"></i>
+                    <span class="font-medium ml-4">
+                        {{ trans_db('search.event.end.date') }}: {{ $event->end_date }}
+                    </span>
+                </div>
+
+                <div class="flex items-center text-gray-600 text-sm justify-start">
+                    <i class="bi bi-file-earmark-fill text-lg text-gray-500"></i>
+                    <span class="font-medium ml-4">
+                        {{ trans_db('search.event.count.template') }}: {{ $templateCount }}
+                    </span>
+                </div>
+
+                <div class="flex items-center text-gray-600 text-sm mb-4 justify-start">
+                    <i class="bi bi-people-fill text-lg text-gray-500"></i>
+                    <span class="font-medium ml-4">
+                        {{ trans_db('search.event.count.participants') }}: {{ $recipientCount }}
+                    </span>
+                </div>
+
+                @if(auth()->check() && auth()->user()->hasAnyPermission(['manage events', 'full access', 'full access to events']))
+                    <div class="flex justify-center items-center mt-4">
+                        <a href="{{ route('showEvent', $event->slug) }}"
+                           class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-semibold">
+                            {{ trans_db('search.event.manage.event') }}
+                        </a>
+                    </div>
+                @endif
+            </div>
+        </section>
+    </a>
+@endif
+
+
+
+
+
+
+
+
+
+
+
+
 {{--  section not found document     --}}
 
-@if(request()->has('query') && !$document)
+@if(request()->has('query') && !$document && !$event)
 <section class="w-full py-10 px-4 sm:px-6">
     <div class="max-w-3xl mx-auto">
         <div class="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center text-center space-y-4">
             <i class="fas fa-times-circle text-7xl text-red-500"></i>
             <p class="text-gray-600 text-lg leading-relaxed">
-                لم يتم العثور على شهادة بهذا الكود.
+                لم يتم العثور على شهادة او حدث بهذا الكود او بهذا الاسم.
             </p>
         </div>
     </div>
@@ -92,6 +182,8 @@
 </section>
 
 @include('partials.footer')
+
+
 
 </body>
 </html>

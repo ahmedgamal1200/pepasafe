@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,160 +9,243 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome للأيقونات -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"/>
+
+
 
     <style>
-        *, *::before, *::after { box-sizing: border-box; }
-        .navbar { box-sizing: content-box; }
+        /* إعادة تعيين أساسيات الصندوق */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        /* تنسيقات الجسم لجعل المحتوى في المنتصف تمامًا */
         body {
             background-color: #f3f9f9;
-            font-family: "Segoe UI", Tahoma, Verdana, sans-serif;
-            margin: 0; padding: 0;
-            display: flex; flex-direction: column; align-items: center;
-            min-height: 100vh;
+            font-family: "Inter", "Segoe UI", Tahoma, Verdana, sans-serif; /* استخدام Inter كخط أساسي */
+            margin: 0;
+            padding: 0;
+            /*display: flex;*/
+            justify-content: center; /* توسيط أفقي */
+            align-items: center;     /* توسيط عمودي */
+            min-height: 100vh;       /* ضمان أن الجسم يأخذ ارتفاع الشاشة بالكامل */
+            overflow: auto;          /* للسماح بالتمرير إذا كان المحتوى أكبر من الشاشة */
         }
+
+        /* تنسيقات حاوية النموذج */
         .form-container {
             background-color: #fff;
-            width: 60%; max-width: 500px;
-            padding: 20px; border-radius: 8px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-            margin-top: 30px; text-align: center;
+            width: 90%; /* نسبة مئوية ليتكيف مع الشاشات */
+            max-width: 500px; /* أقصى عرض للحفاظ على التصميم */
+            padding: 20px;
+            border-radius: 12px; /* زوايا دائرية أكثر */
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); /* ظل أكبر وأكثر وضوحًا */
+            text-align: center; /* هذا يؤثر على محاذاة المحتوى داخل الحاوية بشكل عام */
+            /* تم إزالة margin-top: 30px; للسماح بالتوسيط العمودي */
+            margin: 20px auto; /* إضافة هامش علوي وسفلي مع توسيط أفقي تلقائي */
         }
+
+        /* استجابة الشاشات الصغيرة */
         @media (max-width: 600px) {
             .form-container {
-                width: 90%; max-width: 320px; padding: 15px; margin-top: 20px;
+                width: 95%; /* زيادة العرض على الشاشات الصغيرة جدًا */
+                max-width: 320px;
+                padding: 15px;
+                margin: 15px auto; /* هامش أقل على الشاشات الصغيرة */
             }
-            .form-header { font-size: 20px; margin-bottom: 15px; }
+            .form-header {
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
         }
+
+        /* رأس النموذج */
         .form-header {
-            font-size: 24px; font-weight: bold; color: #333;
-            margin-bottom: 20px;
+            font-size: 28px; /* حجم أكبر للعنوان */
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 25px; /* مسافة أكبر أسفل العنوان */
         }
-        .toggle-buttons {
-            display: flex; gap: 10px; margin-bottom: 20px; justify-content: center;
-        }
+
+        /* أزرار التبديل (إن وجدت - لم يتم استخدامها في هذا النموذج) */
         .toggle-buttons a { flex: 1; }
         .toggle-buttons a button { width: 100%; }
         .toggle-buttons button {
-            padding: 10px; font-size: 16px;
-            border: 1px solid #ccc; border-radius: 4px; cursor: pointer;
-        }
-        .user-btn { background-color: #2e65d8; color: #fff; border: none; }
-        .advanced-btn { background-color: #fff; color: #333; }
-
-        .btn-google, .btn-apple {
-            width: 100%; padding: 12px; margin-bottom: 15px;
-            border-radius: 4px; font-size: 16px;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            background-color: #fff; border: 1px solid #ccc; color: #333;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
             cursor: pointer;
         }
+
+        /* أيقونات الأزرار (إن وجدت) */
         .btn-google i { color: #db4437; }
         .btn-apple i { color: #000; }
 
-        .or {
-            display: flex; align-items: center; margin: 15px 0;
-            color: #666; font-size: 14px;
-        }
-        .or::before, .or::after {
-            content: ''; flex: 1; height: 1px; background: #ddd; margin: 0 10px;
-        }
-
+        /* حقول الإدخال */
         .form-container input[type="text"],
         .form-container input[type="password"] {
-            width: 100%; padding: 10px; margin-bottom: 5px;
-            border: 1px solid #ccc; border-radius: 4px;
-            font-size: 16px; text-align: left;
+            width: 100%;
+            padding: 12px; /* زيادة حجم الحشو */
+            margin-bottom: 15px; /* زيادة المسافة بين الحقول */
+            border: 1px solid #ddd; /* لون حدود أفتح */
+            border-radius: 8px; /* زوايا دائرية أكثر */
+            font-size: 16px;
+            /* تم إزالة text-align: left; هنا للسماح للمتصفح بتحديد المحاذاة بناءً على اتجاه الصفحة (dir) */
+            transition: border-color 0.3s ease, box-shadow 0.3s ease; /* إضافة انتقال سلس */
+        }
+        .form-container input[type="text"]:focus,
+        .form-container input[type="password"]:focus {
+            border-color: #2e65d8; /* لون الحدود عند التركيز */
+            box-shadow: 0 0 0 3px rgba(46, 101, 216, 0.2); /* ظل عند التركيز */
+            outline: none; /* إزالة الخطوط العريضة الافتراضية */
+        }
+
+        /* تسميات الحقول */
+        .form-container label {
+            display: block; /* لجعل كل تسمية تأخذ سطرًا جديدًا */
+            text-align: start; /* لجعل التسمية تتبع اتجاه النص (يمين لـ RTL، يسار لـ LTR) */
+            font-size: 15px;
+            color: #444;
+            margin-bottom: 5px; /* مسافة صغيرة أسفل التسمية */
+            font-weight: 500;
+        }
+
+        /* مجموعة خيارات (نسيت كلمة المرور وتذكرني) */
+        .options-group {
+            width: 100%;
+            margin-bottom: 20px; /* مسافة أسفل المجموعة */
+            text-align: start; /* لجعل المحتوى داخل المجموعة يتبع اتجاه النص */
         }
 
         /* رابط إعادة تعيين كلمة السر */
         .forgot-password {
-            text-align: right;
-            margin-bottom: 15px;
+            margin-bottom: 10px; /* مسافة أسفل الرابط وقبل مربع التذكر */
         }
         .forgot-password a {
-            font-size: 14px; color: #2e65d8;
+            font-size: 14px;
+            color: #2e65d8;
             text-decoration: none;
+            transition: color 0.3s ease;
         }
+        .forgot-password a:hover {
+            color: #1a4ab9; /* لون أغمق عند التحويم */
+            text-decoration: underline;
+        }
+
+        /* تنسيقات مربع "تذكرني" */
+        .remember-me {
+            display: flex; /* لترتيب مربع الاختيار والتسمية في سطر واحد */
+            align-items: center; /* لمحاذاة العناصر عمودياً في المنتصف */
+            /* لا حاجة لـ justify-content هنا لأن العنصر الأب options-group سيتولى المحاذاة */
+        }
+
+        .remember-me input[type="checkbox"] {
+            /* إزالة أي تنسيقات افتراضية قد تتعارض */
+            margin: 0;
+            /* ضبط الهامش ليتناسب مع اتجاه اللغة */
+            margin-inline-end: 8px; /* هامش بعد مربع الاختيار */
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            vertical-align: middle; /* لمحاذاة أفضل مع النص */
+        }
+
+        .remember-me label {
+            margin-bottom: 0; /* إزالة الهامش السفلي من تسمية الـ checkbox */
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+            text-align: start; /* لضمان أن التسمية تتبع اتجاه النص */
+            display: inline; /* لجعل التسمية بجانب مربع الاختيار */
+        }
+
+
+        /* زر تسجيل الدخول */
         .login-btn {
-            width: 100%; padding: 12px; font-size: 16px;
-            background-color: #2e65d8; color: #fff; border: none;
-            border-radius: 4px; cursor: pointer; margin-bottom: 15px;
+            width: 100%;
+            padding: 14px; /* زيادة حجم الحشو */
+            font-size: 18px; /* حجم خط أكبر */
+            background-color: #2e65d8;
+            color: #fff;
+            border: none;
+            border-radius: 8px; /* زوايا دائرية أكثر */
+            cursor: pointer;
+            margin-bottom: 20px; /* مسافة أكبر */
+            transition: background-color 0.3s ease, transform 0.2s ease; /* انتقال سلس */
+            font-weight: 600; /* خط سميك */
         }
-        .signup { font-size: 14px; color: #555; }
-        .signup a { color: #2e65d8; text-decoration: none; }
+        .login-btn:hover {
+            background-color: #1a4ab9; /* لون أغمق عند التحويم */
+            transform: translateY(-2px); /* تأثير رفع بسيط */
+        }
+        .login-btn:active {
+            transform: translateY(0); /* إعادة الزر لمكانه عند الضغط */
+        }
+
+        /* قسم التسجيل */
+        .signup {
+            font-size: 14px;
+            color: #555;
+        }
+        .signup a {
+            color: #2e65d8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .signup a:hover {
+            color: #1a4ab9;
+            text-decoration: underline;
+        }
     </style>
 </head>
+
 <body>
+<div dir="ltr" class="text-right">
+    @include('partials.navbar')
+</div>
 
-
+    <div class="min-h-screen flex items-center justify-center">
 <div class="form-container">
-    <div class="form-header">تسجيل الدخول</div>
-    <div class="toggle-buttons">
-        <a href="{{ route('login') }}"><button class="user-btn">مستخدم</button></a>
-        <a href="{{ route('register') }}"><button class="advanced-btn">منظم</button></a>
-    </div>
+    <div class="form-header">{{ trans_db('login.title') }}</div>
 
-    <a href="{{ route('auth.google') }}" class="btn-google">
-        <i class="fab fa-google"></i> تسجيل الدخول بواسطة جوجل
-    </a>
-    <button class="btn-apple">
-        <i class="fab fa-apple"></i> تسجيل الدخول بواسطة Apple
-    </button>
-
-    <div class="or">أو</div>
     <form method="POST" action="{{ 'login' }}">
         @csrf
-        <input type="text" name="email" placeholder="البريد الإلكتروني أو الهاتف" value="{{ old('email') }}" class="block w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        @error('email')
+        {{-- تسمية حقل البريد الإلكتروني --}}
+        <label for="email">{{ trans_db('login.email.or.phone.label') }}:</label>
+        <input type="text" id="email" name="email-or-phone" placeholder="{{ trans_db('login.email.placeholder') }}" value="{{ old('email-or-phone') }}" class="block w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        @error('email-or-phone')
         <div class="text-red-500 text-sm mt-1 text-center">{{ $message }}</div>
         @enderror
 
-        <input type="password" name="password" placeholder="كلمة المرور" class="block w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        {{-- تسمية حقل كلمة المرور --}}
+        <label for="password">{{ trans_db('login.password.label') }}:</label>
+        <input type="password" id="password" name="password" placeholder="{{ trans_db('login.password.placeholder') }}" class="block w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
         @error('password')
         <div class="text-red-500 text-sm mt-1 text-center">{{ $message }}</div>
         @enderror
 
-        <div class="forgot-password">
-            <a href="{{ route('password.request') }}">هل نسيت كلمة السر؟</a>
+        <div class="options-group">
+            {{-- رابط إعادة تعيين كلمة السر --}}
+            <div class="forgot-password">
+                <a href="{{ route('password.request') }}">{{ trans_db('login.forget.password') }}</a>
+            </div>
+
+            {{-- مربع اختيار "تذكرني" --}}
+            <div class="remember-me">
+                <input type="checkbox" id="remember_me" name="remember" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                <label for="remember_me" class="ml-2 text-sm text-gray-600">{{ trans_db('login.remember.me') }}</label>
+            </div>
         </div>
 
-        <button class="login-btn">تسجيل الدخول</button>
+
+        <button class="login-btn">{{ trans_db('login.btn.login') }}</button>
         <div class="signup">
-            ليس لديك حساب؟ <a href="{{ route('register') }}">إنشاء حساب جديد</a>
+            {{ trans_db('login.href.question') }} <a href="{{ route('register') }}">{{ trans_db('login.href.create.account') }}</a>
         </div>
     </form>
 </div>
+    </div>
 
-<div id="footer" class="w-full"></div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', async () => {
-        // تحميل Navbar
-        const nav = document.getElementById('navbar-container');
-        try {
-            const res = await fetch('navbar.html');
-            if (!res.ok) throw new Error(`Status ${res.status}`);
-            nav.innerHTML = await res.text();
-            const btnOpen  = nav.querySelector('#mobile-menu-btn');
-            const btnClose = nav.querySelector('#mobile-menu-close');
-            const menu     = nav.querySelector('#mobile-menu');
-            btnOpen.addEventListener('click',  () => menu.classList.remove('translate-x-full'));
-            btnClose.addEventListener('click', () => menu.classList.add('translate-x-full'));
-        } catch (err) {
-            nav.innerHTML = `<p class="text-red-500 p-4 text-center">تعذّر تحميل Navbar: ${err.message}</p>`;
-        }
-
-        // تحميل Footer
-        const footer = document.getElementById('footer');
-        try {
-            const resF = await fetch('footer.html');
-            if (!resF.ok) throw new Error(`Status ${resF.status}`);
-            footer.innerHTML = await resF.text();
-        } catch (err) {
-            footer.innerHTML = `<p class="text-red-500 p-4 text-center">تعذّر تحميل Footer: ${err.message}</p>`;
-            console.error('Footer load error:', err);
-        }
-    });
-</script>
 </body>
 </html>

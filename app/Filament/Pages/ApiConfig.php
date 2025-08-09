@@ -10,7 +10,7 @@ class ApiConfig extends Page implements Forms\Contracts\HasForms
 {
     use Forms\Concerns\InteractsWithForms;
 
-    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static ?string $navigationIcon = 'heroicon-o-code-bracket';
     protected static ?string $navigationLabel = 'API Configuration';
     protected static ?string $navigationGroup = 'Settings';
     protected static bool $shouldRegisterNavigation = true;

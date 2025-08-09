@@ -9,6 +9,12 @@ class Event extends Model
 {
     protected $guarded = ['id'];
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+
     public function excelUploads(): HasMany
     {
         return $this->hasMany(ExcelUpload::class);
@@ -17,5 +23,15 @@ class Event extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function documentTemplates()
+    {
+        return $this->hasMany(DocumentTemplate::class);
+    }
+
+    public function recipients()
+    {
+        return $this->hasMany(Recipient::class);
     }
 }

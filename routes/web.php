@@ -13,27 +13,54 @@ use App\Http\Controllers\Pages\DocumentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiteInfo\ContactUsController;
 use App\Http\Controllers\User\RegisteredUserController;
+use App\Notifications\TestNotification;
 use Illuminate\Support\Facades\Route;
 
+use App\Models\User;
+
+
+//Route::get('/test-notification', function () {
+//    $user = User::find(4); // ID بتاعك
+//    $user->notify(new TestNotification('إشعار لحظي 🔔'));
+//    return 'تم الإرسال';
+//});
+
+Route::get('/', function () {
+    return redirect()->route('homeForGuests'); // أو أي صفحة عامة
+});
+
+Route::get('/u/{user:slug}', [ProfileController::class, 'showProfileToGuest'])->name('showProfileToGuest');
+Route::get('/documents/{uuid}', [DocumentController::class, 'show'])->name('documents.show');
 
 
 
 Route::view('pry', 'pry')->name('pry');
 
 
-
-Route::get('/', function () {
-    return view('welcome');
-});
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+
+    // اخفاء الشهادة من البروفايل او اظهارها للاخرين
+    Route::patch('/documents/{document}/toggle-visibility', [DocumentController::class, 'toggleVisibility'])
+        ->name('documents.toggleVisibility');
+    Route::get('/profile/{slug}', [ProfileController::class, 'generateLinkToShare'])->name('profile.public');
+
+    Route::get('/cookie-accept', function () {
+        return response('OK')->cookie('cookie_consent', true, 60 * 24 * 365); // سنة
+    })->name('cookie.accept');
+
+    // OTP لتحقق من الايميل والهاتف
+    Route::get('/verify-otp', [\App\Http\Controllers\Auth\RegisteredUserController::class, 'showOtpForm'])
+        ->name('verify.otp')->withoutMiddleware('ensure.otp.verified');;
+    Route::post('/verify-otp', [\App\Http\Controllers\Auth\RegisteredUserController::class, 'verifyOtp'])
+        ->name('verify.otp.submit')->withoutMiddleware('ensure.otp.verified');;
+    Route::post('/resend-otp', [\App\Http\Controllers\Auth\RegisteredUserController::class, 'resendOtp'])
+        ->name('resend.otp')->withoutMiddleware('ensure.otp.verified');;
+
+
+
 });
 
 
@@ -41,7 +68,20 @@ Route::middleware(['auth', 'role:eventor|super admin|admin|employee'])->group(fu
         // home Page for eventor
         Route::get('home', [HomeController::class, 'index'])->name('home.eventor');
 
-        // wallet
+        // show event
+        Route::get('show-event/{event}', [EventController::class, 'show'])->name('showEvent');
+        // edit event
+        Route::get('edit-event/{event}', [EventController::class, 'edit'])->name('editEvent');
+
+        // تفعيل الحضور للكل
+        Route::post('/toggle-attendance', [EventController::class, 'toggleAttendance'])
+            ->name('toggleAttendance');
+        // delete event
+        Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
+
+
+
+    // wallet
         Route::get('wallet', [WalletController::class, 'eventorWallet'])->name('wallet');
         // Auto Renew
         Route::post('/subscription/auto-renew', [WalletController::class, 'toggleAutoRenew'])->name('subscription.autoRenew');
@@ -66,6 +106,7 @@ Route::middleware(['auth', 'role:eventor|super admin|admin|employee'])->group(fu
     Route::post('document-generation', [DocumentGenerationController::class, 'store'])->name('document-generation.store');
     // اما اليوزر يضغط ع لينك الشهاده تظهرله
     Route::get('/documents/verify/{uuid}', [DocumentVerificationController ::class, 'verify'])->name('documents.verify');
+
 });
 
 Route::prefix('auth')->group(function () {
@@ -84,12 +125,16 @@ Route::middleware('guest')->group(function () {
 
     // about
     Route::get('about', [AboutController::class, 'index'])->name('about');
+
+    Route::get('home-for-guests', [HomeController::class, 'homeForGuests'])->name('homeForGuests');
+
+
+
 });
 
 Route::middleware('auth')->group(function () {
 //    Route::view('home/users', 'users.home')->name('home.users');
     Route::get('/home/users',  [DocumentController::class, 'index'])->name('home.users');
-    Route::get('/documents/{uuid}', [DocumentController::class, 'show'])->name('documents.show');
 
 });
 

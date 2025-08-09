@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{{--<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">--}}
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8" />
@@ -166,7 +167,7 @@
             <!-- السعر على اليمين -->
             <div class="mt-4 text-right">
                 <span id="balance-amount" class="text-4xl font-bold text-green-600">{{ intval(($user->subscription?->balance)) }}</span>
-                <span class="text-xl font-semibold text-green-600 mr-1">نقطة</span>
+                <span class="text-xl font-semibold text-green-600 mr-1">جنية</span>
                 <input type="hidden" id="balance-data" value="1500" data-unit-price="" />
             </div>
             <p class="text-gray-500 mt-1 text-right">يمكن إصدار {{ intval(($user->subscription?->balance)) }} وثيقة أخرى</p>
@@ -176,13 +177,22 @@
                 <h4 class="text-lg font-semibold">شحن المحفظة</h4>
             </div>
             @foreach($paymentMethods as $paymentMethod)
-                <div class="bg-white border shadow rounded-lg p-4 flex justify-between items-center mt-2">
-                    <span id="account-number" class="text-gray-700">{{ $paymentMethod->value }}</span>
-                    <button id="copy-account" title="انسخ رقم الحساب"><i class="bi bi-clipboard text-lg text-gray-600"></i></button>
+                <div class="bg-white border shadow rounded-lg p-4 mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ $paymentMethod->key ?? 'Payment Method' }}
+                    </label>
+
+                    <div class="flex justify-between items-center">
+                        <span id="account-number" class="text-gray-700">{{ $paymentMethod->value }}</span>
+                        <button  onclick="copyToClipboard('value-{{ $loop->index }}')" >
+                            <i class="bi bi-clipboard text-lg text-gray-600"></i>
+                        </button>
+                    </div>
                 </div>
             @endforeach
 
-                <input type="file" id="file-attachment" class="hidden" />
+
+            <input type="file" id="file-attachment" class="hidden" />
                 <button type="button" id="charge-wallet-btn" class="mt-4 w-full bg-green-600 hover:bg-green-700 transition-colors transition-transform hover:scale-105 text-white font-bold py-2 px-4 rounded duration-200">شحن المحفظة</button>
         </div>
 
@@ -223,54 +233,124 @@
 
     <div class="text-lg font-semibold text-right mb-4">أختيار الباقة </div>
 
-    <div id="upgrade" class="custom-plan-style">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        @foreach ($plans as $plan)
-            <input type="radio" name="plan" id="plan-{{ $plan->id }}" value="{{ $plan->id }}" class="hidden" >
-            <label for="plan-{{ $plan->id }}" class="card-label bg-white rounded-lg p-4 hover:shadow-lg transition cursor-pointer">
-                <div class="text-lg font-semibold text-right mb-3">{{ $plan->name }}</div>
-                <div class="text-right text-xl font-bold mb-2">
-                    @if ($plan->compare_price)
-                        <span class="text-gray-500 line-through text-base ml-2">{{ $plan->compare_price }} ج.م</span>
-                    @endif
-                    <span>{{ $plan->price }} ج.م</span>
-                </div>
-                <ul class="space-y-2 text-right mb-4">
-                    @foreach ( $plan->features_list as $feature)
-                        <li><i class="fas fa-check-circle text-green-500 ml-2"></i>{{ $feature }}</li>
-                    @endforeach
-                </ul>
-
-                @if ($plan->price > 0)
-                    <div class="bg-gray-100 rounded p-3 mb-4 text-right">
-                        @foreach($paymentMethods as $payment)
-                            <div class="mb-2">
-                                <div class="mb-1 font-semibold">{{ $payment->key }}:</div>
-                                <div class="flex items-center justify-between bg-white p-2 rounded border font-mono text-sm">
-                                    <span id="value-{{ $loop->index }}">{{ $payment->value }}</span>
-                                    <button type="button" onclick="copyToClipboard('value-{{ $loop->index }}')" class="text-blue-500 hover:text-blue-700">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        @endforeach
+    <div id="upgrade" class="custom-plan-style flex justify-center">
+        <div class="flex flex-wrap justify-center gap-4 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+            @foreach ($plans as $plan)
+                <input type="radio" name="plan" id="plan-{{ $plan->id }}" value="{{ $plan->id }}" class="hidden" >
+                <label for="plan-{{ $plan->id }}" class="card-label w-full sm:w-[calc(50%-8px)] md:w-[calc(33.333%-10.666px)] lg:w-[calc(25%-12px)] h-auto min-h-[24rem] bg-white rounded-lg p-4 hover:shadow-lg transition cursor-pointer">
+                    <div class="text-lg font-semibold text-right mb-3">{{ $plan->name }}</div>
+                    <div class="text-right text-xl font-bold mb-2">
+                        @if ($plan->compare_price)
+                            <span class="text-gray-500 line-through text-base ml-2">{{ $plan->compare_price }} ج.م</span>
+                        @endif
+                        <span>{{ $plan->price }} ج.م</span>
                     </div>
+                    <ul class="space-y-2 text-right mb-4">
+                        @foreach ( $plan->features_list as $feature)
+                            <li><i class="fas fa-check-circle text-green-500 ml-2"></i>{{ $feature }}</li>
+                        @endforeach
+                    </ul>
 
-                    <label for="payment_receipt_{{ $plan->id }}" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition cursor-pointer flex items-center justify-center">
-                        <i class="fas fa-cloud-upload-alt ml-2"></i>إرفاق وصل الدفع
-                        <input
-                            type="file"
-                            id="payment_receipt_{{ $plan->id }}"
-                            name="payment_receipt[{{ $plan->id }}]"
-                            class="hidden payment-upload"
-                            data-plan="{{ $plan->id }}"
-                        >
-                    </label>
-                @endif
-            </label>
-        @endforeach
+                    @if ($plan->price > 0)
+                        <div class="bg-gray-100 rounded p-3 mb-4 text-right">
+                            @foreach($paymentMethods as $payment)
+                                <div class="mb-2">
+                                    <div class="mb-1 font-semibold">{{ $payment->key }}:</div>
+                                    <div class="flex items-center justify-between bg-white p-2 rounded border font-mono text-sm">
+                                        <span id="value-{{ $loop->index }}">{{ $payment->value }}</span>
+                                        <button type="button" onclick="copyToClipboard('value-{{ $loop->index }}')" class="text-blue-500 hover:text-blue-700">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div id="filename-{{ $plan->id }}" class="mt-2 text-sm text-gray-500 text-center mb-2"></div>
+
+                        <label for="payment_receipt_{{ $plan->id }}" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition cursor-pointer flex items-center justify-center">
+                            <i class="fas fa-cloud-upload-alt ml-2"></i>إرفاق وصل الدفع
+                            <input
+                                type="file"
+                                id="payment_receipt_{{ $plan->id }}"
+                                name="payment_receipt[{{ $plan->id }}]"
+                                class="hidden payment-upload"
+                                data-plan="{{ $plan->id }}"
+                            >
+                        </label>
+
+                        <a href="#" class="block text-center w-full bg-blue-500 text-white py-2 rounded mt-2 hover:bg-blue-600 transition cursor-pointer">
+                            ترقية الباقة
+                        </a>
+
+                    @endif
+                </label>
+            @endforeach
+
+            <div class="card-label w-full sm:w-[calc(50%-8px)] md:w-[calc(33.333%-10.666px)] lg:w-[calc(25%-12px)] bg-white rounded-lg p-4 hover:shadow-lg transition cursor-pointer flex flex-col justify-between">
+                <div class="text-lg font-semibold text-right mb-3">باقة مخصصة</div>
+                <div class="text-center my-4">
+                    <i class="fas fa-phone-alt text-4xl text-blue-500"></i>
+                </div>
+                <div class="text-center font-bold text-xl mb-2">
+                    <p class="text-gray-600 text-sm">لطلب باقة مخصصة، اتصل على:</p>
+                    <a href="tel:1234567890" class="text-blue-500 hover:underline">1234567890</a>
+                </div>
+            </div>
+        </div>
     </div>
-    </div>
+
+    <script>
+        // هذه الوظيفة لعرض اسم الملف المرفوع
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.payment-upload').forEach(input => {
+                input.addEventListener('change', function (e) {
+                    const planId = e.target.dataset.plan;
+                    const filenameDiv = document.getElementById(`filename-${planId}`);
+                    if (e.target.files.length > 0) {
+                        filenameDiv.textContent = e.target.files[0].name;
+                    } else {
+                        filenameDiv.textContent = '';
+                    }
+                });
+            });
+        });
+
+        // الوظائف الأخرى
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                Toastify({
+                    text: "تم نسخ القيمة",
+                    duration: 2000,
+                    gravity: "top",
+                    position: "{{ app()->getLocale() === 'ar' ? 'left' : 'right' }}",
+                    backgroundColor: "#10B981",
+                    stopOnFocus: true
+                }).showToast();
+            }).catch(err => {
+                Toastify({
+                    text: "فشل النسخ!",
+                    duration: 2000,
+                    gravity: "top",
+                    position: "{{ app()->getLocale() === 'ar' ? 'left' : 'right' }}",
+                    backgroundColor: "#EF4444",
+                    stopOnFocus: true
+                }).showToast();
+            });
+        }
+
+        function handlePlanChange(selectedPlanId) {
+            document.querySelectorAll('.payment-upload').forEach(input => {
+                input.removeAttribute('required');
+            });
+
+            const selectedInput = document.querySelector(`.payment-upload[data-plan="${selectedPlanId}"]`);
+            if (selectedInput) {
+                selectedInput.setAttribute('required', 'required');
+            }
+        }
+    </script>
 
     <hr class="border-gray-300 my-4 fade-in" />
     <section class="text-right fade-in mb-8">
@@ -463,7 +543,7 @@
 
         navigator.clipboard.writeText(text).then(() => {
             Toastify({
-                text: "تم نسخ القيمة!",
+                text: " تم النسخ إلى الحافظة",
                 duration: 2000,
                 gravity: "top",
                 position: "right",

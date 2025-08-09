@@ -10,6 +10,11 @@ class AttendanceTemplate extends Model
 {
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'send_via' => 'array',
+        'send_at' => 'datetime',
+    ];
+
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);

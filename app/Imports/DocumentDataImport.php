@@ -2,16 +2,19 @@
 
 namespace App\Imports;
 
-use Maatwebsite\Excel\Row;
-use Maatwebsite\Excel\Concerns\OnEachRow;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\ToCollection;
 
-class DocumentDataImport implements OnEachRow, WithHeadingRow
+class DocumentDataImport implements ToCollection
 {
-    public array $rows = [];
+    public $rows = [];
 
-    public function onRow(Row $row): void
+    public function collection(Collection $rows)
     {
-        $this->rows[] = $row->toArray();
+        $headers = $rows->first()->toArray(); // أول صف هو رأس الجدول
+//        dd($headers);
+        $this->rows = $rows->slice(1)->map(function ($row) use ($headers) {
+            return array_combine($headers, $row->toArray()); // ربط كل صف بالأعمدة
+        })->toArray();
     }
 }

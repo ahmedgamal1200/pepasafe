@@ -58,20 +58,9 @@ class TranslationValueResource extends Resource
         return $table
             ->columns([
 
-                Tables\Columns\TextColumn::make('key.key')->label('Translation Key'),
+                Tables\Columns\TextColumn::make('key.key')->label('Translation Key')->searchable(),
                 Tables\Columns\TextColumn::make('locale')->label('اللغة'),
-                Tables\Columns\TextColumn::make('value')->label('النص'),
-
-            //                Tables\Columns\TextColumn::make('key')->searchable(),
-//
-//                Tables\Columns\TextColumn::make('values.value')
-//                    ->label('Translations')
-//                    ->formatStateUsing(fn ($state, $record) =>
-//                    $record->values
-//                        ->pluck('locale', 'value')
-//                        ->map(fn($locale, $val) => "$locale: $val")
-//                        ->implode(' | ')
-//                    ),
+                Tables\Columns\TextColumn::make('value')->label('النص')->searchable(),
             ])
             ->filters([
                 //

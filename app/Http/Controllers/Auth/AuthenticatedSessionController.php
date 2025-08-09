@@ -24,19 +24,28 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        $emailOrPhone = $request->input('email-or-phone');
+        $password = $request->input('password');
 
-        $request->session()->regenerate();
-
-        $user = auth()->user()->load('roles');
+        $field = filter_var($emailOrPhone, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
 
 
-        if ($user->hasRole('eventor')) {
-            // لو الرول "eventor"، وجهه لصفحة الـ eventor dashboard مثلاً
-            return redirect()->intended(route('home.eventor', absolute: false));
-        } else {
-            return redirect()->intended(route('home.users', absolute: false));
+
+        if (Auth::attempt([$field => $emailOrPhone, 'password' => $password], $request->filled('remember'))) {
+            $request->session()->regenerate();
+
+
+            $user = auth()->user()->load('roles');
+
+            if ($user->hasAnyRole(['eventor', 'admin', 'super admin', 'employee'])) {
+                // لو الرول "eventor"، وجهه لصفحة الـ eventor dashboard مثلاً
+                return redirect()->intended(route('home.eventor', absolute: false));
+            } else {
+                return redirect()->intended(route('home.users', absolute: false));
+            }
         }
+
+        return back()->withErrors(['email-or-phone' => 'بيانات الدخول غير صحيحة']);
 
     }
 

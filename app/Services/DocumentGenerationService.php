@@ -2,176 +2,387 @@
 
 namespace App\Services;
 
-use App\Imports\DocumentDataImport;
-use App\Imports\RecipientsImport;
-use App\Models\Document;
 use App\Models\DocumentTemplate;
-use App\Models\Event;
-use App\Models\Recipient;
-use App\Models\User;
-use Illuminate\Support\Facades\DB;
+use App\Models\AttendanceTemplate;
+use App\Repositories\Eventor\AttendanceDocumentRepository;
+use App\Repositories\Eventor\DocumentRepository;
+use Illuminate\Support\Facades\Log;
+use Intervention\Image\ImageManager;
+//use Intervention\Image\Laravel\Facades\Image;
+use Intervention\Image\Laravel\Facades\Image;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Str;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Imports\DocumentDataImport;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 
+
 class DocumentGenerationService
 {
-    public function execute(array $data): void
+    protected DocumentRepository $documentRepository;
+    protected AttendanceDocumentRepository $attendanceDocumentRepository;
+
+    public function __construct(
+        DocumentRepository $documentRepository,
+        AttendanceDocumentRepository $attendanceDocumentRepository
+    ) {
+        $this->documentRepository = $documentRepository;
+        $this->attendanceDocumentRepository = $attendanceDocumentRepository;
+    }
+
+//    public function generateDocuments(DocumentTemplate $template, array $recipients, $templateDataFile): void
+//    {
+//        $frontTemplate = $template->templateFiles()->where('side', 'front')->first();
+//        $backTemplate = $template->templateFiles()->where('side', 'back')->first();
+//
+//        if (!$frontTemplate) {
+//            throw new \Exception('Front document template not found');
+//        }
+//
+//        // استيراد بيانات الإكسيل
+//        $documentDataImport = new DocumentDataImport();
+//        Excel::import($documentDataImport, $templateDataFile);
+//        $documentRows = $documentDataImport->rows;
+//
+////        dd($documentRows);
+//
+//        // التحقق من أن عدد الصفوف يطابق عدد المستلمين
+//        if (count($documentRows) < count($recipients)) {
+//            throw new \Exception('Not enough data rows in Excel for all recipients');
+//        }
+//
+//        $canvasWidth = 900;
+//        $canvasHeight = 600;
+//        $totalHeight = $backTemplate ? $canvasHeight * 2 : $canvasHeight;
+//
+//        $backgroundPathFront = storage_path('app/public/' . $frontTemplate->file_path);
+//        $resizedBackgroundPathFront = storage_path('app/public/templates/resized_' . basename($frontTemplate->file_path));
+//
+//        if (!file_exists($backgroundPathFront)) {
+//            throw new \Exception("Front background file not found: $backgroundPathFront");
+//        }
+//
+//        $image = Image::read($backgroundPathFront)->resize(900, 600, function ($constraint) {
+//            $constraint->aspectRatio();
+//        })->save($resizedBackgroundPathFront);
+//
+//        $backgroundPathBack = null;
+//        $resizedBackgroundPathBack = null;
+//        if ($backTemplate) {
+//            $backgroundPathBack = storage_path('app/public/' . $backTemplate->file_path);
+//            $resizedBackgroundPathBack = storage_path('app/public/templates/resized_' . basename($backTemplate->file_path));
+//
+//            if (!file_exists($backgroundPathBack)) {
+//                throw new \Exception("Back background file not found: $backgroundPathBack");
+//            }
+//
+//            $image = Image::read($backgroundPathBack)->resize(900, 600, function ($constraint) {
+//                $constraint->aspectRatio();
+//            })->save($resizedBackgroundPathBack);
+//        }
+//
+//        // ربط كل مستلم بصف من الإكسيل
+//        foreach ($recipients as $index => $recipient) {
+//            $dataRow = $documentRows[$index] ?? []; // أخذ الصف المطابق للمستلم
+//            $frontFields = $template->fields()->where('side', 'front')->get();
+////            dd($frontFields->pluck('field_key')->toArray());
+//            $backFields = $template->fields()->where('side', 'back')->get();
+//
+//            $frontRenderedFields = [];
+//            foreach ($frontFields as $field) {
+//                $value = $dataRow[$field->field_key] ?? $field->field_key; // استخدام القيمة من الصف
+//                $frontRenderedFields[] = [
+//                    'text' => $value,
+//                    'x' => $field->position_x,
+//                    'y' => $field->position_y,
+//                    'font' => $field->font_family,
+//                    'size' => $field->font_size,
+//                    'color' => $field->font_color,
+//                    'align' => $field->text_align,
+//                    'weight' => $field->font_weight,
+//                    'rotation' => $field->rotation,
+//                ];
+//            }
+//
+//            $backRenderedFields = [];
+//            foreach ($backFields as $field) {
+//                $value = $dataRow[$field->field_key] ?? $field->field_key; // استخدام القيمة من الصف
+//                $backRenderedFields[] = [
+//                    'text' => $value,
+//                    'x' => $field->position_x,
+//                    'y' => $field->position_y,
+//                    'font' => $field->font_family,
+//                    'size' => $field->font_size,
+//                    'color' => $field->font_color,
+//                    'align' => $field->text_align,
+//                    'weight' => $field->font_weight,
+//                    'rotation' => $field->rotation,
+//                ];
+//            }
+//
+//            $pdf = Pdf::loadView('pdf.template', [
+//                'backgroundFront' => $resizedBackgroundPathFront,
+//                'backgroundBack' => $resizedBackgroundPathBack,
+//                'frontFields' => $frontRenderedFields,
+//                'backFields' => $backRenderedFields,
+//                'canvasWidth' => $canvasWidth,
+//                'canvasHeight' => $canvasHeight,
+//                'hasBack' => $backTemplate ? true : false,
+//            ])->setPaper([0, 0, $canvasWidth, $totalHeight], 'px');
+//
+//            $pdfPath = "certificates/" . auth()->id() . "/" . uniqid() . ".pdf";
+//            $pdfFullPath = storage_path("app/public/{$pdfPath}");
+//            Storage::disk('public')->makeDirectory("certificates/" . auth()->id());
+//            $pdf->save($pdfFullPath);
+//
+//            $document = $this->documentRepository->create([
+//                'file_path' => $pdfPath,
+//                'document_template_id' => $template->id,
+//                'recipient_id' => $recipient->id,
+//                'valid_from' => $template->valid_from,
+//                'valid_until' => $template->valid_until,
+//            ]);
+//
+//            $this->dispatchCertificate($document, $template->send_at);
+//        }
+//    }
+
+
+    public function generateDocuments(DocumentTemplate $template, array $recipients, $templateDataFile, $canvasWidth, $canvasHeight): void
     {
-        DB::transaction(function () use ($data) {
-            $event = $this->createEvent($data);
-            $template = $this->createTemplate($event, $data);
+        $frontTemplate = $template->templateFiles()->where('side', 'front')->first();
+        $backTemplate = $template->templateFiles()->where('side', 'back')->first();
 
-            $this->storeExcelUploads($event, $data);
+        if (!$frontTemplate) {
+            throw new \Exception('Front document template not found');
+        }
 
-            $recipients = $this->importRecipients($event, $data['recipient_file_path']);
-            $documentRows = $this->readDocumentRows($data['template_data_file_path'] ?? null);
+        $documentDataImport = new DocumentDataImport();
+        Excel::import($documentDataImport, $templateDataFile);
+        $documentRows = $documentDataImport->rows;
 
-            foreach ($recipients as $index => $recipient) {
-                $rowData = $documentRows[$index] ?? [];
+        if (count($documentRows) < count($recipients)) {
+            throw new \Exception('Not enough data rows in Excel for all recipients');
+        }
 
-                $document = $this->createDocument($template, $recipient, $rowData);
+        $backgroundPathFront = storage_path('app/public/' . $frontTemplate->file_path);
+        if (!file_exists($backgroundPathFront)) {
+            throw new \Exception("Front background file not found: $backgroundPathFront");
+        }
 
-                foreach ((array) $template->send_via as $channel) {
-                    SendDocumentJob::dispatch($document, $channel);
-                }
+        $backgroundPathBack = null;
+        if ($backTemplate) {
+            $backgroundPathBack = storage_path('app/public/' . $backTemplate->file_path);
+            if (!file_exists($backgroundPathBack)) {
+                throw new \Exception("Back background file not found: $backgroundPathBack");
             }
-        });
-    }
+        }
 
-    private function createEvent(array $data)
-    {
-        return Event::query()->create([
-            'title' => $data['event_title'],
-            'issuer' => $data['issuer'],
-            'start_date' => $data['event_start_date'],
-            'end_date' => $data['event_end_date'],
-            'user_id' => $data['user_id'],
-        ]);
-    }
+        $totalHeight = $backTemplate ? $canvasHeight * 2 : $canvasHeight;
 
-    private function createTemplate(Event $event, array $data)
-    {
-        return DocumentTemplate::query()->create([
-            'title' => $data['document_title'],
-            'message' => $data['document_message'],
-            'send_at' => $data['document_send_at'],
-            'send_via' => $data['document_send_via'],
-            'is_attendance_enabled' => $data['is_attendance_enabled'] ?? false,
-            'event_id' => $event->id,
+        foreach ($recipients as $index => $recipient) {
+            $dataRow = $documentRows[$index] ?? [];
+            $frontFields = $template->fields()->where('side', 'front')->get();
+            $backFields = $template->fields()->where('side', 'back')->get();
+
+            $frontRenderedFields = [];
+            foreach ($frontFields as $field) {
+                $value = $dataRow[$field->field_key] ?? $field->field_key;
+                $frontRenderedFields[] = [
+                    'text' => $value,
+                    'x' => $field->position_x,
+                    'y' => $field->position_y,
+                    'font' => $field->font_family,
+                    'size' => $field->font_size,
+                    'color' => $field->font_color,
+                    'align' => $field->text_align,
+                    'weight' => $field->font_weight,
+                    'rotation' => $field->rotation,
+                ];
+            }
+
+            $backRenderedFields = [];
+            foreach ($backFields as $field) {
+                $value = $dataRow[$field->field_key] ?? $field->field_key;
+                $backRenderedFields[] = [
+                    'text' => $value,
+                    'x' => $field->position_x,
+                    'y' => $field->position_y,
+                    'font' => $field->font_family,
+                    'size' => $field->font_size,
+                    'color' => $field->font_color,
+                    'align' => $field->text_align,
+                    'weight' => $field->font_weight,
+                    'rotation' => $field->rotation,
+                ];
+            }
+
+            $pdf = Pdf::loadView('pdf.template', [
+                'backgroundFront' => $backgroundPathFront,
+                'backgroundBack' => $backgroundPathBack,
+                'frontFields' => $frontRenderedFields,
+                'backFields' => $backRenderedFields,
+                'canvasWidth' => $canvasWidth,
+                'canvasHeight' => $canvasHeight,
+                'hasBack' => $backTemplate ? true : false,
+            ])->setPaper([0, 0, $canvasWidth, $totalHeight], 'px');
+
+            $pdfPath = "certificates/" . auth()->id() . "/" . uniqid() . ".pdf";
+            $pdfFullPath = storage_path("app/public/{$pdfPath}");
+            Storage::disk('public')->makeDirectory("certificates/" . auth()->id());
+            $pdf->save($pdfFullPath);
+
+            $document = $this->documentRepository->create([
+                'file_path' => $pdfPath,
+                'document_template_id' => $template->id,
+                'recipient_id' => $recipient->id,
+                'valid_from' => $template->valid_from,
+                'valid_until' => $template->valid_until,
             ]);
-    }
 
-    private function storeExcelUploads(Event $event, array $data): void
-    {
-        $event->excelUploads()->create([
-            'file_path' => $data['recipient_file_path']->store('uploads'),
-            'upload_type' => 'recipients',
-        ]);
+//            dd($result);
 
-        if (isset($data['template_data_file_path'])) {
-            $event->excelUploads()->create([
-                'file_path' => $data['template_data_file_path']->store('uploads'),
-                'upload_type' => 'document_data',
-            ]);
+//            $document = $result['document'];
+//            $qrPath = $result['qrPath'];
+//
+//
+//            $pdf = Pdf::loadView('pdf.template', [
+//                'backgroundFront' => $backgroundPathFront,
+//                'backgroundBack' => $backgroundPathBack,
+//                'frontFields' => $frontRenderedFields,
+//                'backFields' => $backRenderedFields,
+//                'canvasWidth' => $canvasWidth,
+//                'canvasHeight' => $canvasHeight,
+//                'hasBack' => $backTemplate ? true : false,
+//                'qrPath' => $qrPath, // أضف $qrPath كمتغير صريح
+//                'qrCodeUrl' => url("storage/{$qrPath}"), // احتفظ بالـ URL
+//            ])->setPaper([0, 0, $canvasWidth, $totalHeight], 'px');
+//
+//            $pdf->save($pdfFullPath);
+
+            $this->dispatchCertificate($document, $template->send_at);
         }
     }
 
-    private function importRecipients(Event $event, $file): array
+
+    public function generateAttendanceDocuments(AttendanceTemplate $template, array $recipients, $templateDataFile): void
     {
-        $import = new RecipientsImport();
+        $frontTemplate = $template->templateFiles()->where('side', 'front')->first();
+        $backTemplate = $template->templateFiles()->where('side', 'back')->first();
 
-        Excel::import($import, $file);
+        if (!$frontTemplate) {
+            throw new \Exception('Front attendance template not found');
+        }
 
-        $rows = $import->rows;
+        // استيراد بيانات الإكسيل
+        $attendanceDataImport = new DocumentDataImport();
+        Excel::import($attendanceDataImport, $templateDataFile);
+        $attendanceDataRows = $attendanceDataImport->rows;
 
-        $recipients = [];
+        dd($attendanceDataRows);
 
-        foreach ($rows as $row) {
-            $user = User::query()->firstOrCreate(
-                ['email' => $row['email']],
-                [
-                    'name'     => $row['name'],
-                    'password' => bcrypt('password123'),
-                    'phone'    => $row['phone'] ?? null,
-                ]
-            );
+        // التحقق من أن عدد الصفوف يطابق عدد المستلمين
+        if (count($attendanceDataRows) < count($recipients)) {
+            throw new \Exception('Not enough data rows in Excel for all attendance recipients');
+        }
 
-            $recipient = Recipient::query()->firstOrCreate([
-                'event_id' => $event->id,
-                'user_id'  => $user->id,
+        $canvasWidth = 900;
+        $canvasHeight = 600;
+        $totalHeight = $backTemplate ? $canvasHeight * 2 : $canvasHeight;
+
+        $backgroundPathFront = storage_path('app/public/' . $frontTemplate->file_path);
+        $resizedBackgroundPathFront = storage_path('app/public/templates/resized_' . basename($frontTemplate->file_path));
+
+        if (!file_exists($backgroundPathFront)) {
+            throw new \Exception("Front background file not found: $backgroundPathFront");
+        }
+
+        $image = Image::read($backgroundPathFront)->resize(900, 600, function ($constraint) {
+            $constraint->aspectRatio();
+        })->save($resizedBackgroundPathFront);
+
+        $backgroundPathBack = null;
+        $resizedBackgroundPathBack = null;
+        if ($backTemplate) {
+            $backgroundPathBack = storage_path('app/public/' . $backTemplate->file_path);
+            $resizedBackgroundPathBack = storage_path('app/public/templates/resized_' . basename($backTemplate->file_path));
+
+            if (!file_exists($backgroundPathBack)) {
+                throw new \Exception("Back background file not found: $backgroundPathBack");
+            }
+
+            $image = Image::read($backgroundPathBack)->resize(900, 600, function ($constraint) {
+                $constraint->aspectRatio();
+            })->save($resizedBackgroundPathBack);
+        }
+
+        // ربط كل مستلم بصف من الإكسيل
+        foreach ($recipients as $index => $recipient) {
+            $dataRow = $attendanceDataRows[$index] ?? []; // أخذ الصف المطابق للمستلم
+            $frontFields = $template->fields()->where('side', 'front')->get();
+            $backFields = $template->fields()->where('side', 'back')->get();
+
+            $frontRenderedFields = [];
+            foreach ($frontFields as $field) {
+                $value = $dataRow[$field->field_key] ?? ''; // استخدام القيمة من الصف
+                $frontRenderedFields[] = [
+                    'text' => $value,
+                    'x' => $field->position_x,
+                    'y' => $field->position_y,
+                    'font' => $field->font_family,
+                    'size' => $field->font_size,
+                    'color' => $field->font_color,
+                    'align' => $field->text_align,
+                    'weight' => $field->font_weight,
+                    'rotation' => $field->rotation,
+                ];
+            }
+
+            $backRenderedFields = [];
+            foreach ($backFields as $field) {
+                $value = $dataRow[$field->field_key] ?? ''; // استخدام القيمة من الصف
+                $backRenderedFields[] = [
+                    'text' => $value,
+                    'x' => $field->position_x,
+                    'y' => $field->position_y,
+                    'font' => $field->font_family,
+                    'size' => $field->font_size,
+                    'color' => $field->font_color,
+                    'align' => $field->text_align,
+                    'weight' => $field->font_weight,
+                    'rotation' => $field->rotation,
+                ];
+            }
+
+            $pdfPath = "attendance_certificates/" . auth()->id() . "/" . uniqid() . ".pdf";
+            $pdfFullPath = storage_path("app/public/{$pdfPath}");
+            Storage::disk('public')->makeDirectory("attendance_certificates/" . auth()->id());
+
+            $pdf = Pdf::loadView('pdf.template', [
+                'backgroundFront' => $resizedBackgroundPathFront,
+                'backgroundBack' => $resizedBackgroundPathBack,
+                'frontFields' => $frontRenderedFields,
+                'backFields' => $backRenderedFields,
+                'canvasWidth' => $canvasWidth,
+                'canvasHeight' => $canvasHeight,
+                'hasBack' => $backTemplate ? true : false,
+            ])->setPaper([0, 0, $canvasWidth, $totalHeight], 'px');
+
+            $pdf->save($pdfFullPath);
+
+            $attendanceDocument = $this->attendanceDocumentRepository->create([
+                'file_path' => $pdfPath,
+                'attendance_template_id' => $template->id,
+                'recipient_id' => $recipient->id,
+                'valid_from' => $template->valid_from,
+                'valid_until' => $template->valid_until,
             ]);
 
-            $recipients[] = $recipient;
+            $this->dispatchCertificate($attendanceDocument, $template->send_at);
         }
-
-        return $recipients;
     }
 
-    private function readDocumentRows($file): array
+    protected function dispatchCertificate($certificate, $sendAt): void
     {
-        if (!$file) return [];
-
-        $import = new DocumentDataImport();
-        Excel::import($import, $file);
-
-        return $import->rows;
+        \App\Jobs\SendCertificateJob::dispatch($certificate)->delay($sendAt);
     }
-
-    private function createDocument(DocumentTemplate $template, Recipient $recipient, array $row): Document
-    {
-        $uuid = Str::uuid()->toString();
-        $code = strtoupper(Str::random(10));
-        $qrPath = "qr/{$code}.png";
-        $docPath = "documents/{$code}.pdf";
-
-        // توليد ال QR Code
-        QrCode::format('png')->size(300)
-            ->generate(route('documents.verify', $uuid), storage_path("app/public/{$qrPath}"));
-
-
-        // إعداد البيانات لدمجها داخل التصميم
-        $fields = $template->fields;
-        $renderedFields = [];
-
-        foreach ($fields as $field) {
-            $text = $row[$field->field_key] ?? '';
-
-            $renderedFields[] = [
-                'text' => $text,
-                'x' => $field->position_x,
-                'y' => $field->position_y,
-                'font' => $field->font_family,
-                'size' => $field->font_size,
-                'color' => $field->font_color,
-            ];
-        }
-
-        // تحميل ملف التيمبلت (صورة أو PDF)
-        $templateFile = $template->templateFiles()->where('side', 'front')->first();
-        $backgroundPath = storage_path('app/public/' . $templateFile->file_path);
-
-        // توليد PDF من التيمبلت
-        $pdf = Pdf::loadView('pdf.template', [
-            'background' => $backgroundPath,
-            'fields' => $renderedFields,
-        ]);
-
-        Storage::disk('public')->put($docPath, $pdf->output());
-
-        // إنشاء سجل الشهادة
-        return $recipient->documents()->create([
-            'file_path'            => $docPath,
-            'uuid'                 => $uuid,
-            'unique_code'          => $code,
-            'qr_code_path'         => $qrPath,
-            'status'               => 'pending',
-            'document_template_id' => $template->id,
-        ]);
-
-    }
-
-
 }

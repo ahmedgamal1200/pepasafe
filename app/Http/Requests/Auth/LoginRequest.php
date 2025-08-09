@@ -27,7 +27,16 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email-or-phone' => ['required', 'string', function ($attribute, $value, $fail) {
+                // تحقق إذا كان القيمة هي بريد إلكتروني صالح
+                if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                    // تحقق إذا كانت المدخلات هي رقم هاتف صالح مع السماح بالرموز مثل (+) و() و-
+                    if (!preg_match('/^\+?[0-9\s\-()]{10,20}$/', $value)) {
+                        $fail('The ' . $attribute . ' field must be a valid email address or phone number.');
+                    }
+                }
+            }],
+
             'password' => ['required', 'string'],
         ];
     }

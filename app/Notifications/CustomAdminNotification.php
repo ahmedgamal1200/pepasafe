@@ -5,6 +5,7 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 
 class CustomAdminNotification extends Notification
 {
@@ -16,15 +17,7 @@ class CustomAdminNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database']; // أو ['mail', 'database']
-    }
-
-    public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->line($this->messageText)
-            ->action('اذهب إلى الموقع', url('/'))
-            ->line('شكرًا لاستخدامك نظامنا.');
+        return ['database', 'broadcast'];
     }
 
     public function toDatabase(object $notifiable): array
@@ -32,6 +25,13 @@ class CustomAdminNotification extends Notification
         return [
             'message' => $this->messageText,
         ];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage([
+            'message' => $this->messageText,
+        ]);
     }
 }
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+{{--<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">--}}
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -32,13 +33,15 @@
 </style>
 <body class="space-y-12 bg-white">
 
-@include('partials.auth-navbar')
+{{--    <div dir="ltr" class="text-right">--}}
+        @include('partials.auth-navbar')
+{{--    </div>--}}
 
 
 <!-- Plan Card -->
 <div class="max-w-5xl mx-auto bg-gradient-to-l from-blue-600 to-purple-500 text-white rounded-lg p-6 flex flex-col md:flex-row justify-between items-center gap-4 mb-8 hover:shadow-lg transition-shadow duration-300">
     <div class="flex flex-col gap-2 w-full md:w-2/3">
-        <div class="text-xl font-semibold">الباقة: {{ $plan->name }}</div>
+        <div class="text-xl font-semibold">الباقة: {{ $plan->name ?? 'super admin' }}</div>
 {{--        <div class="text-base">عدد الشهادات المتاحة: <strong>150</strong></div>--}}
         <div class="text-base">الرصيد المتبقي: <strong>{{intval ($subscription->remaining) }}</strong> (يمكنك إصدار {{intval ($subscription->remaining) }} شهادة إضافية)</div>
     </div>
@@ -57,8 +60,13 @@
 </div>
 
 <!-- Event Section -->
-<form action="{{ route('document-generation.store') }}" method="POST" enctype="multipart/form-data">
+<form id="documentGenerationForm" action="{{ route('document-generation.store') }}" method="POST" enctype="multipart/form-data">
     @csrf
+    <!-- حقل مخفي جديد للحضور -->
+    <input type="hidden" name="attendance_text_data" id="attendance_text_data">
+
+    <!-- حقل مخفي جديد للشهادات -->
+    <input type="hidden" name="certificate_text_data" id="certificate_text_data">
 
     {{-- Success Message --}}
     @if (session('success'))
@@ -89,6 +97,10 @@
 
 
 
+
+
+
+
     <section class="max-w-5xl mx-auto bg-white rounded-lg p-6 shadow-md mb-8 hover:shadow-lg transition-shadow duration-300">
         <div class="flex items-center gap-2 mb-4">
             <i class="fas fa-house-chimney text-2xl text-blue-600"></i>
@@ -97,18 +109,21 @@
         <div class="flex flex-col gap-2 mb-4">
             <label for="event-name" class="text-base">{{ trans_db('event.name.label', 'ar') }}:</label>
             <input type="text" id="event-name" placeholder="أدخل اسم الحدث" name="event_title"
+                   value="{{ old('event_title') }}"
                    class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full" />
         </div>
         <div class="flex flex-col gap-2 mb-4">
             <label for="Issuing-authority-name" class="text-base">{{ trans_db('event.issuer.label', 'ar') }}:</label>
             <input type="text" id="Issuing-authority-name" placeholder="أدخل جهة الاصدار" name="issuer"
-                   class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full" />
+                   value="{{ old('issuer') }}" class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full" />
         </div>
         <div class="flex flex-col md:flex-row items-center gap-2">
             <input type="date" id="from-date" name="event_start_date"
+                   value="{{ old('event_start_date') }}"
                    class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full md:w-1/2" />
             <span class="text-base">إلى</span>
             <input type="date" id="to-date" name="event_end_date"
+                   value="{{ old('event_end_date') }}"
                    class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full md:w-1/2" />
         </div>
         <input type="hidden" name="user_id" value="{{ $user->id }}">
@@ -128,7 +143,7 @@
                     <div class="inline-flex items-center justify-center gap-3 p-2 bg-blue-100 border border-blue-600 rounded-lg presence-wrapper">
                         <span class="presence-label font-medium text-blue-600">تفعيل الحضور</span>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" class="sr-only peer toggle-presence" name="is_attendance_enabled" />
+                            <input type="checkbox" class="sr-only peer toggle-presence" name="is_attendance_enabled"/>
                             <!-- المسار -->
                             <div class="toggle-track w-12 h-6 bg-gray-200 rounded-full peer-checked:bg-blue-600 transition-all duration-300"></div>
                             <!-- الكورة -->
@@ -145,7 +160,9 @@
             <!-- محتوى النموذج الرئيسي -->
             <div class="flex flex-col gap-6 mb-4" style="margin-top: 20px;">
                 <label class="text-base">اسم النموذج:</label>
-                <input type="text" placeholder="اسم النموذج" class="border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full" name="document_title"/>
+                <input type="text" placeholder="اسم النموذج" class="border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full"
+                       name="document_title" value="{{ old('document_title') }}"
+                />
             </div>
 
             <!-- بطاقة الإعدادات المخفية -->
@@ -160,12 +177,13 @@
                     <div class="flex flex-col gap-4 mb-6">
                         <!-- من -->
                         <div class="flex flex-col gap-2 w-full">
-                            <label for="project-from" class="font-medium text-base">تاريخ الإرسال (من)</label>
+                            <label for="project-from" class="font-medium text-base">تاريخ الإرسال </label>
                             <input
-                                type="date"
+                                type="datetime-local"
                                 id="project-from"
                                 name="attendance_send_at"
                                 class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full"
+                                value="{{ old('attendance_send_at') }}"
                             />
                         </div>
 
@@ -178,7 +196,7 @@
                                 rows="4"
                                 placeholder="اكتب هنا ملاحظات أو تفاصيل إضافية عن المشروع…"
                                 class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full"
-                            ></textarea>
+                            >{{ old('attendance_message') }}</textarea>
                         </div>
                     </div>
 
@@ -192,7 +210,8 @@
 
                                 @if (in_array('whatsapp', $plan->enabled_channels['attendance']))
                                     <label class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 transition">
-                                        <input type="checkbox" name="attendance_send_via[]" value="whatsapp" class="form-checkbox text-green-500"/>
+                                        <input type="checkbox" name="attendance_send_via[]" value="whatsapp" class="form-checkbox text-green-500"
+                                        {{ in_array('whatsapp', old('attendance_send_via', [])) ? 'checked' : '' }} />
                                         <i class="fab fa-whatsapp text-2xl text-green-600"></i>
                                         <span>واتساب</span>
                                     </label>
@@ -200,7 +219,8 @@
 
                                 @if (in_array('email', $plan->enabled_channels['attendance']))
                                     <label class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 transition">
-                                        <input type="checkbox" name="attendance_send_via[]" value="email" class="form-checkbox text-blue-500"/>
+                                        <input type="checkbox" name="attendance_send_via[]" value="email" class="form-checkbox text-blue-500"
+                                        {{ in_array('email', old('attendance_send_via', [])) ? 'checked' : '' }} />
                                         <i class="fas fa-envelope text-2xl text-blue-600"></i>
                                         <span>إيميل</span>
                                     </label>
@@ -208,7 +228,8 @@
 
                                 @if (in_array('sms', $plan->enabled_channels['attendance']))
                                     <label class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 transition">
-                                        <input type="checkbox" name="attendance_send_via[]" value="sms" class="form-checkbox text-purple-500"/>
+                                        <input type="checkbox" name="attendance_send_via[]" value="sms" class="form-checkbox text-purple-500"
+                                        {{ in_array('sms', old('attendance_send_via', [])) ? 'checked' : '' }} />
                                         <i class="fas fa-sms text-2xl text-purple-600"></i>
                                         <span>SMS</span>
                                     </label>
@@ -227,6 +248,7 @@
 
                         <div class="flex-1 bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg p-5 flex flex-col items-center gap-4 hover:border-blue-600 transition-colors duration-300">
                             <i class="fas fa-file-excel text-4xl text-green-600"></i>
+                            <span id="badge-file-name-display" class="font-medium text-sm text-gray-500 hidden"></span>
                             <span class="font-semibold">ملف بيانات القالب (البادج)(Excel)</span>
                             <p class="text-sm text-gray-600 text-center">وصف قصير عن الملف</p>
                             <label class="mt-auto inline-flex items-center gap-3 px-5 py-2 bg-green-600 text-white rounded-md cursor-pointer hover:bg-green-700 transition">
@@ -255,12 +277,12 @@
                     <!-- داخل كل .form-card، وابحث عن هذا الـ div -->
                     <div class="flex flex-col lg:flex-row items-start lg:items-center gap-6 mb-4">
 
-                        <!-- صلاحية الشهادة -->
+                        <!-- صلاحية البادج -->
                         <div class="flex flex-col w-full lg:w-1/3">
                             <label for="certificate-validity" class="mb-1 font-medium">صلاحية البادج</label>
-                            <select id="certificate-validity" class="certificate-validity border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full">
-                                <option value="permanent">دائمة</option>
-                                <option value="temporary">مؤقتة</option>
+                            <select id="certificate-validity" name="attendance_validity" class="certificate-validity border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full">
+                                <option value="permanent" {{ old('attendance_validity') == 'permanent' ? 'selected' : '' }}>دائمة</option>
+                                <option value="temporary" {{ old('attendance_validity') == 'temporary' ? 'selected' : '' }}>مؤقتة</option>
                             </select>
                         </div>
 
@@ -268,9 +290,11 @@
 
                     <!-- تواريخ الصلاحية (مخفية افتراضياً) -->
                     <div class="flex flex-col md:flex-row items-center gap-2 mb-4 hidden certificate-dates">
-                        <input type="date" name="attendance_valid_from" class="valid-from border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full md:w-1/2" />
+                        <input type="date" name="attendance_valid_from" value="{{ old('attendance_valid_from') }}"
+                               class="valid-from border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full md:w-1/2" />
                         <span class="text-base">إلى</span>
-                        <input type="date" name="attendance_valid_until" class="valid-to border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full md:w-1/2" />
+                        <input type="date" name="attendance_valid_until" value="{{ old('attendance_valid_until') }}"
+                               class="valid-to border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full md:w-1/2" />
                     </div>
                 </div>
 
@@ -279,11 +303,11 @@
                     <div class="form-block mb-8">
                         <div class="flex items-center gap-6 mb-4">
                             <label class="inline-flex items-center gap-2">
-                                <input type="radio" name="attendance-face" value="front" class="js-face" data-face="front" checked/>
+                                <input type="radio" name="attendance_template_sides[]" value="front" class="js-face" data-face="front">
                                 <span>وجه واحد </span>
                             </label>
                             <label class="inline-flex items-center gap-2">
-                                <input type="radio" name="attendance-face" value="back" class="js-face" data-face="back"/>
+                                <input type="radio" name="attendance_template_sides[]" value="back" class="js-face" data-face="back">
                                 <span>وجهين</span>
                             </label>
                         </div>
@@ -294,32 +318,32 @@
                         <div class="fabric-canvas-container mt-4">
                             <canvas id="attendance-preview-canvas"></canvas>
                         </div>
+
+                        <div id="attendance-text-editor-panel" class="hidden p-3 border rounded-md shadow bg-white space-y-2 mt-3 w-72 text-sm">
+                            <label class="block">
+                                <span class="text-gray-700 text-xs">محتوى النص:</span>
+                                <input id="attendance-text-content" type="text" class="border px-2 py-1 w-full text-sm" value="{{ old('text') }}"/>
+                            </label>
+                            <label class="block">
+                                <span class="text-gray-700 text-xs">حجم الخط:</span>
+                                <input id="attendance-font-size" name="attendance_font_size" type="number" min="10" max="200"  value="{{ old('attendance_font_size', 20) }}" class="border px-2 py-1 w-full text-sm"/>
+                            </label>
+                            <label class="block">
+                                <span class="text-gray-700 text-xs">لون الخط:</span>
+                                <input id="attendance-font-color" type="color" name="attendance_font_color" value="{{ old('attendance_font_color', '#000000') }}" class="w-full h-8" />
+                            </label>
+                            <label class="block">
+                                <span class="text-gray-700 text-xs">نوع الخط:</span>
+                                <select id="attendance-font-family" name="attendance_font_family" class="border px-2 py-1 w-full text-sm">
+                                    <option value="Arial" {{ old('attendance_font_family', 'Arial') == 'Arial' ? 'selected' : '' }}>Arial</option>
+                                    <option value="Times New Roman" {{ old('attendance_font_family') == 'Times New Roman' ? 'selected' : '' }}>Times New Roman</option>
+                                    <option value="Courier New" {{ old('attendance_font_family') == 'Courier New' ? 'selected' : '' }}>Courier New</option>
+                                    <option value="Tahoma" {{ old('attendance_font_family') == 'Tahoma' ? 'selected' : '' }}>Tahoma</option>
+                                </select>
+                            </label>
+                        </div>
+
                     </div>
-
-
-
-
-
-                <!-- Attachment Card -->
-{{--                <div class="attachment-card filebox-card border-2 border-dashed border-gray-400 rounded-lg p-6 flex flex-col items-center gap-4 mb-4 hover:border-blue-600 transition-colors duration-300">--}}
-
-{{--                    <div class="initial-upload-state flex flex-col items-center gap-4">--}}
-{{--                        <i class="fas fa-cloud-upload-alt text-5xl text-gray-400 file-icon"></i>--}}
-{{--                        <h4 class="text-lg font-semibold">الوجه</h4>--}}
-{{--                        <p class="text-center text-gray-600">قم برفع ملفات PDF أو صور فقط.</p>--}}
-{{--                        <label class="inline-flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-md cursor-pointer hover:bg-blue-700 transition">--}}
-{{--                            <i class="fas fa-upload"></i>--}}
-{{--                            أرفاق PDF وصور--}}
-{{--                            <input name="drag-pdf" type="file" class="sr-only file-input" accept="application/pdf,image/*">--}}
-{{--                        </label>--}}
-{{--                    </div>--}}
-
-{{--                    <div class="file-preview hidden w-full h-48 flex justify-center items-center overflow-hidden absolute inset-0">--}}
-{{--                        <button type="button" class="remove-preview-btn absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg hover:bg-red-600 transition z-10" title="إزالة الملف">--}}
-{{--                            &times;--}}
-{{--                        </button>--}}
-{{--                    </div>--}}
-{{--                </div>--}}
 
 
                 <!-- Finalize Button البادج -->
@@ -374,9 +398,10 @@
                 <div class="flex flex-col gap-2 w-full">
                     <label for="project-from" class="font-medium text-base">تاريخ ارسال النموذج : </label>
                     <input
-                        type="date"
+                        type="datetime-local"
                         id="project-from"
                         name="document_send_at"
+                        value="{{ old('document_send_at') }}"
                         class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full"
                     />
                 </div>
@@ -390,7 +415,7 @@
                         rows="4"
                         placeholder="اكتب هنا ملاحظات أو تفاصيل إضافية عن المشروع…"
                         class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full"
-                    ></textarea>
+                    >{{ old('document_message') }}</textarea>
                 </div>
             </div>
 
@@ -401,7 +426,8 @@
                     <div class="flex flex-wrap gap-4">
                         @if (in_array('whatsapp', $plan->enabled_channels['documents']))
                             <label class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 transition">
-                                <input type="checkbox" name="document_send_via[]" value="whatsapp" class="form-checkbox text-green-500"/>
+                                <input type="checkbox" name="document_send_via[]" value="whatsapp" class="form-checkbox text-green-500"
+                                    {{ in_array('whatsapp', old('document_send_via', [])) ? 'checked' : '' }} />
                                 <i class="fab fa-whatsapp text-2xl text-green-600"></i>
                                 <span>واتساب</span>
                             </label>
@@ -409,7 +435,8 @@
 
                         @if (in_array('email', $plan->enabled_channels['documents']))
                             <label class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 transition">
-                                <input type="checkbox" name="document_send_via[]" value="email" class="form-checkbox text-blue-500"/>
+                                <input type="checkbox" name="document_send_via[]" value="email" class="form-checkbox text-blue-500"
+                                    {{ in_array('email', old('document_send_via', [])) ? 'checked' : '' }} />
                                 <i class="fas fa-envelope text-2xl text-blue-600"></i>
                                 <span>إيميل</span>
                             </label>
@@ -417,7 +444,8 @@
 
                         @if (in_array('sms', $plan->enabled_channels['documents']))
                             <label class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 transition">
-                                <input type="checkbox" name="document_send_via[]" value="sms" class="form-checkbox text-purple-500"/>
+                                <input type="checkbox" name="document_send_via[]" value="sms" class="form-checkbox text-purple-500"
+                                    {{ in_array('sms', old('document_send_via', [])) ? 'checked' : '' }} />
                                 <i class="fas fa-sms text-2xl text-purple-600"></i>
                                 <span>SMS</span>
                             </label>
@@ -431,24 +459,27 @@
                 <!-- Excel Card -->
                 <div class="flex-1 bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg p-5 flex flex-col items-center gap-4 hover:border-blue-600 transition-colors duration-300">
                     <i class="fas fa-file-excel text-4xl text-green-600"></i>
+                        <span id="file-name-display" class="font-medium text-sm text-gray-500 hidden"></span>
                     <span class="font-semibold">ملف التواصل (Excel)</span>
                     <p class="text-sm text-gray-600 text-center">وصف قصير عن الملف</p>
                     <label class="mt-auto inline-flex items-center gap-3 px-5 py-2 bg-green-600 text-white rounded-md cursor-pointer hover:bg-green-700 transition">
                         <i class="fas fa-upload"></i>
                         ارفاق ملفات
-                        <input name="recipient_file_path" id="excel-input-model-1" type="file" class="sr-only" accept=".xlsx,.xls" multiple />
+                        <input name="recipient_file_path" id="excel-input-model-1" type="file"
+                               class="sr-only" accept=".xlsx,.xls" multiple />
                     </label>
                 </div>
 
                 <!-- Word Card -->
                 <div class="flex-1 bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg p-5 flex flex-col items-center gap-4 hover:border-blue-600 transition-colors duration-300">
                     <i class="fas fa-file-excel text-4xl text-green-600"></i>
+                    <span id="file-name-display-2" class="font-medium text-sm text-gray-500 hidden"></span>
                     <span class="font-semibold">ملف بيانات القالب (الوثيقة) (Excel)</span>
                     <p class="text-sm text-gray-600 text-center">وصف قصير عن الملف</p>
                     <label class="mt-auto inline-flex items-center gap-3 px-5 py-2 bg-green-600 text-white rounded-md cursor-pointer hover:bg-green-700 transition">
                         <i class="fas fa-upload"></i>
                         ارفاق ملفات
-                        <input name="template_data_file_path" id="excel-input-model-2" type="file" class="sr-only" accept=".xlsx,.xls" multiple />
+                        <input name="template_data_file_path" id="excel-input-model-2" type="file" value="{{ old('template_data_file_path') }}" class="sr-only" accept=".xlsx,.xls" multiple />
                     </label>
                 </div>
 
@@ -475,8 +506,8 @@
                     <div class="flex flex-col w-full lg:w-1/3">
                         <label for="select-cert-validity-new" class="mb-1 font-medium">صلاحية الشهادة</label>
                         <select name="document_validity" class="select-cert-validity-new border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full cert-validity-new">
-                            <option value="permanent" selected>دائم</option>
-                            <option value="temporary">مؤقت</option>
+                            <option value="permanent" {{ old('document_validity') == 'permanent' ? 'selected' : '' }}>دائمة</option>
+                            <option value="temporary" {{ old('document_validity') == 'temporary' ? 'selected' : '' }}>مؤقتة</option>
                         </select>
                     </div>
                 </div>
@@ -490,6 +521,7 @@
                                 type="date"
                                 id="date-valid-from-new"
                                 name="valid_from"
+                                value="{{ old('valid_from') }}"
                                 class="border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full"
                             />
                         </div>
@@ -499,6 +531,7 @@
                                 type="date"
                                 id="date-valid-to-new"
                                 name="valid_until"
+                                value="{{ old('valid_until') }}"
                                 class="border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full"
                             />
                         </div>
@@ -519,7 +552,7 @@
                             <i class="fas fa-upload"></i>
                             أرفاق ملف التيمبلت
                             <input name="document_template_file_path[]" type="file" class="sr-only file-input" accept="application/pdf,image/*">
-                            <input type="hidden" name="template_sides[]" class="side-input" value="">
+                            <input type="hidden" name="document_template_sides[]" class="side-input" value="">
                         </label>
                     </div>
 
@@ -581,18 +614,6 @@
                 المعاينة النهائيّة
             </button>
 
-{{--            <div id="fabric-container" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000;">--}}
-{{--                <div style="background-color: white; padding: 20px; border-radius: 8px; position: relative;">--}}
-{{--                    <canvas id="fabricCanvas" width="800" height="600" style="border:1px solid #ccc;"></canvas>--}}
-{{--                    <button id="close-fabric-popup" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>--}}
-{{--                </div>--}}
-{{--            </div>--}}
-
-
-
-
-
-
         </div>
     </div>
 
@@ -626,23 +647,24 @@
 
     <!-- حاوية مركزية -->
     <div class="flex justify-center mb-8">
-        <button class="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition">
+        <button type="submit" class="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition">
             <i class="fas fa-check fa-lg"></i>
             <span>تأكيد وإنشاء الحدث</span>
         </button>
     </div>
 
-
-
-
-
-
-
+    <input type="hidden" name="text_data" id="text_data">
 
 
 </form>
 
 @include('partials.footer')
+
+<script>
+    window.documentGenerationStoreUrl = '{{ route('document-generation.store') }}';
+    window.csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    window.cardData = window.cardData || {}; // تأكد إن ده معرف أو تم تهيئته في مكان آخر قبل استخدامه
+</script>
 
 
 <!-- Script -->
