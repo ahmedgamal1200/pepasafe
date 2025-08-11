@@ -541,6 +541,97 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
+    // function saveITextObjectsFromSpecificCanvas(canvas, cardId, allCardData) {
+    //     if (!canvas || !canvas.getObjects) {
+    //         console.warn(`Cannot save objects: Invalid canvas for cardId ${cardId}`);
+    //         return;
+    //     }
+    //     if (!allCardData || typeof allCardData !== 'object') {
+    //         console.error(`Cannot save objects: Invalid allCardData provided for cardId ${cardId}`);
+    //         return;
+    //     }
+    //     if (!allCardData[cardId]) {
+    //         allCardData[cardId] = { objects: [], fabricCanvas: canvas };
+    //     }
+    //
+    //     const objects = canvas.getObjects().filter(obj => obj.selectable && (obj.type === 'i-text' || obj.type === 'qr-code')).map(obj => {
+    //         const baseProps = {
+    //             type: obj.type,
+    //             left: obj.left,
+    //             top: obj.top,
+    //             scaleX: obj.scaleX || 1,
+    //             scaleY: obj.scaleY || 1,
+    //             angle: obj.angle || 0
+    //         };
+    //         if (obj.type === 'i-text') {
+    //             return {
+    //                 ...baseProps,
+    //                 text: obj.text,
+    //                 fontFamily: obj.fontFamily || 'Arial',
+    //                 fontSize: obj.fontSize || 20,
+    //                 fill: obj.fill || '#000000',
+    //                 textBaseline: obj.textBaseline && ['top', 'middle', 'bottom'].includes(obj.textBaseline) ? obj.textBaseline : 'top',
+    //                 textAlign: obj.textAlign || 'left',
+    //                 fontWeight: obj.fontWeight || 'normal',
+    //                 zIndex: obj.zIndex || 1
+    //             };
+    //         } else if (obj.type === 'qr-code') {
+    //             return {
+    //                 ...baseProps,
+    //                 subtype: obj.subtype,
+    //                 width: obj.width * (obj.scaleX || 1),
+    //                 height: obj.height * (obj.scaleY || 1)
+    //             };
+    //         }
+    //     });
+    //
+    //     allCardData[cardId].objects = objects;
+    //     allCardData[cardId].canvasWidth = canvas.width;
+    //     allCardData[cardId].canvasHeight = canvas.height;
+    //
+    //     console.log(`Saved ${objects.length} objects for ${cardId}:`, objects);
+    //
+    //     let inputFieldName;
+    //     let expectedPrefix;
+    //     if (cardId.includes('attendance_template_data_file_path')) {
+    //         inputFieldName = 'attendance_text_data';
+    //         expectedPrefix = 'attendance_template_data_file_path';
+    //     } else if (cardId.includes('document_template_file_path')) {
+    //         inputFieldName = 'certificate_text_data';
+    //         expectedPrefix = 'document_template_file_path';
+    //     } else {
+    //         console.error(`Unknown cardId type: ${cardId}. Cannot determine input field name.`);
+    //         return;
+    //     }
+    //
+    //     const inputField = document.querySelector(`input[name="${inputFieldName}"]`);
+    //     if (!inputField) {
+    //         console.error(`Input field ${inputFieldName} not found`);
+    //         return;
+    //     }
+    //
+    //     let currentInputData = {};
+    //     try {
+    //         if (inputField.value) {
+    //             currentInputData = JSON.parse(inputField.value);
+    //         }
+    //     } catch (e) {
+    //         console.error(`Error parsing existing ${inputFieldName} JSON for saving:`, e);
+    //     }
+    //
+    //     currentInputData = {
+    //         [cardId]: {
+    //             canvasWidth: allCardData[cardId].canvasWidth,
+    //             canvasHeight: allCardData[cardId].canvasHeight,
+    //             objects: allCardData[cardId].objects
+    //         }
+    //     };
+    //
+    //     inputField.value = JSON.stringify(currentInputData);
+    //     console.log(`Value set to ${inputFieldName} input (after saveITextObjects):`, inputField.value);
+    // }
+
+
     function saveITextObjectsFromSpecificCanvas(canvas, cardId, allCardData) {
         if (!canvas || !canvas.getObjects) {
             console.warn(`Cannot save objects: Invalid canvas for cardId ${cardId}`);
@@ -554,42 +645,38 @@ document.addEventListener('DOMContentLoaded', () => {
             allCardData[cardId] = { objects: [], fabricCanvas: canvas };
         }
 
-        const objects = canvas.getObjects().filter(obj => obj.selectable && (obj.type === 'i-text' || obj.type === 'qr-code')).map(obj => {
-            const baseProps = {
+        const texts = canvas.getObjects()
+            .filter(obj => obj.selectable && (obj.type === 'i-text')) // نركز على i-text للفالديشن
+            .map(obj => ({
+                text: obj.text,
+                left: obj.left,
+                top: obj.top,
+                fontFamily: obj.fontFamily || 'Arial',
+                fontSize: obj.fontSize || 20,
+                fill: obj.fill || '#000000',
+                angle: obj.angle || 0,
+                textBaseline: obj.textBaseline && ['top', 'middle', 'bottom'].includes(obj.textBaseline) ? obj.textBaseline : 'top'
+            }));
+
+        const qrCodes = canvas.getObjects()
+            .filter(obj => obj.selectable && obj.type === 'qr-code')
+            .map(obj => ({
                 type: obj.type,
                 left: obj.left,
                 top: obj.top,
                 scaleX: obj.scaleX || 1,
                 scaleY: obj.scaleY || 1,
-                angle: obj.angle || 0
-            };
-            if (obj.type === 'i-text') {
-                return {
-                    ...baseProps,
-                    text: obj.text,
-                    fontFamily: obj.fontFamily || 'Arial',
-                    fontSize: obj.fontSize || 20,
-                    fill: obj.fill || '#000000',
-                    textBaseline: obj.textBaseline && ['top', 'middle', 'bottom'].includes(obj.textBaseline) ? obj.textBaseline : 'top',
-                    textAlign: obj.textAlign || 'left',
-                    fontWeight: obj.fontWeight || 'normal',
-                    zIndex: obj.zIndex || 1
-                };
-            } else if (obj.type === 'qr-code') {
-                return {
-                    ...baseProps,
-                    subtype: obj.subtype,
-                    width: obj.width * (obj.scaleX || 1),
-                    height: obj.height * (obj.scaleY || 1)
-                };
-            }
-        });
+                angle: obj.angle || 0,
+                subtype: obj.subtype,
+                width: obj.width * (obj.scaleX || 1),
+                height: obj.height * (obj.scaleY || 1)
+            }));
 
-        allCardData[cardId].objects = objects;
+        allCardData[cardId].objects = [...texts, ...qrCodes]; // نحافظ على التخزين القديم كـ objects لو بتحتاجه داخليًا
         allCardData[cardId].canvasWidth = canvas.width;
         allCardData[cardId].canvasHeight = canvas.height;
 
-        console.log(`Saved ${objects.length} objects for ${cardId}:`, objects);
+        console.log(`Saved ${texts.length} texts and ${qrCodes.length} QR codes for ${cardId}`);
 
         let inputFieldName;
         let expectedPrefix;
@@ -619,17 +706,19 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(`Error parsing existing ${inputFieldName} JSON for saving:`, e);
         }
 
-        currentInputData = {
-            [cardId]: {
-                canvasWidth: allCardData[cardId].canvasWidth,
-                canvasHeight: allCardData[cardId].canvasHeight,
-                objects: allCardData[cardId].objects
-            }
+        // هنا البنية اللي الباك إند متوقعها
+        currentInputData[cardId] = {
+            type: cardId.includes('front') ? 'certificate-front' : 'certificate-back',
+            canvasWidth: allCardData[cardId].canvasWidth,
+            canvasHeight: allCardData[cardId].canvasHeight,
+            texts: texts
         };
 
         inputField.value = JSON.stringify(currentInputData);
         console.log(`Value set to ${inputFieldName} input (after saveITextObjects):`, inputField.value);
     }
+
+
 
 
     $(document).ready(function() {

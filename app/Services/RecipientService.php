@@ -7,7 +7,7 @@ use App\Repositories\Eventor\RecipientRepository;
 
 class RecipientService
 {
-    protected $recipientRepository;
+    protected RecipientRepository $recipientRepository;
 
     public function __construct(RecipientRepository $recipientRepository)
     {

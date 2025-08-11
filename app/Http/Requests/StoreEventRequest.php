@@ -41,7 +41,7 @@ class StoreEventRequest extends FormRequest
                         $fail('The certificate text data must be a valid JSON object.');
                     }
                     foreach ($decoded as $cardId => $cardData) {
-                        if (!is_array($cardData) || !isset($cardData['texts']) || !is_array($cardData['texts'])) {
+                        if (!is_array($cardData) || !isset($cardData['type']) || !is_array($cardData['texts'])) {
                             $fail("Invalid text data structure for card ID: {$cardId}");
                         }
                         foreach ($cardData['texts'] as $text) {

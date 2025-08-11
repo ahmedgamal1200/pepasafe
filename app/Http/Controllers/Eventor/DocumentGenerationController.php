@@ -2803,9 +2803,9 @@ class DocumentGenerationController extends Controller
     /**
      * @throws Throwable
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreEventRequest $request): RedirectResponse
     {
-        dd($request->all());
+//        dd($request->all());
         set_time_limit(300);
 
         DB::beginTransaction();
@@ -2879,6 +2879,8 @@ class DocumentGenerationController extends Controller
             return back()->with('error', 'حدث خطأ أثناء إنشاء الحدث: ' . $e->getMessage());
         }
     }
+
+
 
 
 

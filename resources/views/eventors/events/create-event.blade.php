@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <title>تصميم واجهة المستخدم</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,6 +19,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" defer></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 </head>
 
@@ -41,9 +44,13 @@
 <!-- Plan Card -->
 <div class="max-w-5xl mx-auto bg-gradient-to-l from-blue-600 to-purple-500 text-white rounded-lg p-6 flex flex-col md:flex-row justify-between items-center gap-4 mb-8 hover:shadow-lg transition-shadow duration-300">
     <div class="flex flex-col gap-2 w-full md:w-2/3">
-        <div class="text-xl font-semibold">الباقة: {{ $plan->name ?? 'super admin' }}</div>
+        <div class="text-xl font-semibold">الباقة: <strong>{{ $plan->name ?? 'super admin' }}</strong> ({{ $docsAvailableInPlan }} وثيقة متاحة)</div>
 {{--        <div class="text-base">عدد الشهادات المتاحة: <strong>150</strong></div>--}}
-        <div class="text-base">الرصيد المتبقي: <strong>{{intval ($subscription->remaining) }}</strong> (يمكنك إصدار {{intval ($subscription->remaining) }} شهادة إضافية)</div>
+        <div class="text-base">الرصيد المتاح:
+            <strong>
+                {{intval ($walletBalance) }} جنيه
+            </strong> (يمكنك إصدار {{intval ($docsAvailableFromWallet) }} شهادة إضافية)
+        </div>
     </div>
     <div class="flex gap-4 w-full md:w-1/3 justify-center md:justify-end">
         <a href="{{ route('wallet') }}#recharge" class="inline-block">
@@ -628,20 +635,21 @@
 
     <!-- Adjusted Warning Section: unified design -->
     <!-- Warning Card (yellow) -->
-    <div class="max-w-5xl mx-auto bg-yellow-100 border border-yellow-400 text-yellow-800 rounded-lg p-6 flex items-start gap-4 mb-8">
-        <i class="fas fa-exclamation-circle text-3xl mt-1"></i>
-        <ul class="list-disc list-inside space-y-2">
-            <li>تأكد من مراجعة جميع البيانات قبل الإرسال.</li>
-            <li>لا تشارك معلوماتك الشخصية مع أي جهة غير موثوقة.</li>
-            <li>احتفظ بنسخة احتياطية من المستندات المرفوعة.</li>
-            <li>في حال واجهتك أي مشكلة تقنية، تواصل معنا فوراً.</li>
-        </ul>
-    </div>
+{{--    <div class="max-w-5xl mx-auto bg-yellow-100 border border-yellow-400 text-yellow-800 rounded-lg p-6 flex items-start gap-4 mb-8">--}}
+{{--        <i class="fas fa-exclamation-circle text-3xl mt-1"></i>--}}
+{{--        <ul class="list-disc list-inside space-y-2">--}}
+{{--            <li>تأكد من مراجعة جميع البيانات قبل الإرسال.</li>--}}
+{{--            <li>لا تشارك معلوماتك الشخصية مع أي جهة غير موثوقة.</li>--}}
+{{--            <li>احتفظ بنسخة احتياطية من المستندات المرفوعة.</li>--}}
+{{--            <li>في حال واجهتك أي مشكلة تقنية، تواصل معنا فوراً.</li>--}}
+{{--        </ul>--}}
+{{--    </div>--}}
 
     <!-- Warning Card (red) -->
-    <div class="max-w-5xl mx-auto bg-red-100 border border-red-400 text-red-700 rounded-lg p-6 flex items-center gap-4 mb-8">
-        <i class="fas fa-exclamation-triangle text-3xl"></i>
-        <p class="text-lg font-medium">تأكد من حفظ جميع التغييرات قبل الخروج من الصفحة.</p>
+    <!-- بطاقة الرسالة النهائية (تم إضافة هذا الكود) -->
+    <div id="warning-card" class="mt-6 max-w-5xl mx-auto bg-gray-100 border border-gray-400 text-gray-700 rounded-lg p-6 flex items-center gap-4 hidden">
+        <i id="warning-card-icon" class="fas fa-info-circle text-3xl"></i>
+        <p id="warning-card-message" class="text-lg font-medium"></p>
     </div>
 
 
@@ -649,7 +657,7 @@
     <div class="flex justify-center mb-8">
         <button type="submit" class="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition">
             <i class="fas fa-check fa-lg"></i>
-            <span>تأكيد وإنشاء الحدث</span>
+            <br><span>تأكيد وإنشاء الحدث</span>
         </button>
     </div>
 
@@ -669,7 +677,7 @@
 
 <!-- Script -->
 <script src="{{ asset('js/create-event.js') }}"></script>
-{{--<script src="{{ asset('js/attendance.js') }}"></script>--}}
+<script src="{{ asset('js/calculate-doc-price.js') }}"></script>
 
 </body>
 </html>

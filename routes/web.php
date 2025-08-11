@@ -107,6 +107,8 @@ Route::middleware(['auth', 'role:eventor|super admin|admin|employee'])->group(fu
     // اما اليوزر يضغط ع لينك الشهاده تظهرله
     Route::get('/documents/verify/{uuid}', [DocumentVerificationController ::class, 'verify'])->name('documents.verify');
 
+
+
 });
 
 Route::prefix('auth')->group(function () {
@@ -137,6 +139,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/home/users',  [DocumentController::class, 'index'])->name('home.users');
 
 });
+
+Route::post('/calculate-document-price', [DocumentController::class, 'calculateDocumentPrice'])
+    ->middleware('auth');
 
 
 

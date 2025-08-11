@@ -14,13 +14,52 @@ use Illuminate\Support\Facades\Hash;
 
 class EventController extends Controller
 {
+    // في الـ Controller الخاص بك (مثلاً EventController.php)
+
     public function create()
     {
         $user = Auth::user();
-        $plan = $user->subscription->plan;
         $subscription = $user->subscription;
 
-        return view('eventors.events.create-event', compact('user', 'plan', 'subscription'));
+        // خطوة أمان: تأكد من وجود اشتراك وباقة لتجنب الأخطاء
+        if (!$subscription || !$subscription->plan) {
+            // يمكنك توجيه المستخدم لصفحة الاشتراك أو عرض رسالة خطأ
+            return redirect()->route('wallet')->with('error', 'يجب أن يكون لديك اشتراك فعال لإنشاء حدث.');
+        }
+
+        $plan = $subscription->plan;
+
+        // --- الحسابات الجديدة ---
+
+        // 1. حساب عدد الوثائق المتاحة داخل الباقة
+        $priceInPlan = (float) $plan->document_price_in_plan ?? 0;
+        $planBalance = (float) $subscription->remaining;
+        $docsAvailableInPlan = 0;
+        // نتجنب القسمة على صفر إذا كان السعر 0
+        if ($priceInPlan > 0) {
+            $docsAvailableInPlan = floor($planBalance / $priceInPlan);
+        }
+
+        // 2. الرصيد المتاح في المحفظة
+        $walletBalance = (float) $subscription->balance;
+
+        // 3. حساب عدد الوثائق التي يمكن شراؤها برصيد المحفظة
+        $priceOutsidePlan = (float) $plan->document_price_outside_plan ?? 0;
+        $docsAvailableFromWallet = 0;
+        // نتجنب القسمة على صفر
+        if ($priceOutsidePlan > 0) {
+            $docsAvailableFromWallet = floor($walletBalance / $priceOutsidePlan);
+        }
+
+        // إرسال كل المتغيرات (القديمة والجديدة) إلى الـ view
+        return view('eventors.events.create-event', compact(
+            'user',
+            'plan',
+            'subscription',
+            'docsAvailableInPlan',      // <-- المتغير الجديد
+            'walletBalance',            // <-- المتغير الجديد
+            'docsAvailableFromWallet'   // <-- المتغير الجديد
+        ));
     }
 
     public function show(Event $event)
