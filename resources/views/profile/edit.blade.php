@@ -28,6 +28,14 @@
                 </div>
             </div>
             @endif
+                @if (Setting::where('key', 'show_events_in_profile')->value('value') === '1')
+                    <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
+                        <div class="max-w-6xl mx-auto">
+
+                            @include('profile.partials.show-events')
+                        </div>
+                    </div>
+                @endif
 
             @if (Setting::where('key', 'user_can_share_here_profile')->value('value') === '1')
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">

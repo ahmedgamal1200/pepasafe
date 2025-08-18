@@ -7,6 +7,7 @@ use App\Mail\OtpMail;
 use App\Models\PaymentReceipt;
 use App\Models\Plan;
 use App\Models\User;
+use App\Services\UserQrCodeService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -19,6 +20,12 @@ class EventorAuthRepository
     /**
      * @throws \Exception
      */
+
+    public function __construct(protected UserQrCodeService $qrCodeService)
+    {
+        //
+    }
+
     public function registerEventor(EventorRegisterRequest $request)
     {
         DB::beginTransaction();
@@ -53,6 +60,9 @@ class EventorAuthRepository
             }
 
             $user->assignRole($role);
+
+            // ✅ توليد الـ QR Code
+            $this->qrCodeService->generateQrCodeForUser($user);
 
 
             if ($plan->price > 0 && $request->hasFile("payment_receipt.{$plan->id}")) {

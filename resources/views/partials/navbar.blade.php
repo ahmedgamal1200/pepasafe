@@ -16,13 +16,24 @@
     </div>
 
     <!-- الجزء الأيمن (الشعار واسم الموقع) - تم نقله إلى اليمين -->
-    <a href="{{ route('homeForGuests') }}" class="flex items-center space-x-2">
-        <!-- شعار الموقع (تم استبداله بصورة) -->
-        <img src="{{ asset('assets/logo.jpg') }}" alt="Logo" class="h-8 md:h-10">
+    @php
+        $branding = \App\Models\Logo::first();
+    @endphp
 
-        <!-- اسم الموقع: يظهر فقط على الشاشات الكبيرة (md:block) -->
-        <span class="text-gray-800 text-xl font-semibold hidden md:block">pepasafe</span>
+    <a href="{{ route('homeForGuests') }}" class="flex items-center space-x-2">
+        <!-- شعار الموقع -->
+        @if($branding && $branding->path)
+            <img src="{{ asset('storage/' . $branding->path) }}" alt="Logo" class="h-8 md:h-10">
+        @else
+            <img src="{{ asset('assets/logo.jpg') }}" alt="Default Logo" class="h-8 md:h-10">
+        @endif
+
+        <!-- اسم الموقع -->
+        <span class="text-gray-800 text-xl font-semibold hidden md:block">
+        {{ $branding->site_name ?? 'pepasafe' }}
+    </span>
     </a>
+
 
 </nav>
 

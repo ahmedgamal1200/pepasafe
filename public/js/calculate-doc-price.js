@@ -85,22 +85,22 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'in_plan':
                 // رسالة جديدة للسيناريو الأول بناءً على طلبك
                 messageHtml = `
-                سيتم إصدار <strong>${data.docs_count}</strong> وثيقة بتكلفة إجمالية <strong>${data.total_cost} جنيه</strong>.<br>
-                سيتم خصم المبلغ بالكامل من رصيد باقتك، وسيتبقى في الباقة <strong>${data.plan_balance_after} جنيه</strong>.
-            `;
+            سيتم إصدار <strong>${data.docs_count}</strong> وثيقة بتكلفة إجمالية <strong>${data.total_cost} جنيه</strong>.<br>
+            سيتم خصم المبلغ بالكامل من رصيد باقتك، وسيتبقى في الباقة <strong>${data.plan_balance_after} جنيه</strong>.
+        `;
                 cardType = 'success';
                 break;
 
             case 'partial_plan':
                 // تحديث الرسالة لتطابق أسماء الحقول الجديدة
                 messageHtml = `
-                سيتم إصدار <strong>${data.docs_count}</strong> وثيقة. باقتك الحالية تغطي <strong>${data.covered_by_plan_count}</strong> وثيقة منها.<br>
-                سيتم خصم تكلفة <strong>${data.extra_docs_count}</strong> وثيقة إضافية (بقيمة <strong>${data.extra_cost} جنيه</strong>) من رصيد محفظتك (رصيدك الحالي: ${data.current_wallet_balance} جنيه).<br>
-                سيتبقى في رصيد محفظتك <strong>${data.wallet_balance_after} جنيه</strong> بعد الخصم.
-                <div class="mt-2 text-xs text-gray-500">
-                    إذا كنت لا ترغب في الخصم من رصيدك، يرجى <a href="/wallet#" class="text-blue-600 hover:underline">ترقية الباقة</a>.
-                </div>
-            `;
+            سيتم إصدار <strong>${data.docs_count}</strong> وثيقة. باقتك الحالية تغطي <strong>${data.covered_by_plan_count}</strong> وثيقة منها.<br>
+            سيتم خصم تكلفة <strong>${data.extra_docs_count}</strong> وثيقة إضافية (بقيمة <strong>${data.extra_cost} جنيه</strong>) من رصيد محفظتك (رصيدك الحالي: ${data.current_wallet_balance} جنيه).<br>
+            سيتبقى في رصيد محفظتك <strong>${data.wallet_balance_after} جنيه</strong> بعد الخصم.
+            <div class="mt-2 text-xs text-gray-500">
+                إذا كنت لا ترغب في الخصم من رصيدك، يرجى <a href="/wallet#" class="text-blue-600 hover:underline">ترقية الباقة</a>.
+            </div>
+        `;
                 cardType = 'warning';
                 break;
 
@@ -121,9 +121,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
         }
 
-        // --- باقي الكود لا يحتاج لتغيير ---
+        // --- هذا الجزء هو الذي تم تعديله ---
         warningCardMessage.innerHTML = messageHtml;
-        warningCard.className = 'mt-6 max-w-5xl mx-auto rounded-lg p-6 flex items-start gap-4';
+        // أضفنا الكلاس 'mb-4' هنا لإضافة مسافة سفلية
+        warningCard.className = 'mt-6 mb-4 max-w-5xl mx-auto rounded-lg p-6 flex items-start gap-4';
         warningCardIcon.className = 'text-3xl mt-1';
         switch (cardType) {
             case 'success':

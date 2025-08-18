@@ -19,12 +19,6 @@ use Illuminate\Support\Facades\Route;
 use App\Models\User;
 
 
-//Route::get('/test-notification', function () {
-//    $user = User::find(4); // ID بتاعك
-//    $user->notify(new TestNotification('إشعار لحظي 🔔'));
-//    return 'تم الإرسال';
-//});
-
 Route::get('/', function () {
     return redirect()->route('homeForGuests'); // أو أي صفحة عامة
 });
@@ -45,11 +39,42 @@ Route::middleware('auth')->group(function () {
     // اخفاء الشهادة من البروفايل او اظهارها للاخرين
     Route::patch('/documents/{document}/toggle-visibility', [DocumentController::class, 'toggleVisibility'])
         ->name('documents.toggleVisibility');
+
+    Route::patch('/events/{event}/toggle-visibility', [EventController::class, 'toggleVisibility'])
+        ->name('events.toggleVisibility');
+
     Route::get('/profile/{slug}', [ProfileController::class, 'generateLinkToShare'])->name('profile.public');
 
     Route::get('/cookie-accept', function () {
         return response('OK')->cookie('cookie_consent', true, 60 * 24 * 365); // سنة
     })->name('cookie.accept');
+
+    Route::post('/cookie-custom', function (Request $request) {
+        // هنا هتقدر تستقبل البيانات من الـ Request
+        $analytics = $request->input('analytics');
+        $marketing = $request->input('marketing');
+
+        // هنا هتضيف الكوكيز بتاعتك بناءً على القيم اللي جاتلك
+        $response = response('OK');
+        $response->cookie('user_consent', 'custom', 60 * 24 * 365); // كوكي لتأكيد التخصيص
+
+        if ($analytics) {
+            $response->cookie('analytics_enabled', true, 60 * 24 * 365);
+        } else {
+            // لو المستخدم اختار انه مايوافقش، ممكن تحذف الكوكي
+            $response->cookie('analytics_enabled', null, -1);
+        }
+
+        if ($marketing) {
+            $response->cookie('marketing_enabled', true, 60 * 24 * 365);
+        } else {
+            $response->cookie('marketing_enabled', null, -1);
+        }
+
+        return $response;
+    })->name('cookie.custom');
+
+
 
     // OTP لتحقق من الايميل والهاتف
     Route::get('/verify-otp', [\App\Http\Controllers\Auth\RegisteredUserController::class, 'showOtpForm'])
@@ -64,7 +89,7 @@ Route::middleware('auth')->group(function () {
 });
 
 
-Route::middleware(['auth', 'role:eventor|super admin|admin|employee'])->group(function () {
+Route::middleware(['auth','role:eventor|super admin|admin|employee'])->group(function () {
         // home Page for eventor
         Route::get('home', [HomeController::class, 'index'])->name('home.eventor');
 
@@ -92,6 +117,9 @@ Route::middleware(['auth', 'role:eventor|super admin|admin|employee'])->group(fu
         // Notifications
         Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
         Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+    Route::get('/notifications/latest', [NotificationController::class, 'getLatestNotifications'])
+        ->middleware('auth')
+        ->name('notifications.latest');
 
         // contact us
         Route::post('contact-us', [ContactUsController::class, 'sendMessageToMail'])->name('contact-us');

@@ -11,16 +11,13 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class RecipientRepository
 {
-    public function createRecipients($recipientFile, int $eventId): array
+    public function createRecipients($recipientFile, int $eventId): void
     {
-        // نخزن الملف في storage
-//        $path = $recipientFile->store('recipients_temp');
-        $path = $recipientFile->storeAs('recipients_temp', uniqid().'.'.$recipientFile->getClientOriginalExtension(), 'local');
+        // تخزين الملف مؤقتًا
+        $filePath = $recipientFile->store('temp');
 
-        CreateRecipientsJob::dispatch($path, $eventId);
-
-        return ['message' => 'Recipients import job has been dispatched.'];
-
+        // توزيع الجوب
+        CreateRecipientsJob::dispatch(storage_path('app/' . $filePath), $eventId);
     }
 
     public function getRecipientCount($recipientFile): int

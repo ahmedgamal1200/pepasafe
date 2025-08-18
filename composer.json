@@ -19,6 +19,7 @@
         "pusher/pusher-php-server": "^7.2",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-permission": "^6.19",
+        "spatie/laravel-translatable": "^6.11",
         "twilio/sdk": "^8.6"
     },
     "require-dev": {

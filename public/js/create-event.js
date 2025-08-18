@@ -2210,37 +2210,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const canvasElement = document.createElement('canvas');
         canvasElement.id = `preview-canvas-${cardId}`;
-        canvasElement.style.cssText = `border: 2px solid #ccc; margin-bottom: 10px;`;
+        // canvasElement.style.cssText = `border: 2px solid #ccc; margin-bottom: 10px;`;
 
         previewWrapper.appendChild(closeButton);
         previewWrapper.appendChild(canvasElement);
 
-        // Container for the logo and QR code
-        const bottomCard = document.createElement('div');
-        bottomCard.style.cssText = `
-        background-color: white; border: 1px solid #ccc; border-radius: 4px;
-        padding: 10px; display: flex; justify-content: space-between;
-        align-items: center; width: 80%; box-sizing: border-box;
-        margin-top: 10px;
-    `;
+        // ⭐⭐ بداية التعديلات الجديدة ⭐⭐
 
-        const logoImg = document.createElement('img');
-        logoImg.src = '/assets/logo.jpg'; // 👈 **تأكد من هذا المسار**
-        logoImg.alt = 'شعار الموقع';
-        logoImg.style.height = '40px';
+        // تحديد ما إذا كان هناك وجه واحد أو وجهين
+        const frontCardId = isAttendance ? `attendance_template_data_file_path-front` : `document_template_file_path[]-front`;
+        const backCardId = isAttendance ? `attendance_template_data_file_path-back` : `document_template_file_path[]-back`;
+        const hasBothSides = cardDataSource.hasOwnProperty(frontCardId) && cardDataSource.hasOwnProperty(backCardId);
 
-        // ⭐⭐ هنا التعديل: استبدال الـ QR code بالنص ⭐⭐
-        const verifiedText = document.createElement('span');
-        verifiedText.textContent = 'Verified by Pepasafe';
-        verifiedText.style.cssText = `
-        font-weight: bold;
-        font-size: 14px;
-        color: #4a5568;
-    `;
+        // تحديد ما إذا كان يجب إظهار الكارد السفلي
+        const shouldShowBottomCard = (hasBothSides && side === 'back') || (!hasBothSides && side === 'front');
 
-        bottomCard.appendChild(logoImg);
-        bottomCard.appendChild(verifiedText); // إضافة النص بدلاً من الصورة
-        previewWrapper.appendChild(bottomCard);
+        if (shouldShowBottomCard) {
+            // Container for the logo and QR code
+            const bottomCard = document.createElement('div');
+            bottomCard.style.cssText =`
+                background-color: white; border: 1px solid #ccc; border-radius: 4px;
+            padding: 3px 8px; display: flex; justify-content: space-between;
+            align-items: center; width: 449px; box-sizing: border-box;
+            margin-top: -5px;
+            `;
+
+            //         bottomCard.style.cssText =
+//     background-color: white; border: 1px solid #ccc; border-radius: 4px;
+//     padding: 3px 8px; display: flex; flex-direction: row-reverse; gap: 8px;
+//     align-items: center; width: 64%; box-sizing: border-box;
+//     margin-top: -5px;
+
+
+
+            const logoImg = document.createElement('img');
+            logoImg.src = '/assets/logo.jpg'; // 👈 **تأكد من هذا المسار**
+            logoImg.alt = 'شعار الموقع';
+            logoImg.style.height = '40px';
+
+            // ⭐⭐ هنا التعديل: استبدال الـ QR code بالنص ⭐⭐
+            const verifiedText = document.createElement('span');
+            verifiedText.textContent = 'Verified by Pepasafe';
+            verifiedText.style.cssText = `
+            font-weight: bold;
+            font-size: 14px;
+            color: #4a5568;
+        `;
+
+            bottomCard.appendChild(logoImg);
+            bottomCard.appendChild(verifiedText); // إضافة النص بدلاً من الصورة
+            previewWrapper.appendChild(bottomCard);
+        }
+        // ⭐⭐ نهاية التعديلات الجديدة ⭐⭐
 
         previewContainer.appendChild(previewWrapper);
         document.body.appendChild(previewContainer);
@@ -2266,7 +2287,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             canvasElement.width = previewWidth;
             canvasElement.height = previewHeight;
-            previewWrapper.style.width = `${Math.max(previewWidth, bottomCard.offsetWidth + 20)}px`;
+            previewWrapper.style.width = `${previewWidth}px`;
             previewWrapper.style.alignItems = 'center';
 
             previewCanvas = new fabric.Canvas(canvasElement, {
@@ -2337,7 +2358,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 canvasElement.width = previewWidth;
                 canvasElement.height = previewHeight;
-                previewWrapper.style.width = `${Math.max(previewWidth, bottomCard.offsetWidth + 20)}px`;
+                previewWrapper.style.width = `${previewWidth}px`;
                 previewWrapper.style.alignItems = 'center';
 
                 previewCanvas = new fabric.Canvas(canvasElement, {
@@ -2835,6 +2856,9 @@ document.addEventListener('DOMContentLoaded', () => {
         fontColor.value = '#000000';
         fontFamily.value = 'Arial';
     });
+
+
+
 });
 
 

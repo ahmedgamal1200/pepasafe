@@ -1,4 +1,6 @@
-@php use App\Models\PhoneNumber; @endphp
+@php use App\Models\PhoneNumber;
+    use App\Models\Setting;
+ @endphp
     <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
@@ -32,6 +34,23 @@
     @include('components.cookie-banner')
 
 </div>
+
+@if(session('status') === 'event-visibility-toggled')
+    <div id="flash-message" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-green-100 border border-green-400 text-green-700 px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300">
+        <strong class="font-bold">تم بنجاح!</strong>
+        <span class="ml-2">تم تحديث حالة ظهور الحدث في الملف الشخصي.</span>
+    </div>
+
+    <script>
+        setTimeout(() => {
+            const msg = document.getElementById('flash-message');
+            if (msg) {
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 300); // يُزال من الـ DOM بعد الإخفاء
+            }
+        }, 3000); // تختفي بعد 3 ثوانٍ
+    </script>
+@endif
 
 @if(session('success'))
     <div class="bg-green-100 border border-green-300 text-green-700 px-4 py-2 rounded mb-4">
@@ -230,6 +249,18 @@
                         {{ trans_db('search.event.count.participants') }}: {{ $recipientCount }}
                     </span>
                     </div>
+
+                @if (Setting::getValue('show_events_in_profile') === '1')
+                <div class="inline-block border border-gray-300 p-1 rounded hover:border-blue-600 transition relative">
+                    <form method="POST" action="{{ route('events.toggleVisibility', $event->slug) }}">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit" class="text-gray-500 hover:text-blue-600">
+                            <i class="bi {{ $event->visible_on_profile ? 'bi-eye-fill' : 'bi-eye-slash-fill' }}"></i>
+                        </button>
+                    </form>
+                </div>
+                @endif
 
                     @if(auth()->check() && auth()->user()->hasAnyPermission(['manage events', 'full access', 'full access to events']))
                         <div class="flex justify-center items-center mt-4">

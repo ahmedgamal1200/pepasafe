@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Document;
+use App\Models\Event;
 use App\Models\User;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Foundation\Application;
@@ -22,14 +23,37 @@ class ProfileController extends Controller
     public function edit(Request $request): View
     {
         $documents = collect();
+        $user = Auth::user();
+
+        $templateCount = 0;
+        $recipientCount = 0;
+        $templates = collect();
 
         $documents = auth()->user()->documents()->with(['template.event', 'recipient'])->get();
+
+        $events = Event::query()
+            ->where('user_id', $request->user()->id)
+            ->with(['documentTemplates', 'recipients'])
+            ->get();
+
+        if($user) {
+            foreach ($events as $event) {
+                $templateCount += $event->documentTemplates->count();
+                $recipientCount += $event->recipients->count();
+            }
+        }
+        else{
+            $events = collect();
+        }
 
 
 
         return view('profile.edit', [
             'user' => $request->user(),
             'documents' => $documents,
+            'events' => $events,
+            'templateCount' => $templateCount,
+            'recipientCount' => $recipientCount,
         ]);
     }
 
@@ -102,12 +126,35 @@ class ProfileController extends Controller
 
     public function showProfileToGuest(User $user): View
     {
+
+        $templateCount = 0;
+        $recipientCount = 0;
+        $templates = collect();
+
         $documents = $user->documents()
             ->where('visible_on_profile', true)
             ->with(['template.event'])
             ->get();
 
-        return view('profile.partials.show-profile-guest', compact('user', 'documents'));
+        $events = Event::query()
+            ->where('visible_on_profile', true)
+            ->with(['documentTemplates', 'recipients'])
+            ->get();
+
+            foreach ($events as $event) {
+                $templateCount += $event->documentTemplates->count();
+                $recipientCount += $event->recipients->count();
+            }
+
+
+
+        return view('profile.partials.show-profile-guest', compact(
+            'user',
+            'documents',
+            'events',
+            'templateCount',
+            'recipientCount',
+        ));
     }
 
 }

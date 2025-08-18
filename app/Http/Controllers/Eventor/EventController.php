@@ -148,4 +148,13 @@ class EventController extends Controller
             return redirect()->back()->with('error', 'حدث خطأ أثناء الحذف');
         }
     }
+
+    // التحكم في اظهار الاحداث في البروفايل او لا من قبل المنظم
+    public function toggleVisibility(Event $event)
+    {
+        $event->visible_on_profile = !$event->visible_on_profile;
+        $event->save();
+
+        return back()->with('status', 'event-visibility-toggled');
+    }
 }

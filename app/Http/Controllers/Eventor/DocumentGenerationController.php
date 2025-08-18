@@ -2827,7 +2827,10 @@ class DocumentGenerationController extends Controller
             $attendanceTemplate = $this->templateService->createAttendanceTemplate($request->validated(), $event->id);
 
             // Create recipients
-            $recipients = $this->recipientService->createRecipients($request->file('recipient_file_path'), $event->id);
+            $this->recipientService->createRecipients($request->file('recipient_file_path'), $event->id);
+
+
+            $recipients = Recipient::where('event_id', $event->id)->get()->toArray();
 
             // جلب ابعاد الصورة الخاصة ب الشهادات من الريكوست
             $certificateData = json_decode($request->input('certificate_text_data'), true);

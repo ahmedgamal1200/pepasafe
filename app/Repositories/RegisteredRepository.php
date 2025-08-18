@@ -3,10 +3,16 @@
 namespace App\Repositories;
 
 use App\Models\User;
+use App\Services\UserQrCodeService;
 use Spatie\Permission\Models\Role;
 
 class RegisteredRepository
 {
+
+    public function __construct(protected UserQrCodeService $qrCodeService)
+    {
+        //
+    }
 
     public function register(array $data)
     {
@@ -24,6 +30,9 @@ class RegisteredRepository
         ]);
 
         $user->assignRole($role);
+
+        // ✅ توليد الـ QR Code
+        $this->qrCodeService->generateQrCodeForUser($user);
 
         return $user;
     }

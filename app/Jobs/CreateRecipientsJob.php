@@ -19,7 +19,7 @@ class CreateRecipientsJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(public $recipientFile, public int $eventId)
+    public function __construct(public string $recipientFilePath, public int $eventId)
     {
         //
     }
@@ -31,8 +31,7 @@ class CreateRecipientsJob implements ShouldQueue
     public function handle(): array
     {
         $importRecipients = new RecipientsImport();
-        Excel::import($importRecipients, storage_path('app/' . $this->recipientFile));
-
+        Excel::import($importRecipients, $this->recipientFilePath);
         $recipientsData = collect($importRecipients->rows)->unique('email')->values();
 
         $existingEmails = User::whereIn('email', $recipientsData->pluck('email'))->pluck('email')->toArray();
@@ -76,9 +75,6 @@ class CreateRecipientsJob implements ShouldQueue
             $recipients[] = $recipient;
         }
 
-//        Storage::delete($this->recipientFile);
-
         return $recipients;
-
     }
 }

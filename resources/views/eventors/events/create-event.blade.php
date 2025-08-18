@@ -196,14 +196,16 @@
 
                         <!-- تفاصيل المشروع -->
                         <div class="flex flex-col gap-2 w-full">
-                            <label for="project-details" class="font-medium text-base">نص الرسالة</label>
+                            <label for="attendance-message-input" class="font-medium text-base">نص الرسالة</label>
                             <textarea
-                                id="project-details"
+                                id="attendance-message-input"
                                 name="attendance_message"
                                 rows="4"
-                                placeholder="اكتب هنا ملاحظات أو تفاصيل إضافية عن المشروع…"
+                                placeholder="الحد الأقصى لعدد الأحرف في رسالة SMS هو 40 حرفًا بالعربية و100 حرفًا بالإنجليزية، وفي حال تجاوز هذا العدد سيتم خصم تكلفة رسالة أخري من رصيدك."
                                 class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full"
                             >{{ old('attendance_message') }}</textarea>
+                            <div id="attendance-char-counter" class="text-sm text-gray-500 text-right"></div>
+                            <input type="hidden" name="attendance_message_char_count" id="attendance-char-count-hidden">
                         </div>
                     </div>
 
@@ -415,15 +417,19 @@
 
                 <!-- تفاصيل المشروع -->
                 <div class="flex flex-col gap-2 w-full">
-                    <label for="project-details" class="font-medium text-base"> نص الرسالة:</label>
+                    <label for="document-message-input" class="font-medium text-base">نص الرسالة:</label>
                     <textarea
-                        id="project-details"
+                        id="document-message-input"
                         name="document_message"
                         rows="4"
-                        placeholder="اكتب هنا ملاحظات أو تفاصيل إضافية عن المشروع…"
+                        placeholder="الحد الأقصى لعدد الأحرف في رسالة SMS هو 40 حرفًا بالعربية و100 حرفًا بالإنجليزية، وفي حال تجاوز هذا العدد سيتم خصم تكلفة رسالة أخري من رصيدك."
                         class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full"
                     >{{ old('document_message') }}</textarea>
+                    <div id="document-char-counter" class="text-sm text-gray-500 text-right"></div>
+                    <input type="hidden" name="document_message_char_count" id="document-char-count-hidden">
                 </div>
+
+
             </div>
 
             <!-- طرق إرسال المشروع -->
@@ -647,10 +653,11 @@
 
     <!-- Warning Card (red) -->
     <!-- بطاقة الرسالة النهائية (تم إضافة هذا الكود) -->
-    <div id="warning-card" class="mt-6 max-w-5xl mx-auto bg-gray-100 border border-gray-400 text-gray-700 rounded-lg p-6 flex items-center gap-4 hidden">
+    <div id="warning-card" class="mt-6 mb-6 max-w-5xl mx-auto bg-gray-100 border border-gray-400 text-gray-700 rounded-lg p-6 flex items-center gap-4 hidden">
         <i id="warning-card-icon" class="fas fa-info-circle text-3xl"></i>
         <p id="warning-card-message" class="text-lg font-medium"></p>
     </div>
+
 
 
     <!-- حاوية مركزية -->
@@ -678,6 +685,7 @@
 <!-- Script -->
 <script src="{{ asset('js/create-event.js') }}"></script>
 <script src="{{ asset('js/calculate-doc-price.js') }}"></script>
+<script src="{{ asset('js/sms-counter.js') }}"></script>
 
 </body>
 </html>

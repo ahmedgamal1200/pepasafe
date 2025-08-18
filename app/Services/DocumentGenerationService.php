@@ -146,7 +146,7 @@ class DocumentGenerationService
 //        }
 //    }
 
-
+    // ما قبل الجوب
     public function generateDocuments(DocumentTemplate $template, array $recipients, $templateDataFile, $canvasWidth, $canvasHeight): void
     {
         $frontTemplate = $template->templateFiles()->where('side', 'front')->first();
@@ -264,6 +264,7 @@ class DocumentGenerationService
     }
 
 
+
     public function generateAttendanceDocuments(AttendanceTemplate $template, array $recipients, $templateDataFile): void
     {
         $frontTemplate = $template->templateFiles()->where('side', 'front')->first();
@@ -278,7 +279,7 @@ class DocumentGenerationService
         Excel::import($attendanceDataImport, $templateDataFile);
         $attendanceDataRows = $attendanceDataImport->rows;
 
-        dd($attendanceDataRows);
+//        dd($attendanceDataRows);
 
         // التحقق من أن عدد الصفوف يطابق عدد المستلمين
         if (count($attendanceDataRows) < count($recipients)) {

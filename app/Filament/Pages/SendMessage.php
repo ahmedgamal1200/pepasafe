@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 
 use App\Jobs\ScheduleDashboardNotificationJob;
+use App\Models\ScheduledNotification;
 use Filament\Pages\Page;
 use Filament\Forms;
 use App\Models\User;
@@ -24,7 +25,7 @@ class SendMessage extends Page
 
     public array $users = [];
     public string $channel = 'email';
-    public string $message = '';
+    public array $message = [];
     public string $subject = '';
 
     public bool $send_to_all = false;
@@ -84,18 +85,35 @@ class SendMessage extends Page
                 ->searchable()
                 ->reactive(),
 
-            Forms\Components\TextInput::make('subject')
-                ->label('Email Subject')
-                ->placeholder('Enter the subject of the message')
-                ->required()
-                ->visible(fn ($get) => $get('channel') === 'email'),
+            // الكود الجديد هنا
+            Forms\Components\Tabs::make('Translations')
+                ->tabs([
+                    Forms\Components\Tabs\Tab::make('Arabic')
+                        ->schema([
+                            Forms\Components\TextInput::make('subject.ar')
+                                ->label('Email Subject (Arabic)')
+                                ->placeholder('ادخل موضوع الرسالة بالعربية')
+                                ->visible(fn ($get) => $get('channel') === 'email'),
 
+                            Forms\Components\Textarea::make('message.ar')
+                                ->label('Notification Message (Arabic)')
+                                ->placeholder('ادخل محتوى الرسالة بالعربية')
+                                ->rows(6),
+                        ]),
+                    Forms\Components\Tabs\Tab::make('English')
+                        ->schema([
+                            Forms\Components\TextInput::make('subject.en')
+                                ->label('Email Subject (English)')
+                                ->placeholder('Enter the subject of the message in English')
+                                ->visible(fn ($get) => $get('channel') === 'email'),
 
-
-            Forms\Components\Textarea::make('message')
-                ->label('Email Message')
-                ->required()
-                ->rows(6),
+                            Forms\Components\Textarea::make('message.en')
+                                ->label('Notification Message (English)')
+                                ->placeholder('Enter the message content in English')
+                                ->rows(6),
+                        ]),
+                ])
+                ->columnSpanFull(), // يجعل التبويبات تظهر على عرض كامل
         ];
     }
 
@@ -103,6 +121,27 @@ class SendMessage extends Page
     public function submit(): void
     {
         $formData = $this->form->getState();
+
+        // التحقق من وجود رسالة في أي لغة
+        if (empty(array_filter($formData['message']))) {
+            Notification::make()
+                ->danger()
+                ->title('Message is required')
+                ->body('Please enter the message in at least one language (Arabic or English).')
+                ->send();
+            return;
+        }
+
+        // التحقق من وجود موضوع في أي لغة إذا كانت القناة email
+        if ($formData['channel'] === 'email' && empty($formData['subject']['ar']) && empty($formData['subject']['en'])) {
+            Notification::make()
+                ->danger()
+                ->title('Subject is required')
+                ->body('Please enter a subject for the email in at least one language.')
+                ->send();
+            return;
+        }
+
 
         if (!$this->send_to_all && empty($this->users)) {
             Notification::make()
@@ -113,16 +152,25 @@ class SendMessage extends Page
             return;
         }
 
-        // نمر على كل التواريخ المجدولة ونرسل مهمة لكل تاريخ
         foreach ($formData['scheduled_dates'] as $scheduled_date) {
+            $scheduledNotification = ScheduledNotification::create([
+                'channel' => $formData['channel'],
+                'message' => $formData['message'],
+                'subject' => $formData['subject'] ?? null,
+                'send_to_all' => $formData['send_to_all'],
+                'user_ids' => $formData['send_to_all'] ? null : $formData['users'],
+                'scheduled_at' => Carbon::parse($scheduled_date['scheduled_at']),
+                'status' => 'pending',
+            ]);
+
             \App\Jobs\ScheduleDashboardNotificationJob::dispatch(
+                $scheduledNotification->id, // هنا نضيف الـID
                 $formData['channel'],
                 $formData['message'],
                 $formData['subject'] ?? null,
                 $formData['send_to_all'] ? [] : $formData['users']
             )->delay(Carbon::parse($scheduled_date['scheduled_at']));
         }
-
 
         Notification::make()
             ->success()

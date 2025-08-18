@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use Filament\Forms\Components\FileUpload;
 use Filament\Pages\Page;
 use Filament\Forms;
 use Filament\Forms\Components\Toggle;
@@ -25,7 +26,8 @@ class GeneralSettings extends Page implements Forms\Contracts\HasForms
         $show_documents_in_profile,
         $user_can_share_here_profile,
         $email_otp_active,
-        $sms_otp_active;
+        $sms_otp_active,
+        $show_events_in_profile;
 
 
     public function mount(): void
@@ -36,7 +38,7 @@ class GeneralSettings extends Page implements Forms\Contracts\HasForms
         $this->user_can_share_here_profile = Setting::where('key', 'user_can_share_here_profile')->value('value') === '1';
         $this->email_otp_active = Setting::where('key', 'email_otp_active')->value('value') === '1';
         $this->sms_otp_active = Setting::where('key', 'sms_otp_active')->value('value') === '1';
-
+        $this->show_events_in_profile = Setting::where('key', 'show_events_in_profile')->value('value') === '1';
     }
 
 
@@ -93,6 +95,21 @@ class GeneralSettings extends Page implements Forms\Contracts\HasForms
                                 ->send();
                         }),
 
+                    Toggle::make('show_events_in_profile')
+                        ->label('Show Events in Profile')
+                        ->reactive()
+                        ->afterStateUpdated(function ($state) {
+                            Setting::updateOrCreate(
+                                ['key' => 'show_events_in_profile'],
+                                ['value' => $state ? '1' : '0']
+                            );
+
+                            Notification::make()
+                                ->title('Setting updated successfully')
+                                ->success()
+                                ->send();
+                        }),
+
                     Toggle::make('user_can_share_here_profile')
                         ->label('User Can Share Here Profile')
                         ->reactive()
@@ -136,6 +153,7 @@ class GeneralSettings extends Page implements Forms\Contracts\HasForms
                                 ->success()
                                 ->send();
                         }),
+
                 ])
         ];
     }

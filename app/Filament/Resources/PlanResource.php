@@ -81,6 +81,42 @@ class PlanResource extends Resource
                     ->numeric()
                     ->minValue(0),
 
+                // SMS Prices
+                TextInput::make('sms_price_outside_plan')
+                    ->label('Pay-As-You-Go SMS Message Price (Outside Plan)')
+                    ->required()
+                    ->numeric()
+                    ->minValue(0),
+                TextInput::make('sms_price_in_plan')
+                    ->label('In-Plan SMS Message Price (Within Plan)')
+                    ->required()
+                    ->numeric()
+                    ->minValue(0),
+
+                // WhatsApp Prices
+                TextInput::make('whatsapp_price_outside_plan')
+                    ->label('Pay-As-You-Go WhatsApp Message Price (Outside Plan)')
+                    ->required()
+                    ->numeric()
+                    ->minValue(0),
+
+                TextInput::make('whatsapp_price_in_plan')
+                    ->label('In-Plan WhatsApp Message Price (Within Plan)')
+                    ->required()
+                    ->numeric()
+                    ->minValue(0),
+
+                // Email Prices
+                TextInput::make('email_price_outside_plan')
+                    ->label('Pay-As-You-Go Email Message Price (Outside Plan)')
+                    ->required()
+                    ->numeric()
+                    ->minValue(0),
+                TextInput::make('email_price_in_plan')
+                    ->label('In-Plan Email Message Price (Within Plan)')
+                    ->required()
+                    ->numeric()
+                    ->minValue(0),
 
                 Grid::make(2)
                 // ✅ خيار ترحيل الرصيد
@@ -91,6 +127,10 @@ class PlanResource extends Resource
 
                         Checkbox::make('enable_attendance')
                             ->label('تفعيل الحضور في هذه الباقة ؟')
+                            ->default(false),
+
+                        Checkbox::make('enable_multiple_templates')
+                            ->label('تفعيل استخدام أكثر من نموذج في هذه الباقة ؟')
                             ->default(false),
                     ]),
 
@@ -133,11 +173,19 @@ class PlanResource extends Resource
                 Tables\Columns\TextColumn::make('credit_amount')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('duration_days')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('feature')->html(),
-                Tables\Columns\TextColumn::make('carry_over_credit')->searchable()->sortable(),
+                Tables\Columns\IconColumn::make('carry_over_credit')->searchable()->sortable()->boolean(),
                 Tables\Columns\TextColumn::make('max_users')->searchable()->sortable(),
                 Tables\Columns\IconColumn::make('enable_attendance')->boolean(),
                 TextColumn::make('document_price_in_plan')->sortable(),
                 TextColumn::make('document_price_outside_plan')->sortable(),
+                TextColumn::make('sms_price_in_plan')->sortable(),
+                TextColumn::make('sms_price_outside_plan')->sortable(),
+                TextColumn::make('whatsapp_price_in_plan')->sortable(),
+                TextColumn::make('whatsapp_price_outside_plan')->sortable(),
+                TextColumn::make('email_price_in_plan')->sortable(),
+                TextColumn::make('email_price_outside_plan')->sortable(),
+                Tables\Columns\IconColumn::make('enable_multiple_templates')->boolean(),
+
             ])
             ->filters([
                 //

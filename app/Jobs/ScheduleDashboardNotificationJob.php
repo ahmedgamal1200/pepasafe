@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\ApiConfig;
+use App\Models\ScheduledNotification;
 use App\Models\User;
 use App\Notifications\CustomAdminNotification;
 use Filament\Notifications\Notification;
@@ -19,8 +20,9 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
      * Create a new job instance.
      */
     public function __construct(
+        public int $scheduledNotificationId,
         public string  $channel,
-        public string  $message,
+        public array $message,
         public ?string $subject = null ,
         public array   $userIds = [],
     )
@@ -33,6 +35,11 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
      */
     public function handle(): void
     {
+        $scheduledNotification = ScheduledNotification::find($this->scheduledNotificationId);
+        if (!$scheduledNotification) {
+            return; // في حالة ما لقاش السجل
+        }
+
         $users = empty($this->userIds)
             ? User::all()
             : User::whereIn('id', $this->userIds)->get();
@@ -40,18 +47,27 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
         $settings = ApiConfig::pluck('value', 'key');
 
         foreach ($users as $user) {
+            $locale = app()->getLocale();
+            $messageForUser = $this->message[$locale] ?? null;
+            $subjectForUser = $this->subject; // الموضوع ليس مترجماً
+
+            if (is_null($messageForUser)) {
+                $messageForUser = $this->message['en'] ?? $this->message['ar'] ?? null;
+            }
             match ($this->channel) {
                 'email'    => $this->sendEmail($user, $settings),
                 'sms'      => $this->sendSms($user, $settings),
                 'whatsapp' => $this->sendWhatsApp($user, $settings),
-                'database' => $user->notify(new CustomAdminNotification($this->message)),
+                'database' => $user->notify(new CustomAdminNotification($messageForUser)),
                 default    => null,
             };
         }
+
+        $scheduledNotification->update(['status' => 'sent', 'sent_at' => now()]);
     }
 
 
-    protected function sendEmail(User $user): void
+    protected function sendEmail(User $user, ?string $messageContent, $subjectContent): void
     {
         $settings = ApiConfig::whereIn('key', [
             'mail_mailer',
@@ -100,9 +116,9 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
         ]);
 
         try {
-            Mail::raw($this->message, function ($message) use ($user) {
+            Mail::raw($messageContent, function ($message) use ($user, $subjectContent) {
                 $message->to($user->email)
-                    ->subject($this->subject ?: 'Message Form PepaSafe');
+                    ->subject($subjectContent ?: 'Message Form PepaSafe');
             });
 
             Notification::make()
@@ -119,7 +135,7 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
     }
 
 
-    protected function sendSms(User $user): void
+    protected function sendSms(User $user, ?string $messageContent): void
     {
         $settings = ApiConfig::whereIn('key', [
             'sms_api_key',          // Twilio SID
@@ -149,7 +165,7 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
                 $to, // الرقم المستلم بصيغة دولية
                 [
                     'from' => $from,
-                    'body' => $this->message,
+                    'body' => $messageContent,
                 ]
             );
 
@@ -169,7 +185,7 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
 
 
 
-    protected function sendWhatsApp(User $user): void
+    protected function sendWhatsApp(User $user, ?string $messageContent): void
     {
         // جلب الإعدادات من قاعدة البيانات حسب الأسماء الجديدة
         $settings = ApiConfig::whereIn('key', [
@@ -203,7 +219,7 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
                 'whatsapp:' . $user->phone,
                 [
                     'from' => 'whatsapp:' . $from,
-                    'body' => $this->message,
+                    'body' => $messageContent,
                 ]
             );
 

@@ -38,6 +38,7 @@ class User extends Authenticatable
         'profile_picture',
         'max_users',
         'slug',
+        'qr_code',
     ];
 
     /**

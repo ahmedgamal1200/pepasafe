@@ -30,4 +30,16 @@ class NotificationController extends Controller
         Auth::user()->unreadNotifications->markAsRead();
         return response()->json(['message' => 'All notifications marked as read.']);
     }
+
+    public function getLatestNotifications()
+    {
+        // هات الإشعارات غير المقروءة لليوزر الحالي
+        $notifications = Auth::user()->unreadNotifications;
+
+        // رجع الإشعارات كـ JSON
+        return response()->json([
+            'count' => $notifications->count(),
+            'notifications' => $notifications
+        ]);
+    }
 }

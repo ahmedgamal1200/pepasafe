@@ -14,9 +14,10 @@ class RecipientService
         $this->recipientRepository = $recipientRepository;
     }
 
-    public function createRecipients($recipientFile, int $eventId): array
+    public function createRecipients($recipientFile, int $eventId): void
     {
-        return $this->recipientRepository->createRecipients($recipientFile, $eventId);
+//        return $this->recipientRepository->createRecipients($recipientFile, $eventId);
+        $this->recipientRepository->createRecipients($recipientFile, $eventId);
     }
 
     public function getRecipientCount($recipientFile): int
