@@ -3,7 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\RoleResource\Pages;
-use App\Filament\Resources\RoleResource\RelationManagers;
+use App\Models\Role;
 use Filament\Forms\Components\MultiSelect;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -11,9 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use App\Models\Role;
 use Illuminate\Database\Eloquent\Builder;
-
 
 class RoleResource extends Resource
 {
@@ -25,14 +23,13 @@ class RoleResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->can('full access',);
+        return auth()->user()?->can('full access');
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->with('permissions');
     }
-
 
     public static function form(Form $form): Form
     {
@@ -78,8 +75,6 @@ class RoleResource extends Resource
                 ]),
             ]);
     }
-
-
 
     public static function getRelations(): array
     {

@@ -37,18 +37,18 @@ class StoreEventRequest extends FormRequest
                 'json',
                 function ($attribute, $value, $fail) {
                     $decoded = json_decode($value, true);
-                    if (!is_array($decoded)) {
+                    if (! is_array($decoded)) {
                         $fail('The certificate text data must be a valid JSON object.');
                     }
                     foreach ($decoded as $cardId => $cardData) {
-                        if (!is_array($cardData) || !isset($cardData['type']) || !is_array($cardData['texts'])) {
+                        if (! is_array($cardData) || ! isset($cardData['type']) || ! is_array($cardData['texts'])) {
                             $fail("Invalid text data structure for card ID: {$cardId}");
                         }
                         foreach ($cardData['texts'] as $text) {
-                            if (!is_array($text) || !isset($text['text'], $text['left'], $text['top'], $text['fontFamily'], $text['fontSize'], $text['fill'], $text['angle'])) {
+                            if (! is_array($text) || ! isset($text['text'], $text['left'], $text['top'], $text['fontFamily'], $text['fontSize'], $text['fill'], $text['angle'])) {
                                 $fail("Invalid text data structure in certificate text data for card ID: {$cardId}");
                             }
-                            if (isset($text['textBaseline']) && !in_array($text['textBaseline'], ['top', 'middle', 'bottom', 'hanging', 'alphabetic', 'alphabetical'])) {
+                            if (isset($text['textBaseline']) && ! in_array($text['textBaseline'], ['top', 'middle', 'bottom', 'hanging', 'alphabetic', 'alphabetical'])) {
                                 $fail("Invalid textBaseline value in certificate text data for card ID: {$cardId}");
                             }
                         }
@@ -73,22 +73,22 @@ class StoreEventRequest extends FormRequest
                 'required_if:is_attendance_enabled,true',
                 'json',
                 function ($attribute, $value, $fail) {
-                    if (!$value) {
+                    if (! $value) {
                         return;
                     }
                     $decoded = json_decode($value, true);
-                    if (!is_array($decoded)) {
+                    if (! is_array($decoded)) {
                         $fail('The attendance text data must be a valid JSON object.');
                     }
                     foreach ($decoded as $cardId => $cardData) {
-                        if (!is_array($cardData) || !isset($cardData['texts']) || !is_array($cardData['texts'])) {
+                        if (! is_array($cardData) || ! isset($cardData['texts']) || ! is_array($cardData['texts'])) {
                             $fail("Invalid text data structure for card ID: {$cardId}");
                         }
                         foreach ($cardData['texts'] as $text) {
-                            if (!is_array($text) || !isset($text['text'], $text['left'], $text['top'], $text['fontFamily'], $text['fontSize'], $text['fill'], $text['angle'])) {
+                            if (! is_array($text) || ! isset($text['text'], $text['left'], $text['top'], $text['fontFamily'], $text['fontSize'], $text['fill'], $text['angle'])) {
                                 $fail("Invalid text data structure in attendance text data for card ID: {$cardId}");
                             }
-                            if (isset($text['textBaseline']) && !in_array($text['textBaseline'], ['top', 'middle', 'bottom', 'hanging', 'alphabetic', 'alphabetical'])) {
+                            if (isset($text['textBaseline']) && ! in_array($text['textBaseline'], ['top', 'middle', 'bottom', 'hanging', 'alphabetic', 'alphabetical'])) {
                                 $fail("Invalid textBaseline value in attendance text data for card ID: {$cardId}");
                             }
                         }

@@ -3,14 +3,12 @@
 namespace App\Repositories\Eventor\Auth;
 
 use App\Http\Requests\Eventor\Auth\EventorRegisterRequest;
-use App\Mail\OtpMail;
 use App\Models\PaymentReceipt;
 use App\Models\Plan;
 use App\Models\User;
 use App\Services\UserQrCodeService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Twilio\Rest\Client;
@@ -20,7 +18,6 @@ class EventorAuthRepository
     /**
      * @throws \Exception
      */
-
     public function __construct(protected UserQrCodeService $qrCodeService)
     {
         //
@@ -40,9 +37,8 @@ class EventorAuthRepository
                 'password' => Hash::make($request->input('password')),
                 'phone' => $request->input('phone'),
                 'category_id' => $request->input('category'),
-                'max_users' => $plan->max_users
+                'max_users' => $plan->max_users,
             ]);
-
 
             $role = Role::query()->firstOrCreate([
                 'name' => $request->input('role'),
@@ -64,7 +60,6 @@ class EventorAuthRepository
             // ✅ توليد الـ QR Code
             $this->qrCodeService->generateQrCodeForUser($user);
 
-
             if ($plan->price > 0 && $request->hasFile("payment_receipt.{$plan->id}")) {
                 $file = $request->file("payment_receipt.{$plan->id}");
                 $receiptPath = $file->store('receipts', 'public');
@@ -76,8 +71,9 @@ class EventorAuthRepository
                 'image_path' => $receiptPath ?? null,
             ]);
 
-//        $this->sendOtpPhone($user->phone, $otp);
+            //        $this->sendOtpPhone($user->phone, $otp);
             DB::commit();
+
             return $user;
         } catch (\Exception $e) {
             DB::rollBack(); // إذا حدث أي خطأ، يتم التراجع عن المعاملة
@@ -95,12 +91,12 @@ class EventorAuthRepository
         $smsSenderId = DB::table('api_configs')->where('key', 'sms_sender_id')->value('value');
 
         // تحقق إذا كانت الإعدادات موجودة
-        if (!$smsApiKey || !$smsSenderId) {
+        if (! $smsApiKey || ! $smsSenderId) {
             throw new \Exception('SMS API key or sender ID is not configured.');
         }
 
         // بناء الرسالة
-        $message = 'Your OTP Code is: ' . $otp;
+        $message = 'Your OTP Code is: '.$otp;
 
         // إرسال الرسالة عبر الـ API
         $client = new Client($smsApiKey, null);  // نحن لا نحتاج توكين مع بعض الخدمات مثل Nexmo أو Twilio عند التكوين هذا

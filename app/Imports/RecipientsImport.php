@@ -2,7 +2,6 @@
 
 namespace App\Imports;
 
-
 use Maatwebsite\Excel\Concerns\ToArray;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 

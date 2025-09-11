@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Services;
+
 use App\Models\Event;
 use App\Repositories\Eventor\EventRepository;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +21,7 @@ class EventService
     public function createEvent(array $data): Event
     {
         $data['user_id'] = Auth::id() ?? throw new \Exception('User must be authenticated to create an event.');
+
         return $this->eventRepository->create([
             'title' => $data['event_title'],
             'issuer' => $data['issuer'],

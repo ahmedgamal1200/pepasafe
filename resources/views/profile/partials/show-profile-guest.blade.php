@@ -6,6 +6,13 @@
         @include('partials.navbar')
     @endif
 
+        <div class="mb-6 p-4 bg-blue-100 rounded-lg shadow-md border-l-4 border-blue-500">
+            <p class="text-sm font-medium text-blue-700">
+                {{ __('You are currently viewing a profile shared with you by another user.') }}
+            </p>
+        </div>
+
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
@@ -32,26 +39,35 @@
                         </div>
 
 
+                        <br>
+                        <div class="flex items-center gap-2">
+                            <x-input-label for="name" :value="__('Name:')" />
 
-                            <div>
-                                <x-input-label for="name" :value="__('Name')" />
-                                <x-text-input id="name" name="name" type="text" readonly class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
-                                <x-input-error class="mt-2" :messages="$errors->get('name')" />
-                            </div><br>
+                            <div class="flex items-center gap-2 text-gray-900 dark:text-gray-100 text-lg font-semibold" style="color: #1a202c;">
+                                <span>{{ $user->name }}</span>
 
-
-                            <div>
-                                <x-input-label for="bio" :value="__('Bio')" />
-
-                                <textarea id="bio"
-                                          name="bio"
-                                          rows="4"
-                                          readonly
-                                          class="mt-1 block w-full rounded-md shadow-sm border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                                >{{ old('bio', $user->bio) }}</textarea>
-
-                                <x-input-error class="mt-2" :messages="$errors->get('bio')" />
+                                @if($user->category)
+                                    <span class="flex-shrink-0" title="{{ $category->icon }}">
+                                        {!! App\Helpers\IconHelper::get($category->icon) !!}
+                                    </span>
+                                @endif
                             </div>
+                        </div>
+                        <br>
+
+
+
+                        <div class="flex items-start gap-2">
+                            <x-input-label for="bio" :value="__('Bio:')" />
+
+                            <div class="text-gray-900 dark:text-gray-100">
+                                @if($user->bio)
+                                    <p>{{ $user->bio }}</p>
+                                @else
+                                    <p class="text-gray-500 italic">{{ __('No bio available.') }}</p>
+                                @endif
+                            </div>
+                        </div>
 
                     </section>
 
@@ -80,38 +96,34 @@
                             <div class="container mx-auto px-4"><br>
 
                                 @foreach($documents as $document)
-                                <a href="{{ auth()->check() ? route('documents.show', $document->uuid) : '#' }}">
+                                    <a href="{{ auth()->check() ? route('documents.show', $document->uuid) : '#' }}">
+                                        <section class="max-w-xs bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105 mx-auto lg:ml-auto lg:mr-5 relative">
 
-                                    <section class="max-w-xs bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105
-                        mx-auto lg:ml-auto lg:mr-5 relative">
+                                            <div class="relative w-full h-auto">
+                                                <img src="{{ asset('storage/' . $document->file_path) }}"
+                                                     alt="صورة الشهادة"
+                                                     class="w-full h-auto object-cover {{ auth()->check() ? '' : 'blur-sm' }}" />
 
-                                        {{-- صورة الشهادة --}}
-                                        <div class="relative w-full h-32">
-                                            <iframe src="{{ asset('storage/' . $document->file_path) }}"
-                                                    class="w-full h-full object-cover {{ auth()->check() ? '' : 'blur-sm' }}">
-                                            </iframe>
+                                                {{-- Overlay بلور وقفل لو مش مسجل دخول --}}
+                                                @guest
+                                                    <div class="absolute inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex flex-col justify-center items-center space-y-2 text-white text-center">
+                                                        <i class="fas fa-lock text-2xl"></i>
+                                                        <a href="{{ route('login') }}"
+                                                           class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm font-medium">
+                                                            سجل الدخول لعرض الشهادة
+                                                        </a>
+                                                    </div>
+                                                @endguest
+                                            </div>
 
-                                            {{-- Overlay بلور وقفل لو مش مسجل دخول --}}
-                                            @guest
-                                                <div class="absolute inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex flex-col justify-center items-center space-y-2 text-white text-center">
-                                                    <i class="fas fa-lock text-2xl"></i>
-                                                    <a href="{{ route('login') }}"
-                                                       class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm font-medium">
-                                                        سجل الدخول لعرض الشهادة
-                                                    </a>
-                                                </div>
-                                            @endguest
-                                        </div>
-
-                                        {{-- تفاصيل الوثيقة --}}
-                                        <div class="p-3 space-y-2 text-right">
-                                            <h2 class="text-lg font-semibold">وثيقة: {{ $document->template->title ?? ''}}</h2>
-                                            <h3 class="text-gray-500 text-sm">تاريخ الإصدار: {{ $document->template->send_at->format('Y-m-d')}}</h3>
-                                            <p class="text-gray-600 text-sm">{{ $document->template->event->title ?? ''}}</p>
-                                        </div>
-
-                                    </section>
-                                </a>
+                                            {{-- تفاصيل الوثيقة --}}
+                                            <div class="p-3 space-y-2 text-right">
+                                                <h2 class="text-lg font-semibold">وثيقة: {{ $document->template->title ?? ''}}</h2>
+                                                <h3 class="text-gray-500 text-sm">تاريخ الإصدار: {{ $document->template->send_at->format('Y-m-d')}}</h3>
+                                                <p class="text-gray-600 text-sm">{{ $document->template->event->title ?? ''}}</p>
+                                            </div>
+                                        </section>
+                                    </a>
                                 @endforeach
                             </div>
 

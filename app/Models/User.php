@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -16,14 +17,13 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
-
     public function getRouteKeyName(): string
     {
         return 'slug';
@@ -39,6 +39,7 @@ class User extends Authenticatable
         'max_users',
         'slug',
         'qr_code',
+        'is_attendance',
     ];
 
     /**
@@ -96,21 +97,19 @@ class User extends Authenticatable
         return $this->belongsTo(Category::class);
     }
 
-
-
-
-//    // الطلبات اللي راجعها الأدمن
-//    public function reviewedRechargeRequests()
-//    {
-//        return $this->hasMany(WalletRechargeRequestController::class, 'admin_id');
-//    }
-
     // انشاء slug لكل المستخدمين
-    protected static  function booted()
+    protected static function booted(): void
     {
         static::creating(function ($user) {
-            $user->slug = Str::slug($user->name . '-' . Str::random(4));
+            // هات آخر رقم مستخدم
+            $lastNumber = User::withTrashed()
+                ->selectRaw('MAX(CAST(SUBSTRING_INDEX(slug, "-", -1) AS UNSIGNED)) as max_number')
+                ->value('max_number');
+
+            $nextNumber = $lastNumber ? $lastNumber + 1 : 1000;
+
+            // خليه ياخد الاسم + الرقم
+            $user->slug = Str::slug($user->name).'-'.$nextNumber;
         });
     }
-
 }

@@ -9,7 +9,6 @@ use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class CreateRecipientsJob implements ShouldQueue
@@ -26,11 +25,12 @@ class CreateRecipientsJob implements ShouldQueue
 
     /**
      * Execute the job.
+     *
      * @throws \Exception
      */
     public function handle(): array
     {
-        $importRecipients = new RecipientsImport();
+        $importRecipients = new RecipientsImport;
         Excel::import($importRecipients, $this->recipientFilePath);
         $recipientsData = collect($importRecipients->rows)->unique('email')->values();
 
@@ -38,20 +38,25 @@ class CreateRecipientsJob implements ShouldQueue
         $newUsers = [];
         $now = now();
 
+        $lastSlug = User::withTrashed()->max('slug') ?: 999;
+
         foreach ($recipientsData as $row) {
-            if (!in_array($row['email'], $existingEmails)) {
+            if (! in_array($row['email'], $existingEmails)) {
+                $lastSlug++;
+
                 $newUsers[] = [
                     'name' => $row['name'],
                     'email' => $row['email'],
                     'password' => bcrypt('password123'),
                     'phone' => $row['phone_number'] ?? null,
+                    'slug' => $lastSlug, // إضافة حقل الـ slug هنا
                     'created_at' => $now,
                     'updated_at' => $now,
                 ];
             }
         }
 
-        if (!empty($newUsers)) {
+        if (! empty($newUsers)) {
             User::insert($newUsers);
             $roleId = Role::where('name', 'user')->value('id');
             $newUserIds = User::whereIn('email', collect($newUsers)->pluck('email'))->pluck('id');

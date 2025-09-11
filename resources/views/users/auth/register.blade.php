@@ -9,6 +9,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" defer></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
 
     <style>
         *, *::before, *::after { box-sizing: border-box; }
@@ -154,14 +156,41 @@
             <input type="password" id="confirm_password" placeholder="تأكيد كلمة المرور" name="password_confirmation" required class="w-full p-2 border border-gray-300 rounded mb-6 text-right">
 
             <div class="text-sm font-medium text-right mb-2">الفئة</div>
-            <select name="category"  required class="w-full p-2 border border-gray-300 rounded mb-4 text-right appearance-none bg-white">
+            <select id="category" name="category" required class="w-full p-2 border border-gray-300 rounded">
                 <option value="">اختر فئة</option>
                 @foreach($categories as $category)
-                    <option value="{{ $category->id }}" {{ old('category') == $category->id ? 'selected' : '' }}>
+                    <option value="{{ $category->id }}"
+                            data-icon='{!! App\Helpers\IconHelper::get($category->icon) !!}'>
                         {{ $category->type }}
                     </option>
                 @endforeach
             </select>
+
+
+            <script>
+                new TomSelect("#category",{
+                    render: {
+                        option: function(data, escape) {
+                            return `<div style="display:flex;align-items:center;gap:6px;">
+                        ${data.icon ?? ''}
+                        <span>${escape(data.text)}</span>
+                    </div>`;
+                        },
+                        item: function(data, escape) {
+                            return `<div style="display:flex;align-items:center;gap:6px;">
+                        ${data.icon ?? ''}
+                        <span>${escape(data.text)}</span>
+                    </div>`;
+                        }
+                    },
+                    data: {
+                        icon: function(option) {
+                            return option.getAttribute('data-icon');
+                        }
+                    }
+                });
+            </script>
+
 
             <div class="w-full text-right mb-6">
                 <label for="terms" class="inline-block align-middle">
@@ -175,6 +204,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @foreach ($plans as $plan)
+                    @if($plan->is_public == 1)
                     <input type="radio" name="plan" id="plan-{{ $plan->id }}" value="{{ $plan->id }}" class="hidden" >
                     <label for="plan-{{ $plan->id }}" class="card-label bg-white rounded-lg p-4 hover:shadow-lg transition cursor-pointer">
                         <div class="text-lg font-semibold text-right mb-3">{{ $plan->name }}</div>
@@ -218,7 +248,8 @@
                             </label>
                         @endif
                     </label>
-                @endforeach
+                    @endif
+                        @endforeach
             </div>
 
 

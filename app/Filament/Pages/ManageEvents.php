@@ -2,14 +2,13 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Role;
 use Filament\Forms;
-use Filament\Pages\Page;
-use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Concerns\InteractsWithForms;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
+use Filament\Pages\Page;
+use Illuminate\Support\Facades\Hash;
 
 class ManageEvents extends Page implements HasForms
 {
@@ -24,25 +23,28 @@ class ManageEvents extends Page implements HasForms
     protected static string $view = 'filament.pages.manage-events';
 
     public $name;
+
     public $email;
+
     public $password;
+
     public $phone;
+
     public $permissions = [];
 
     public function createUser()
     {
         // الفاليديشن خارج الـ try-catch ليتمكن Filament من عرض الأخطاء تلقائيًا
         $this->validate([
-            'name'        => ['required', 'string', 'max:255'],
-            'email'       => ['required', 'email', 'unique:users,email'],
-            'password'    => ['required', 'string', 'min:6'],
-            'phone'       => ['required', 'string'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:6'],
+            'phone' => ['required', 'string'],
             'permissions' => ['nullable', 'array'],
         ]);
 
         try {
             $user = auth()->user(); // المستخدم الحالي الذي قام بتسجيل الدخول
-
 
             // التحقق مما إذا كان عدد المستخدمين المتاحين (max_users) قد نفد للمستخدم الحالي
             // تم تغيير الشرط ليستخدم $user->max_users بدلاً من $plan->max_users
@@ -51,20 +53,25 @@ class ManageEvents extends Page implements HasForms
                     ->title('لقد استنفدت عدد المستخدمين المسموح به لحسابك.')
                     ->danger()
                     ->send();
+
                 return;
             }
 
             // إنشاء المستخدم الجديد
             $newUser = \App\Models\User::create([
-                'name'     => $this->name,
-                'email'    => $this->email,
+                'name' => $this->name,
+                'email' => $this->email,
                 'password' => Hash::make($this->password),
-                'phone'    => $this->phone,
+                'phone' => $this->phone,
             ]);
 
             if (! empty($this->permissions)) {
                 $newUser->givePermissionTo($this->permissions);
             }
+
+            Role::firstOrCreate(['name' => 'employee']);
+
+            $newUser->assignRole('employee');
 
             // خصم 1 من عدد المستخدمين المتاحين للمستخدم الحالي
             // تم تغيير هذا الجزء ليستخدم $user->max_users بدلاً من $plan->max_users
@@ -82,7 +89,7 @@ class ManageEvents extends Page implements HasForms
         } catch (\Throwable $e) {
             // إشعار بالخطأ إذا حدث أي استثناء آخر
             Notification::make()
-                ->title('حدث خطأ: ' . $e->getMessage())
+                ->title('حدث خطأ: '.$e->getMessage())
                 ->danger()
                 ->send();
         }
@@ -96,6 +103,8 @@ class ManageEvents extends Page implements HasForms
     protected function getFormSchema(): array
     {
         return [
+            Forms\Components\View::make('filament.components.max-users-counter'),
+
             Forms\Components\TextInput::make('name')
                 ->label('name')
                 ->required(),
@@ -118,13 +127,12 @@ class ManageEvents extends Page implements HasForms
                 ->multiple()
                 ->options([
                     'full access to events' => 'Full access to events',
-                    'search for a document'   => 'Search for a document',
-                    'search by QR code'     => 'Search by QR code',
-                    'create an event'          => 'Create an event',
-                    'manage events'            => 'Manage Events',
-                    'edit events'           => 'Edit events',
-                    'delete event'           => 'Delete event',
-                ])
+                    'search for a document' => 'Search for a document',
+                    'search by qr code' => 'Search by QR code',
+                    'create an event' => 'Create an event',
+                    'edit events' => 'Edit events',
+                    'delete event' => 'Delete event',
+                ]),
 
         ];
     }

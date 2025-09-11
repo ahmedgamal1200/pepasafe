@@ -9,7 +9,6 @@ class AttendanceDocumentField extends Model
 {
     protected $guarded = ['id'];
 
-
     public function template(): BelongsTo
     {
         return $this->belongsTo(AttendanceTemplate::class);

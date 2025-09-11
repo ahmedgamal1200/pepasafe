@@ -29,11 +29,8 @@ class AuthenticatedSessionController extends Controller
 
         $field = filter_var($emailOrPhone, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
 
-
-
         if (Auth::attempt([$field => $emailOrPhone, 'password' => $password], $request->filled('remember'))) {
             $request->session()->regenerate();
-
 
             $user = auth()->user()->load('roles');
 

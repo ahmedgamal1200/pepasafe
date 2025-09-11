@@ -12,7 +12,6 @@ Artisan::command('inspire', function () {
 
 Schedule::command(AutoRenewSubscriptions::class)->daily();
 
-//Schedule::job(ScheduleDashboardNotificationJob::class)
+// Schedule::job(ScheduleDashboardNotificationJob::class)
 //    ->everyMinute()
 //    ->timezone('Africa/Cairo');
-

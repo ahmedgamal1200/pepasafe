@@ -3,13 +3,10 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\WalletRechargeRequestResource\Pages;
-use App\Filament\Resources\WalletRechargeRequestResource\RelationManagers;
 use App\Models\WalletRechargeRequest;
 use App\Services\WalletRechargeRequestService;
 use Filament\Facades\Filament;
-use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -18,11 +15,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\ViewColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class WalletRechargeRequestResource extends Resource
 {
@@ -32,7 +26,6 @@ class WalletRechargeRequestResource extends Resource
 
     protected static ?string $navigationGroup = 'Requests';
 
-
     public static function canAccess(): bool
     {
         return auth()->user()?->hasAnyPermission([
@@ -40,6 +33,7 @@ class WalletRechargeRequestResource extends Resource
             'show wallet recharge requests',
         ]);
     }
+
     public static function canApprove(): bool
     {
         return auth()->user()?->hasAnyPermission([
@@ -103,7 +97,7 @@ class WalletRechargeRequestResource extends Resource
                 Tables\Columns\TextColumn::make('admin_note'),
                 Tables\Columns\TextColumn::make('approved_at'),
                 Tables\Columns\TextColumn::make('reviewed_by'),
-//                Tables\Columns\TextColumn::make('subscription_id'),
+                //                Tables\Columns\TextColumn::make('subscription_id'),
             ])
             ->filters([
                 //
@@ -113,7 +107,7 @@ class WalletRechargeRequestResource extends Resource
                     ->label('Approve')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->visible(fn($record) => $record->status === 'pending' &&
+                    ->visible(fn ($record) => $record->status === 'pending' &&
                         static::canApprove()
                     )
                     ->requiresConfirmation()
@@ -125,7 +119,7 @@ class WalletRechargeRequestResource extends Resource
                     ->label('Reject')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
-                    ->visible(fn($record) => $record->status === 'pending' &&
+                    ->visible(fn ($record) => $record->status === 'pending' &&
                         static::canReject()
 
                     )

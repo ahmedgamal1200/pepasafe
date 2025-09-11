@@ -7,10 +7,8 @@ use App\Http\Requests\Eventor\Auth\EventorRegisterRequest;
 use App\Mail\OtpMail;
 use App\Models\Category;
 use App\Models\PaymentMethod;
-use App\Models\PaymentReceipt;
 use App\Models\Plan;
 use App\Models\Setting;
-use App\Models\User;
 use App\Repositories\Eventor\Auth\EventorAuthRepository;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Contracts\View\Factory;
@@ -18,12 +16,9 @@ use Illuminate\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Validation\Rules;
-use Illuminate\View\View;
-use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
@@ -36,8 +31,7 @@ class RegisteredUserController extends Controller
         $plans = Plan::query()->get();
         $paymentMethods = PaymentMethod::query()->get();
 
-        return view('users.auth.register', compact
-        (
+        return view('users.auth.register', compact(
             'categories', 'plans', 'paymentMethods'
         ));
     }
@@ -55,10 +49,8 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-
         $emailOtpSetting = Setting::where('key', 'email_otp_active')->first();
         $emailOtpActive = $emailOtpSetting && $emailOtpSetting->value == '1';
-
 
         if ($emailOtpActive) {
             // ✅ توليد كود OTP
@@ -71,8 +63,9 @@ class RegisteredUserController extends Controller
             Mail::to($user->email)->send(new OtpMail($otp));
 
             return redirect()->route('verify.otp');
-        }else{
+        } else {
             Auth::login($user);
+
             return redirect(route('home.eventor', absolute: false));
         }
 
@@ -88,38 +81,35 @@ class RegisteredUserController extends Controller
         // التحقق من المدخلات
         $request->validate([
             'email_otp' => 'required|numeric|digits:6',  // التحقق من OTP للبريد الإلكتروني
-//            'phone_otp' => 'required|numeric|digits:6',  // التحقق من OTP للهاتف
+            //            'phone_otp' => 'required|numeric|digits:6',  // التحقق من OTP للهاتف
         ]);
 
         // التحقق من OTP البريد الإلكتروني
         $emailOtp = $request->cookie('otp');
 
-//        dd($request->input('email_otp'), session('otp_email'));
+        //        dd($request->input('email_otp'), session('otp_email'));
         if ($request->input('email_otp') !== $emailOtp) {
             return back()->withErrors(['email_otp' => 'الكود المرسل للبريد الإلكتروني غير صحيح.']);
         }
 
         // التحقق من OTP الهاتف
-//        $phoneOtp = session('otp_phone');
-//        if ($request->input('phone_otp') !== $phoneOtp) {
-//            return back()->withErrors(['phone_otp' => 'الكود المرسل للهاتف غير صحيح.']);
-//        }
+        //        $phoneOtp = session('otp_phone');
+        //        if ($request->input('phone_otp') !== $phoneOtp) {
+        //            return back()->withErrors(['phone_otp' => 'الكود المرسل للهاتف غير صحيح.']);
+        //        }
 
         // إذا كانت كل الرموز صحيحة
-//        session()->forget(['otp_email', 'otp_phone']);  // إزالة الـ OTP من الجلسة بعد التحقق
+        //        session()->forget(['otp_email', 'otp_phone']);  // إزالة الـ OTP من الجلسة بعد التحقق
         // ✅ احذف الكود من الكوكي بعد التحقق
         Cookie::queue(Cookie::forget('otp'));
 
-
-
         // متابعة العملية (توجيه المستخدم إلى الصفحة الرئيسية مثلًا)
-        if(Auth::user()->hasRole('user')){
+        if (Auth::user()->hasRole('user')) {
             return redirect()->route('home.users');
-        }else{
+        } else {
             return redirect()->route('home.eventor');
         }
     }
-
 
     public function resendOtp(Request $request): RedirectResponse
     {

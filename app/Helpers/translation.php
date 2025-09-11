@@ -2,8 +2,8 @@
 
 use App\Models\TranslationKey;
 
-if(!function_exists('trans_db')){
-    function trans_db(string $key, string $locale = null)
+if (! function_exists('trans_db')) {
+    function trans_db(string $key, ?string $locale = null)
     {
         $locale = $locale ?? app()->getLocale();
 

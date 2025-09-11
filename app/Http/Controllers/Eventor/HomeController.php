@@ -3,18 +3,15 @@
 namespace App\Http\Controllers\Eventor;
 
 use App\Http\Controllers\Controller;
-use App\Models\AttendanceTemplate;
 use App\Models\Document;
 use App\Models\DocumentTemplate;
 use App\Models\Event;
 use App\Models\PhoneNumber;
 use App\Models\Recipient;
-use App\Models\User;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -42,12 +39,11 @@ class HomeController extends Controller
                 $templateCount += $event->documentTemplates->count();
                 $recipientCount += $event->recipients->count();
             }
-        }else{
+        } else {
             $events = collect();
         }
 
-        return view('eventors.home', compact
-        (
+        return view('eventors.home', compact(
             'user',
             'phone',
             'events',
@@ -75,7 +71,7 @@ class HomeController extends Controller
 
             // البحث عن event بالـ title
             $event = Event::query()
-                ->where('title', 'like', '%' . $query . '%')
+                ->where('title', 'like', '%'.$query.'%')
                 ->first();
 
             // لو لقينا الحدث، نحسب عدد document_templates المرتبطة بيه
@@ -85,8 +81,7 @@ class HomeController extends Controller
             }
         }
 
-        return view('guests.index', compact
-        (
+        return view('guests.index', compact(
             'user',
             'document',
             'event',

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
-use App\Models\Document;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Contracts\View\Factory;
@@ -36,17 +35,14 @@ class ProfileController extends Controller
             ->with(['documentTemplates', 'recipients'])
             ->get();
 
-        if($user) {
+        if ($user) {
             foreach ($events as $event) {
                 $templateCount += $event->documentTemplates->count();
                 $recipientCount += $event->recipients->count();
             }
-        }
-        else{
+        } else {
             $events = collect();
         }
-
-
 
         return view('profile.edit', [
             'user' => $request->user(),
@@ -54,6 +50,7 @@ class ProfileController extends Controller
             'events' => $events,
             'templateCount' => $templateCount,
             'recipientCount' => $recipientCount,
+            'category' => $user->category,
         ]);
     }
 
@@ -78,7 +75,6 @@ class ProfileController extends Controller
             $request->user()->profile_picture = $path;
         }
         // ********** نهاية التعامل مع الصورة الشخصية **********
-
 
         // التعامل مع الإيميل (لو اتغير بيخلي حالة التحقق بـ null)
         if ($request->user()->isDirty('email')) {
@@ -141,12 +137,12 @@ class ProfileController extends Controller
             ->with(['documentTemplates', 'recipients'])
             ->get();
 
-            foreach ($events as $event) {
-                $templateCount += $event->documentTemplates->count();
-                $recipientCount += $event->recipients->count();
-            }
+        foreach ($events as $event) {
+            $templateCount += $event->documentTemplates->count();
+            $recipientCount += $event->recipients->count();
+        }
 
-
+        $category = $user->category;
 
         return view('profile.partials.show-profile-guest', compact(
             'user',
@@ -154,7 +150,7 @@ class ProfileController extends Controller
             'events',
             'templateCount',
             'recipientCount',
+            'category'
         ));
     }
-
 }

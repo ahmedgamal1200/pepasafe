@@ -3,8 +3,8 @@
 namespace App\Repositories\Eventor;
 
 use App\Models\AttendanceTemplate;
-use App\Models\ExcelUpload;
 use App\Models\DocumentField;
+use App\Models\ExcelUpload;
 
 class AttendanceTemplateRepository
 {
@@ -47,13 +47,13 @@ class AttendanceTemplateRepository
 
     public function saveFieldPositions(AttendanceTemplate $template, array $textData): void
     {
-        if (!is_array($textData)) {
+        if (! is_array($textData)) {
             throw new \Exception('Invalid text data format for attendance fields.');
         }
 
         // التعامل مع الكائن المتداخل (مثل attendance_template_data_file_path-front)
         foreach ($textData as $cardId => $cardData) {
-            if (!isset($cardData['texts']) || !is_array($cardData['texts'])) {
+            if (! isset($cardData['texts']) || ! is_array($cardData['texts'])) {
                 throw new \Exception("Invalid text data structure for card ID: {$cardId}");
             }
 
@@ -61,14 +61,14 @@ class AttendanceTemplateRepository
             $side = strpos($cardId, '-front') !== false ? 'front' : 'back';
 
             foreach ($cardData['texts'] as $text) {
-                if (!is_array($text) || !isset($text['text'], $text['left'], $text['top'], $text['fontFamily'], $text['fontSize'], $text['fill'], $text['angle'])) {
+                if (! is_array($text) || ! isset($text['text'], $text['left'], $text['top'], $text['fontFamily'], $text['fontSize'], $text['fill'], $text['angle'])) {
                     throw new \Exception("Invalid text obw text data structure for card ID: {$cardId}");
                 }
 
                 // إصلاح textBaseline إذا كانت القيمة غير صحيحة
                 $textBaseline = isset($text['textBaseline']) && $text['textBaseline'] === 'alphabetical' ? 'alphabetic' : ($text['textBaseline'] ?? 'top');
-                if (!in_array($textBaseline, ['top', 'middle', 'bottom', 'hanging', 'alphabetic'])) {
-//                    $textBaseline = 'top'; // قيمة افتراضية
+                if (! in_array($textBaseline, ['top', 'middle', 'bottom', 'hanging', 'alphabetic'])) {
+                    //                    $textBaseline = 'top'; // قيمة افتراضية
                 }
 
                 DocumentField::create([
@@ -85,7 +85,7 @@ class AttendanceTemplateRepository
                     'font_weight' => $text['fontWeight'] ?? 'normal',
                     'rotation' => $text['angle'],
                     'z_index' => $text['zIndex'] ?? 1,
-//                    'text_baseline' => $textBaseline,
+                    //                    'text_baseline' => $textBaseline,
                     'side' => $side,
                     'attendance_template_id' => $template->id,
                 ]);

@@ -31,17 +31,19 @@ class RenewSubscriptionJob implements ShouldQueue
     {
         $old = Subscription::with(['user', 'plan'])->find($this->subscriptionId);
 
-        if (!$old) {
+        if (! $old) {
             Log::error("RenewSubscriptionJob: Subscription with ID {$this->subscriptionId} not found.");
+
             return;
         }
 
         $plan = $old->plan;
 
-        if((float)$old->balance < (float)$plan->price){
+        if ((float) $old->balance < (float) $plan->price) {
             // لو مفيش رصيد كافيء نحدث الحالة ونبعت اشعار
             $old->update(['status' => 'pending']);
             $old->user->notify(new InsufficientBalanceNotification($old->plan));
+
             return;
         }
 
@@ -54,7 +56,6 @@ class RenewSubscriptionJob implements ShouldQueue
             'start_date' => $old->start_date, // تاريخ بداية الاشتراك القديم
             'end_date' => $old->end_date,   // تاريخ نهاية الاشتراك القديم
         ]);
-
 
         $new = Subscription::query()->create([
             'plan_id' => $plan->id,

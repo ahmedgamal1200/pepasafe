@@ -22,10 +22,10 @@ return new class extends Migration
             $table->timestamp('approved_at')->nullable();
             $table->string('reviewed_by');
 
-//            $table->foreignId('admin_id')
-//                ->nullable()
-//                ->constrained('users')
-//                ->nullOnDelete(); // الأدمن اللي وافق أو رفض
+            //            $table->foreignId('admin_id')
+            //                ->nullable()
+            //                ->constrained('users')
+            //                ->nullOnDelete(); // الأدمن اللي وافق أو رفض
             $table->foreignIdFor(User::class)
                 ->constrained()
                 ->cascadeOnDelete();

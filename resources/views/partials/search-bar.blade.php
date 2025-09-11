@@ -2,29 +2,26 @@
     <form action="{{ auth()->check() ? route('home.users') : route('homeForGuests') }}" method="GET" class="relative flex flex-col sm:flex-row items-center">
         @if(
         !auth()->check() ||
-//    auth()->check() &&
 
-        auth()->user()->hasAnyRole(['eventor', 'super admin']) ||
-        auth()->user()->hasAnyPermission(['full access to events', 'search for a document', 'full access']) ||
-        auth()->check()
-
-)
-        <input
-            name="query"
-            type="text"
-            placeholder="أدخل اسم الحدث او أدخل كود الشهادة أو امسح رمز QR"
-            required
-            class="w-full sm:flex-1 border border-gray-300 rounded-lg pl-20 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
+        auth()->user()->hasAnyRole(['eventor', 'super admin', 'user', 'employee']) ||
+        auth()->user()->hasAnyPermission(['full access to events', 'search for a document', 'full access'])
+        )
+            <input
+                name="query"
+                type="text"
+                placeholder="أدخل اسم الحدث او أدخل كود الشهادة أو امسح رمز QR"
+                required
+                class="w-full sm:flex-1 border border-gray-300 rounded-lg pl-20 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-xs sm:text-base" {{-- تم إضافة text-xs و sm:text-base --}}
+            />
         @endif
-            @if(!auth()->check() ||  auth()->user()->hasRole('eventor') || auth()->user()->hasAnyPermission([
-                'full access to events', 'search by qr code', 'full access'
-            ]))
-        <i
-            id="start-qr-btn"
-            class="icon bi bi-qr-code absolute left-6 sm:left-20 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-600 cursor-pointer"
-        ></i>
-            @endif
+        @if(!auth()->check() ||  auth()->user()->hasRole('eventor') || auth()->user()->hasAnyPermission([
+            'full access to events', 'search by qr code', 'full access'
+        ]))
+            <i
+                id="start-qr-btn"
+                class="icon bi bi-qr-code absolute left-6 sm:left-20 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-600 cursor-pointer"
+            ></i>
+        @endif
 
         <button
             type="submit"

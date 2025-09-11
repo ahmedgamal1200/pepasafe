@@ -11,6 +11,7 @@ class CreateUser extends CreateRecord
     protected static string $resource = UserResource::class;
 
     protected ?int $roleId = null;
+
     protected array $permissions = [];
 
     protected function mutateFormDataBeforeCreate(array $data): array
@@ -31,7 +32,7 @@ class CreateUser extends CreateRecord
             $this->record->syncRoles([$this->roleId]);
         }
 
-        if ($this->record && !empty($this->permissions)) {
+        if ($this->record && ! empty($this->permissions)) {
             $permissionNames = Permission::whereIn('id', $this->permissions)->pluck('name')->toArray();
             $this->record->syncPermissions($permissionNames);
         }

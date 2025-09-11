@@ -3,10 +3,32 @@
 @endphp
 
 <section>
+
+
     <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Profile Information') }}
-        </h2>
+        <div class="flex items-center gap-2">
+            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100" style="color: #1a202c;">
+                {{ __('Profile Information') }}
+            </h2>
+
+            <div class="w-px h-6 bg-gray-400"></div>
+
+
+        @if($user->category)
+                <div class="flex items-center gap-2 text-gray-900 dark:text-gray-100 text-lg font-semibold" style="color: #1a202c;">
+                    <span style="color: #1a202c;">{{ $user->name }}</span>
+                    <span class="flex-shrink-0" title="{{ $category->icon }}">
+                {!! App\Helpers\IconHelper::get($category->icon) !!}
+            </span>
+                </div>
+            @else
+                <div class="text-gray-900 dark:text-gray-100 text-lg font-semibold" style="color: #1a202c;">
+                    <span style="color: #1a202c;">{{ $user->name }}</span>
+                </div>
+            @endif
+        </div>
+
+
 
         <p class="mt-1 text-sm text-gray-600">
             {{ __("Update your account's profile information and email address.") }}
@@ -93,17 +115,18 @@
         </div>
 
         @if (Setting::where('key', 'show_bio_public')->value('value') === '1')
-        <div>
-            <x-input-label for="bio" :value="__('Bio')" />
+            <div>
+                <x-input-label for="bio" :value="__('Bio')" />
 
-            <textarea id="bio"
-                      name="bio"
-                      rows="4"
-                      class="mt-1 block w-full rounded-md shadow-sm border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-            >{{ old('bio', $user->bio) }}</textarea>
+                <textarea id="bio"
+                          name="bio"
+                          rows="4"
+                          class="mt-1 block w-full rounded-md shadow-sm border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                          placeholder="{{ __('Tell us a little bit about yourself...') }}"
+                >{{ old('bio', $user->bio) }}</textarea>
 
-            <x-input-error class="mt-2" :messages="$errors->get('bio')" />
-        </div>
+                <x-input-error class="mt-2" :messages="$errors->get('bio')" />
+            </div>
         @endif
 
 

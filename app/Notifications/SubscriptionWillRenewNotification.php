@@ -4,7 +4,6 @@ namespace App\Notifications;
 
 use App\Models\Subscription;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -15,7 +14,7 @@ class SubscriptionWillRenewNotification extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct( public Subscription $subscription )
+    public function __construct(public Subscription $subscription)
     {
         //
     }
@@ -36,9 +35,9 @@ class SubscriptionWillRenewNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-                    ->line('The introduction to the notification.')
-                    ->action('Notification Action', url('/'))
-                    ->line('Thank you for using our application!');
+            ->line('The introduction to the notification.')
+            ->action('Notification Action', url('/'))
+            ->line('Thank you for using our application!');
     }
 
     /**
@@ -49,7 +48,7 @@ class SubscriptionWillRenewNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'message' => 'سيتم تجديد اشتراكك في خطة ' . $this->subscription->plan->name . ' بتاريخ ' . $this->subscription->end_date->format('Y-m-d'),
+            'message' => 'سيتم تجديد اشتراكك في خطة '.$this->subscription->plan->name.' بتاريخ '.$this->subscription->end_date->format('Y-m-d'),
         ];
     }
 }

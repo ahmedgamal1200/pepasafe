@@ -8,7 +8,6 @@ use Spatie\Permission\Models\Role;
 
 class RegisteredRepository
 {
-
     public function __construct(protected UserQrCodeService $qrCodeService)
     {
         //
@@ -26,7 +25,7 @@ class RegisteredRepository
 
         $role = Role::query()->firstOrCreate([
             'name' => $data['role'],
-            'guard_name' => 'web'
+            'guard_name' => 'web',
         ]);
 
         $user->assignRole($role);
@@ -36,5 +35,4 @@ class RegisteredRepository
 
         return $user;
     }
-
 }

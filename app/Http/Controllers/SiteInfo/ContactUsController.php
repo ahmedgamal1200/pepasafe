@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMessageRequest;
 use App\Models\OfficialEmail;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
 class ContactUsController extends Controller
@@ -19,12 +18,13 @@ class ContactUsController extends Controller
 
         $officialEmail = OfficialEmail::query()->value('email');
 
-        Mail::raw($message, function ($mail) use ($officialEmail ,$request) {
+        Mail::raw($message, function ($mail) use ($officialEmail, $request) {
             $mail->to($officialEmail)
                 ->from($request->email, $request->name)
-                ->subject('New Contact Message from ' . ($request->name ?? ''))
+                ->subject('New Contact Message from '.($request->name ?? ''))
                 ->replyTo($request->email ?? '');
         });
+
         return response()->back()->with('success', 'تم ارسال رسالتك بنجاح');
     }
 }

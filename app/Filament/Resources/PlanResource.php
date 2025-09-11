@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PlanResource\Pages;
-use App\Filament\Resources\PlanResource\RelationManagers;
 use App\Models\Plan;
 use Filament\Forms;
 use Filament\Forms\Components\Checkbox;
@@ -15,8 +14,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PlanResource extends Resource
 {
@@ -39,29 +36,29 @@ class PlanResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                ->required()
-                ->label('Plan Name')
-                ->maxLength(255),
+                    ->required()
+                    ->label('Plan Name')
+                    ->maxLength(255),
                 Forms\Components\TextInput::make('price')
-                ->required()
-                ->label('Price after discount')
-                ->maxLength(255)
-                ->minLength(0),
+                    ->required()
+                    ->label('Price after discount')
+                    ->maxLength(255)
+                    ->minLength(0),
                 Forms\Components\TextInput::make('compare_price')
-                ->label('Price before discount')
-                ->maxLength(255),
+                    ->label('Price before discount')
+                    ->maxLength(255),
                 Forms\Components\TextInput::make('credit_amount')
-                ->required()
-                ->label('Credit Amount')
-                ->numeric()
-                ->minValue(0),
+                    ->required()
+                    ->label('Credit Amount')
+                    ->numeric()
+                    ->minValue(0),
                 Forms\Components\TextInput::make('duration_days')
-                ->required()
-                ->label('Duration Days')
-                ->placeholder('30 days')
-                ->maxLength(255)
-                ->minValue(0)
-                ->numeric(),
+                    ->required()
+                    ->label('Duration Days')
+                    ->placeholder('30 days')
+                    ->maxLength(255)
+                    ->minValue(0)
+                    ->numeric(),
 
                 TextInput::make('max_users')
                     ->required()
@@ -134,7 +131,6 @@ class PlanResource extends Resource
                             ->default(false),
                     ]),
 
-
                 Select::make('enabled_channels.documents')
                     ->label('قنوات إرسال الوثائق')
                     ->multiple()
@@ -154,7 +150,6 @@ class PlanResource extends Resource
                         'whatsapp' => 'WhatsApp',
                     ])
                     ->columnSpanFull(),
-
 
                 Forms\Components\RichEditor::make('feature')
                     ->label('Features')

@@ -6,7 +6,6 @@ use App\Mail\SubscriptionRenewedMail;
 use App\Models\User;
 use App\Notifications\InsufficientBalanceNotification;
 use App\Notifications\SubscriptionRenewedNotification;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
@@ -18,14 +17,14 @@ class RenewSubscriptionNow
 
         $plan = $subscription->plan;
 
-        if (!$subscription || !$plan) {
-            return  'الباقة غير موجودة ';
+        if (! $subscription || ! $plan) {
+            return 'الباقة غير موجودة ';
         }
 
-
-        if($subscription->balance < $plan->price){
+        if ($subscription->balance < $plan->price) {
             $subscription->update(['status' => 'pending']);
             $user->notify(new InsufficientBalanceNotification($plan));
+
             return ' الرصيد غير كافٍ لتجديد الباقة. يُرجى شحن المحفظة ثم إعادة التجديد.';
         }
 
@@ -34,10 +33,10 @@ class RenewSubscriptionNow
                 $subscription->balance -= $plan->price;
 
                 $subscription->update([
-                    'status'     => 'active',
-                    'start_date'  => now(),
-                    'end_date'    => now()->addDays($plan->duration_days ?? 30),
-                    'remaining'  => $plan->carry_over_credit
+                    'status' => 'active',
+                    'start_date' => now(),
+                    'end_date' => now()->addDays($plan->duration_days ?? 30),
+                    'remaining' => $plan->carry_over_credit
                         ? $subscription->remaining + $plan->credit_amount
                         : $plan->credit_amount,
                 ]);

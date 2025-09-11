@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-            Schema::table('attendance_templates', function (Blueprint $table) {
-                $table->enum('validity', ['temporary', 'permanent'])->default('permanent');
-                $table->enum('orientation', ['vertical', 'horizontal'])->default('vertical');
-                $table->enum('paper_type', [
-                    'A4', 'A3', 'A5', 'A6', 'Letter',
-                    'Legal', 'B5', 'B4', 'Executive', 'Tabloid',
-                ])->default('A4');
+        Schema::table('attendance_templates', function (Blueprint $table) {
+            $table->enum('validity', ['temporary', 'permanent'])->default('permanent');
+            $table->enum('orientation', ['vertical', 'horizontal'])->default('vertical');
+            $table->enum('paper_type', [
+                'A4', 'A3', 'A5', 'A6', 'Letter',
+                'Legal', 'B5', 'B4', 'Executive', 'Tabloid',
+            ])->default('A4');
         });
 
         Schema::table('attendance_documents', function (Blueprint $table) {

@@ -5,7 +5,6 @@ namespace App\Notifications;
 use App\Models\Plan;
 use App\Models\Subscription;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -37,9 +36,9 @@ class SubscriptionRenewedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-                    ->line('The introduction to the notification.')
-                    ->action('Notification Action', url('/'))
-                    ->line('Thank you for using our application!');
+            ->line('The introduction to the notification.')
+            ->action('Notification Action', url('/'))
+            ->line('Thank you for using our application!');
     }
 
     /**
@@ -51,8 +50,8 @@ class SubscriptionRenewedNotification extends Notification
     {
         return
             [
-                'message' => "تم تجديد الاشتراك بنجاح، تم تجديد اشتراكك في باقة {$this->plan->name}، وستبدأ في {$this->subscription->start_date->format('Y-m-d')} وتنتهي في {$this->subscription->end_date->format('Y-m-d')}، وتم إضافة {$this->plan->credit_amount} نقطة إلى محفظتك."
-        ];
+                'message' => "تم تجديد الاشتراك بنجاح، تم تجديد اشتراكك في باقة {$this->plan->name}، وستبدأ في {$this->subscription->start_date->format('Y-m-d')} وتنتهي في {$this->subscription->end_date->format('Y-m-d')}، وتم إضافة {$this->plan->credit_amount} نقطة إلى محفظتك.",
+            ];
 
     }
 }

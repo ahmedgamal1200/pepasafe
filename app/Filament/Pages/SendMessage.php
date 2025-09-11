@@ -2,42 +2,43 @@
 
 namespace App\Filament\Pages;
 
-
-use App\Jobs\ScheduleDashboardNotificationJob;
 use App\Models\ScheduledNotification;
-use Filament\Pages\Page;
-use Filament\Forms;
 use App\Models\User;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Mail;
+use Filament\Forms;
 use Filament\Notifications\Notification;
-use App\Notifications\CustomAdminNotification;
-
-
+use Filament\Pages\Page;
+use Illuminate\Support\Carbon;
 
 class SendMessage extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-paper-airplane';
+
     protected static ?string $navigationLabel = 'Send Notification';
+
     protected static ?string $navigationGroup = 'Notifications';
+
     protected static bool $shouldRegisterNavigation = true;
+
     protected static string $view = 'filament.pages.send-message';
 
     public array $users = [];
+
     public string $channel = 'email';
+
     public array $message = [];
+
     public string $subject = '';
 
     public bool $send_to_all = false;
-    public $scheduled_at;
-    public array $scheduled_dates = [['scheduled_at' => null]]; // هذا هو التعديل الأساسي
 
+    public $scheduled_at;
+
+    public array $scheduled_dates = [['scheduled_at' => null]]; // هذا هو التعديل الأساسي
 
     public static function canAccess(): bool
     {
         return auth()->user()?->can('full access');
     }
-
 
     protected function getFormSchema(): array
     {
@@ -57,7 +58,6 @@ class SendMessage extends Page
                 ->createItemButtonLabel('Add another date')
                 ->required(), // نخليه مطلوب عشان المستخدم لازم يحدد تاريخ واحد على الأقل
 
-
             Forms\Components\Select::make('users')
                 ->label('Select users')
                 ->multiple()
@@ -69,11 +69,9 @@ class SendMessage extends Page
                     ->pluck('name', 'id'))
                 ->searchable()
                 ->required()
-                ->visible(fn ($get) => !$get('send_to_all')), // لو "إرسال إلى الكل" مفعل، نخفي اختيار المستخدمين
+                ->visible(fn ($get) => ! $get('send_to_all')), // لو "إرسال إلى الكل" مفعل، نخفي اختيار المستخدمين
 
-
-
-        Forms\Components\Select::make('channel')
+            Forms\Components\Select::make('channel')
                 ->label('Select channel')
                 ->options([
                     'whatsapp' => 'WhatsApp',
@@ -117,7 +115,6 @@ class SendMessage extends Page
         ];
     }
 
-
     public function submit(): void
     {
         $formData = $this->form->getState();
@@ -129,6 +126,7 @@ class SendMessage extends Page
                 ->title('Message is required')
                 ->body('Please enter the message in at least one language (Arabic or English).')
                 ->send();
+
             return;
         }
 
@@ -139,16 +137,17 @@ class SendMessage extends Page
                 ->title('Subject is required')
                 ->body('Please enter a subject for the email in at least one language.')
                 ->send();
+
             return;
         }
 
-
-        if (!$this->send_to_all && empty($this->users)) {
+        if (! $this->send_to_all && empty($this->users)) {
             Notification::make()
                 ->danger()
                 ->title('No users selected')
                 ->body('Please select at least one user or enable "Send to all".')
                 ->send();
+
             return;
         }
 

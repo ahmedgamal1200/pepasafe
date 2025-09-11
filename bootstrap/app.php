@@ -18,16 +18,16 @@ return Application::configure(basePath: dirname(__DIR__))
         // 👇 لجعل middleware يشتغل على كل الريكوستات
         $middleware->append(SetLocaleFromRequest::class);
         $middleware->append(CheckCookieConsent::class);
-//        $middleware->append(EnsureOtpIsVerified::class);
-
+        //        $middleware->append(EnsureOtpIsVerified::class);
 
         $middleware->alias([
-            'role'                => \Spatie\Permission\Middleware\RoleMiddleware::class,
-            'permission'          => \Spatie\Permission\Middleware\PermissionMiddleware::class,
-            'role_or_permission'  => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-//            'setlocale' => \App\Http\Middleware\SetLocaleFromRequest::class,
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+            //            'setlocale' => \App\Http\Middleware\SetLocaleFromRequest::class,
             'ensure.otp.verified' => EnsureOtpIsVerified::class,
-        ]);    })
+        ]);
+    })
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();

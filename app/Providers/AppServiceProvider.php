@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Interfaces\Eventor\Auth\EventorRepositoryInterface;
+use App\Models\Plan;
+use App\Observers\PlanObserver;
 use App\Repositories\Eventor\AttendanceDocumentRepository;
 use App\Repositories\Eventor\AttendanceTemplateRepository;
 use App\Repositories\Eventor\Auth\EventorAuthRepository;
@@ -18,8 +20,9 @@ use App\Services\RecipientService;
 use App\Services\SubscriptionService;
 use App\Services\TemplateService;
 use App\View\Composers\NotificationComposer;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -35,11 +38,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Repositories
         $this->app->bind(EventRepository::class);
-        $this->app->bind( DocumentTemplateRepository::class);
-        $this->app->bind( AttendanceTemplateRepository::class);
+        $this->app->bind(DocumentTemplateRepository::class);
+        $this->app->bind(AttendanceTemplateRepository::class);
         $this->app->bind(RecipientRepository::class);
         $this->app->bind(DocumentRepository::class);
-        $this->app->bind( AttendanceDocumentRepository::class);
+        $this->app->bind(AttendanceDocumentRepository::class);
         $this->app->bind(SubscriptionRepository::class);
 
         // Services
@@ -58,5 +61,6 @@ class AppServiceProvider extends ServiceProvider
     {
         // الجزء الخاص ب النتوفكيشن عشان يظهر النتوفكيشن في ال navbar
         View::composer('partials.auth-navbar', NotificationComposer::class);
+        Plan::observe(PlanObserver::class);
     }
 }

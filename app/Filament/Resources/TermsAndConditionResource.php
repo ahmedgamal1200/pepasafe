@@ -3,19 +3,17 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TermsAndConditionResource\Pages;
-use App\Filament\Resources\TermsAndConditionResource\RelationManagers;
 use App\Models\TermsAndCondition;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TermsAndConditionResource extends Resource
 {
     protected static ?string $model = TermsAndCondition::class;
+
     protected static ?string $navigationGroup = 'Site Content';
 
     protected static ?string $navigationIcon = 'heroicon-o-book-open';

@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-
 use App\Repositories\Eventor\AttendanceTemplateRepository;
 use App\Repositories\Eventor\DocumentTemplateRepository;
 
 class TemplateService
 {
     protected $documentTemplateRepository;
+
     protected $attendanceTemplateRepository;
 
     public function __construct(
@@ -38,7 +38,7 @@ class TemplateService
         $this->documentTemplateRepository->saveTemplateFiles($template, $data['document_template_file_path'], $data['template_sides']);
 
         $certificateTextData = json_decode($data['certificate_text_data'], true);
-        if (!is_array($certificateTextData)) {
+        if (! is_array($certificateTextData)) {
             throw new \Exception('Invalid certificate text data format.');
         }
         $this->documentTemplateRepository->saveFieldPositions($template, $certificateTextData);
@@ -51,7 +51,7 @@ class TemplateService
      */
     public function createAttendanceTemplate(array $data, int $eventId): ?\App\Models\AttendanceTemplate
     {
-        if (!isset($data['is_attendance_enabled']) || !$data['is_attendance_enabled']) {
+        if (! isset($data['is_attendance_enabled']) || ! $data['is_attendance_enabled']) {
             return null;
         }
 
@@ -70,7 +70,7 @@ class TemplateService
         $this->attendanceTemplateRepository->saveTemplateFiles($template, $data['attendance_template_file_path'], $data['attendance_template_sides']);
 
         $attendanceTextData = json_decode($data['attendance_text_data'], true);
-        if (!is_array($attendanceTextData)) {
+        if (! is_array($attendanceTextData)) {
             throw new \Exception('Invalid attendance text data format.');
         }
         $this->attendanceTemplateRepository->saveFieldPositions($template, $attendanceTextData);

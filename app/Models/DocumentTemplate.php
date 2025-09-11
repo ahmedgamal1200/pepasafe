@@ -15,7 +15,6 @@ class DocumentTemplate extends Model
         'send_at' => 'datetime',
     ];
 
-
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
@@ -23,7 +22,7 @@ class DocumentTemplate extends Model
 
     public function templateFiles(): HasMany
     {
-        return $this->hasMany(TemplateFile::class);
+        return $this->hasMany(TemplateFile::class, 'document_template_id');
     }
 
     public function fields(): HasMany

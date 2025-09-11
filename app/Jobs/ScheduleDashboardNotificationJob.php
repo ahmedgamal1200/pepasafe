@@ -9,24 +9,23 @@ use App\Notifications\CustomAdminNotification;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
 class ScheduleDashboardNotificationJob implements ShouldQueue
 {
     use Queueable;
 
-
     /**
      * Create a new job instance.
      */
     public function __construct(
         public int $scheduledNotificationId,
-        public string  $channel,
+        public string $channel,
         public array $message,
-        public ?string $subject = null ,
-        public array   $userIds = [],
-    )
-    {
+        public ?string $subject = null,
+        public array $userIds = [],
+    ) {
         //
     }
 
@@ -36,7 +35,7 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
     public function handle(): void
     {
         $scheduledNotification = ScheduledNotification::find($this->scheduledNotificationId);
-        if (!$scheduledNotification) {
+        if (! $scheduledNotification) {
             return; // في حالة ما لقاش السجل
         }
 
@@ -55,17 +54,16 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
                 $messageForUser = $this->message['en'] ?? $this->message['ar'] ?? null;
             }
             match ($this->channel) {
-                'email'    => $this->sendEmail($user, $settings),
-                'sms'      => $this->sendSms($user, $settings),
+                'email' => $this->sendEmail($user, $settings),
+                'sms' => $this->sendSms($user, $settings),
                 'whatsapp' => $this->sendWhatsApp($user, $settings),
                 'database' => $user->notify(new CustomAdminNotification($messageForUser)),
-                default    => null,
+                default => null,
             };
         }
 
         $scheduledNotification->update(['status' => 'sent', 'sent_at' => now()]);
     }
-
 
     protected function sendEmail(User $user, ?string $messageContent, $subjectContent): void
     {
@@ -98,6 +96,7 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
                     ->title('Missing Email Config')
                     ->body("Missing config: $key")
                     ->send();
+
                 return;
             }
         }
@@ -134,7 +133,6 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
         }
     }
 
-
     protected function sendSms(User $user, ?string $messageContent): void
     {
         $settings = ApiConfig::whereIn('key', [
@@ -143,18 +141,19 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
             'sms_sender_number',    // Twilio sender number (رقم الشراء من Twilio)
         ])->pluck('value', 'key');
 
-        $sid     = $settings['sms_api_key'] ?? null;
-        $token   = $settings['sms_api_secret'] ?? null;
-        $from    = $settings['sms_sender_number'] ?? null;
-        $to      = $user->phone ?? null;
-//        $to      = '+201279678444';
+        $sid = $settings['sms_api_key'] ?? null;
+        $token = $settings['sms_api_secret'] ?? null;
+        $from = $settings['sms_sender_number'] ?? null;
+        $to = $user->phone ?? null;
+        //        $to      = '+201279678444';
 
-        if (!$sid || !$token || !$from || !$to) {
+        if (! $sid || ! $token || ! $from || ! $to) {
             Notification::make()
                 ->danger()
                 ->title('Missing SMS Configuration')
                 ->body('Please make sure SID, Token, Sender, and User Phone are set correctly.')
                 ->send();
+
             return;
         }
 
@@ -183,46 +182,97 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
         }
     }
 
+//    protected function sendWhatsApp(User $user, ?string $messageContent): void
+//    {
+//        // جلب الإعدادات من قاعدة البيانات حسب الأسماء الجديدة
+//        $settings = ApiConfig::whereIn('key', [
+//            'whatsapp_api_key',
+//            'whatsapp_api_secret',
+//            'whatsapp_phone_number',
+//        ])->pluck('value', 'key');
+//
+//        // التحقق من وجود كل القيم
+//        if (
+//            empty($settings['whatsapp_api_key']) ||
+//            empty($settings['whatsapp_api_secret']) ||
+//            empty($settings['whatsapp_phone_number'])
+//        ) {
+//            Notification::make()
+//                ->danger()
+//                ->title('Missing WhatsApp Configuration')
+//                ->body('Please make sure API Key, Secret, and Phone Number are configured correctly.')
+//                ->send();
+//
+//            return;
+//        }
+//
+//        try {
+//            $sid = $settings['whatsapp_api_key'];
+//            $token = $settings['whatsapp_api_secret'];
+//            $from = $settings['whatsapp_phone_number'];
+//
+//            $twilio = new \Twilio\Rest\Client($sid, $token);
+//
+//            $twilio->messages->create(
+//                'whatsapp:'.$user->phone,
+//                [
+//                    'from' => 'whatsapp:'.$from,
+//                    'body' => $messageContent,
+//                ]
+//            );
+//
+//        } catch (\Exception $e) {
+//            Notification::make()
+//                ->danger()
+//                ->title('Failed to send WhatsApp Message')
+//                ->body($e->getMessage())
+//                ->send();
+//        }
+//    }
 
 
     protected function sendWhatsApp(User $user, ?string $messageContent): void
     {
-        // جلب الإعدادات من قاعدة البيانات حسب الأسماء الجديدة
-        $settings = ApiConfig::whereIn('key', [
-            'whatsapp_api_key',
-            'whatsapp_api_secret',
-            'whatsapp_phone_number',
-        ])->pluck('value', 'key');
-
-        // التحقق من وجود كل القيم
-        if (
-            empty($settings['whatsapp_api_key']) ||
-            empty($settings['whatsapp_api_secret']) ||
-            empty($settings['whatsapp_phone_number'])
-        ) {
-            Notification::make()
-                ->danger()
-                ->title('Missing WhatsApp Configuration')
-                ->body('Please make sure API Key, Secret, and Phone Number are configured correctly.')
-                ->send();
-            return;
-        }
-
         try {
-            $sid    = $settings['whatsapp_api_key'];
-            $token  = $settings['whatsapp_api_secret'];
-            $from   = $settings['whatsapp_phone_number'];
+            $response = Http::withHeaders([
+                'beon-token' => 'OEklukhmcMiXQKrBS13UKHciPOFfWINIagSgZB0D4CTeoSx1h8OwrlR3FP9t',
+                'Accept'        => 'application/json',
+            ])->post('https://v3.api.beon.chat/api/v3/messages/whatsapp/template', [ // شوف الـ endpoint الصح من Postman Docs
+//                'to'      => $user->phone,         // رقم المرسل له
+                "name"             => $user->name,
+                "phoneNumber"      => '+201205297854',      // لازم بصيغة دولية
+                "template_content" => $messageContent,   // النص اللي هيظهر
+                "template_id"      => 274,               // لازم تجيبه من حسابك
+                "workflow_id"      => 1,                 // حسب إعداداتك
+                "template" => [
+                    "name"     => "template_name",       // اسم التيمبلت اللي متسجل عندهم
+                    "language" => ["code" => "ar"],
+                    "components" => [
+                        [
+                            "type" => "body",
+                            "parameters" => [
+                                ["type" => "text", "text" => "100"],
+                                ["type" => "text", "text" => "منتج ١"],
+                                ["type" => "text", "text" => "100 جنيه"],
+                            ]
+                        ]
+                    ]
+                ]      // محتوى الرسالة
+            ]);
 
-            $twilio = new \Twilio\Rest\Client($sid, $token);
-
-            $twilio->messages->create(
-                'whatsapp:' . $user->phone,
-                [
-                    'from' => 'whatsapp:' . $from,
-                    'body' => $messageContent,
-                ]
-            );
-
+            if ($response->successful()) {
+                Notification::make()
+                    ->success()
+                    ->title('Message Sent')
+                    ->body('WhatsApp message sent successfully.')
+                    ->send();
+            } else {
+                Notification::make()
+                    ->danger()
+                    ->title('Failed to send WhatsApp Message')
+                    ->body('API Error: '.$response->body())
+                    ->send();
+            }
         } catch (\Exception $e) {
             Notification::make()
                 ->danger()

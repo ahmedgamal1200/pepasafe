@@ -17,7 +17,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Mail;
 
-
 class RegisteredUserController extends Controller
 {
     public function create(): View|Application|Factory
@@ -31,10 +30,8 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-
         $emailOtpSetting = Setting::where('key', 'email_otp_active')->first();
         $emailOtpActive = $emailOtpSetting && $emailOtpSetting->value == '1';
-
 
         if ($emailOtpActive) {
             // ✅ توليد كود OTP
@@ -47,10 +44,10 @@ class RegisteredUserController extends Controller
             Mail::to($user->email)->send(new OtpMail($otp));
 
             return redirect()->route('verify.otp');
-        }else{
+        } else {
             Auth::login($user);
+
             return redirect(route('home.users', absolute: false));
         }
     }
-
 }

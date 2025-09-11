@@ -2,10 +2,9 @@
 
 namespace App\Services;
 
-
 use App\Models\User;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class UserQrCodeService
 {
@@ -21,7 +20,7 @@ class UserQrCodeService
             ->merge($logoPath, 0.2, true)
             ->generate(route('showProfileToGuest', $user->slug));
 
-        $fileName = 'qr_codes/user_' . $user->id . '.png';
+        $fileName = 'qr_codes/user_'.$user->id.'.png';
         Storage::disk('public')->put($fileName, $qrImage);
 
         $user->update(['qr_code' => $fileName]);

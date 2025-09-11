@@ -3,17 +3,14 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Notification;
 
 class CustomAdminNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(public string $messageText)
-    {
-    }
+    public function __construct(public string $messageText) {}
 
     public function via(object $notifiable): array
     {
@@ -34,4 +31,3 @@ class CustomAdminNotification extends Notification
         ]);
     }
 }
-

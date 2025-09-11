@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('payment_receipts', function (Blueprint $table) {
             $table->id();
             $table->string('image_path');
-            //plan id
+            // plan id
             $table->foreignIdFor(Plan::class)
                 ->constrained()
                 ->onDelete('cascade');

@@ -14,7 +14,7 @@ class WalletRechargeRequest extends Model
         'receipt_path',
         'status',
         'admin_note',
-//        'admin_id',
+        //        'admin_id',
         'approved_at',
         'subscription_id',
     ];
@@ -24,10 +24,10 @@ class WalletRechargeRequest extends Model
         return $this->belongsTo(Plan::class);
     }
 
-//    public function admin()
-//    {
-//        return $this->belongsTo(User::class, 'admin_id');
-//    }
+    //    public function admin()
+    //    {
+    //        return $this->belongsTo(User::class, 'admin_id');
+    //    }
 
     public function user(): BelongsTo
     {
@@ -38,5 +38,4 @@ class WalletRechargeRequest extends Model
     {
         return $this->belongsTo(Subscription::class);
     }
-
 }

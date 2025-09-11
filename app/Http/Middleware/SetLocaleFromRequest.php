@@ -17,13 +17,14 @@ class SetLocaleFromRequest
     {
         $availableLocales = config('app.supported_locales', []); // بيقرأ من الكونفج
 
-        $browserLocale  = substr($request->server('HTTP_ACCEPT_LANGUAGE'), 0, 2);
+        $browserLocale = substr($request->server('HTTP_ACCEPT_LANGUAGE'), 0, 2);
 
-        if(in_array($browserLocale, $availableLocales)) {
+        if (in_array($browserLocale, $availableLocales)) {
             app()->setLocale($browserLocale);
-        }else{
+        } else {
             app()->setLocale('ar');
         }
+
         return $next($request);
     }
 }

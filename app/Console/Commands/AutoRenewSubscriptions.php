@@ -33,7 +33,7 @@ class AutoRenewSubscriptions extends Command
             ->where('auto_renew', true)
             ->where('status', 'active')
             ->get();
-        Log::info('AutoRenewSubscriptions Command: Found ' . $subscriptions->count() . ' subscriptions to process.');
+        Log::info('AutoRenewSubscriptions Command: Found '.$subscriptions->count().' subscriptions to process.');
 
         foreach ($subscriptions as $subscription) {
             RenewSubscriptionJob::dispatch($subscription->id);

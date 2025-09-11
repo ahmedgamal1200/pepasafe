@@ -2,7 +2,6 @@
 
 namespace App\Repositories\Eventor;
 
-
 use App\Models\Event;
 use Exception;
 use Illuminate\Support\Str;
@@ -14,7 +13,7 @@ class EventRepository
      */
     public function create(array $data)
     {
-        if (!isset($data['user_id'])) {
+        if (! isset($data['user_id'])) {
             throw new Exception('User ID is required to create an event.');
         }
 
@@ -24,7 +23,7 @@ class EventRepository
             'start_date' => $data['start_date'],
             'end_date' => $data['end_date'],
             'user_id' => $data['user_id'],
-            'slug' => Str::slug($data['title']) . '-' . uniqid(),
+            'slug' => Str::slug($data['title']).'-'.uniqid(),
         ]);
     }
 }

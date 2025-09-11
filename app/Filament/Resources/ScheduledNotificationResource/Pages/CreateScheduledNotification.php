@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\ScheduledNotificationResource\Pages;
 
 use App\Filament\Resources\ScheduledNotificationResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateScheduledNotification extends CreateRecord

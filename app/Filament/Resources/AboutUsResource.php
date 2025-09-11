@@ -3,23 +3,19 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\AboutUsResource\Pages;
-use App\Filament\Resources\AboutUsResource\RelationManagers;
 use App\Models\AboutUs;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class AboutUsResource extends Resource
 {
     protected static ?string $model = AboutUs::class;
+
     // في FaqResource.php
     protected static ?string $navigationGroup = 'Site Content';
-
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
@@ -36,9 +32,8 @@ class AboutUsResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('description')
-                    ->required()
-                    ->maxLength(255),
+                Forms\Components\RichEditor::make('description')
+                    ->required(),
             ]);
     }
 

@@ -4,18 +4,16 @@ namespace App\Http\Controllers\Eventor;
 
 use App\Http\Controllers\Controller;
 use App\Models\Document;
-use Illuminate\Http\Request;
 
 class DocumentVerificationController extends Controller
 {
-
     public function verify($uuid)
     {
-//        echo 'hi';
+        //        echo 'hi';
         $document = Document::where('uuid', $uuid)->first();
 
-        if (!$document) {
-        return view('certificates.invalid'); // صفحة تقول الشهادة غير صالحة
+        if (! $document) {
+            return view('certificates.invalid'); // صفحة تقول الشهادة غير صالحة
         }
 
         return view('certificates.verified', [

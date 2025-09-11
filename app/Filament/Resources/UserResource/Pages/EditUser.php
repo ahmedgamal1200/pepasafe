@@ -3,16 +3,17 @@
 namespace App\Filament\Resources\UserResource\Pages;
 
 use App\Filament\Resources\UserResource;
+use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Filament\Actions;
 
 class EditUser extends EditRecord
 {
     protected static string $resource = UserResource::class;
 
     protected ?int $roleId = null;
+
     protected array $permissions = [];
 
     protected function mutateFormDataBeforeSave(array $data): array
@@ -35,12 +36,11 @@ class EditUser extends EditRecord
             $this->record->syncRoles([$role->name]); // ← Object → name ✅
         }
 
-        if ($this->record && !empty($this->permissions)) {
+        if ($this->record && ! empty($this->permissions)) {
             $permissionNames = Permission::whereIn('id', $this->permissions)->pluck('name')->toArray();
             $this->record->syncPermissions($permissionNames);
         }
     }
-
 
     protected function getHeaderActions(): array
     {
@@ -49,4 +49,3 @@ class EditUser extends EditRecord
         ];
     }
 }
-

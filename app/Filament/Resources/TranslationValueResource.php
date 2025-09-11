@@ -3,26 +3,23 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TranslationValueResource\Pages;
-use App\Filament\Resources\TranslationValueResource\RelationManagers;
 use App\Models\TranslationKey;
 use App\Models\TranslationValue;
-use Filament\Forms;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TranslationValueResource extends Resource
 {
     protected static ?string $model = TranslationValue::class;
 
     protected static ?string $navigationLabel = 'Translation';
+
     protected static ?string $navigationGroup = 'Translation settings';
+
     protected static ?string $navigationIcon = 'heroicon-o-language';
 
     public static function canAccess(): bool
@@ -43,12 +40,12 @@ class TranslationValueResource extends Resource
                     ->searchable()
                     ->required(),
 
-                        TextInput::make('locale')
-                            ->required()
-                            ->label('Locale (مثلاً ar أو en)'),
-                        TextInput::make('value')
-                            ->required()
-                            ->label('Value'),
+                TextInput::make('locale')
+                    ->required()
+                    ->label('Locale (مثلاً ar أو en)'),
+                TextInput::make('value')
+                    ->required()
+                    ->label('Value'),
 
             ]);
     }

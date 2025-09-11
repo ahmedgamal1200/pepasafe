@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\TranslationKey;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class TranslationKeySeeder extends Seeder
@@ -69,8 +68,7 @@ class TranslationKeySeeder extends Seeder
 
             'document.preview.button',
 
-
-            //////// الحضور
+            // ////// الحضور
             'attendance.title.default',
 
             'attendance.send_date.label',

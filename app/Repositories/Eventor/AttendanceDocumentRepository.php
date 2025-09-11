@@ -28,5 +28,5 @@ class AttendanceDocumentRepository
             'valid_from' => $data['valid_from'],
             'valid_until' => $data['valid_until'],
         ]);
-   }
+    }
 }

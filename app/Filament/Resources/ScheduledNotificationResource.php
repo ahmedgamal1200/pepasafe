@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ScheduledNotificationResource\Pages;
-use App\Filament\Resources\ScheduledNotificationResource\RelationManagers;
 use App\Models\Notification;
 use App\Models\ScheduledNotification;
 use App\Models\User;
@@ -12,8 +11,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
 
 class ScheduledNotificationResource extends Resource
@@ -47,7 +44,7 @@ class ScheduledNotificationResource extends Resource
                         ->orWhere('email', 'like', "%{$search}%")
                         ->pluck('name', 'id'))
                     ->searchable()
-                    ->visible(fn ($get) => !$get('send_to_all')),
+                    ->visible(fn ($get) => ! $get('send_to_all')),
 
                 Forms\Components\Select::make('channel')
                     ->label('Select channel')
@@ -96,6 +93,7 @@ class ScheduledNotificationResource extends Resource
                     ->disabled(), // اجعل هذا الحقل للقراءة فقط
             ]);
     }
+
     public static function getBulkActions(): array
     {
         return [
@@ -110,6 +108,7 @@ class ScheduledNotificationResource extends Resource
                                 ->body('You can only delete pending notifications.')
                                 ->danger()
                                 ->send();
+
                             return;
                         }
                         $records->each->delete();
@@ -141,7 +140,7 @@ class ScheduledNotificationResource extends Resource
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable(),
-//                    ->toggleable(isToggledHiddenByDefault: true),
+                //                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()

@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Recipient extends Model
 {
-
     protected $guarded = ['id'];
 
     public function documents(): HasMany
@@ -20,5 +19,4 @@ class Recipient extends Model
     {
         return $this->belongsTo(User::class);
     }
-
 }

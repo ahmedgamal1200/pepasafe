@@ -2,9 +2,9 @@
 
 namespace App\Repositories\Eventor;
 
+use App\Models\DocumentField;
 use App\Models\DocumentTemplate;
 use App\Models\ExcelUpload;
-use App\Models\DocumentField;
 
 class DocumentTemplateRepository
 {
@@ -22,6 +22,7 @@ class DocumentTemplateRepository
             'valid_from' => $data['valid_from'] ?? null,
             'valid_until' => $data['valid_until'] ?? null,
         ]);
+
         return $template;
     }
 
@@ -49,13 +50,13 @@ class DocumentTemplateRepository
 
     public function saveFieldPositions(DocumentTemplate $template, array $textData): void
     {
-        if (!is_array($textData)) {
+        if (! is_array($textData)) {
             throw new \Exception('Invalid text data format for document fields.');
         }
 
         // التعامل مع الكائن المتداخل (مثل document_template_file_path[]-front)
         foreach ($textData as $cardId => $cardData) {
-            if (!isset($cardData['texts']) || !is_array($cardData['texts'])) {
+            if (! isset($cardData['texts']) || ! is_array($cardData['texts'])) {
                 throw new \Exception("Invalid text data structure for card ID: {$cardId}");
             }
 
@@ -63,17 +64,17 @@ class DocumentTemplateRepository
             $side = strpos($cardId, '-front') !== false ? 'front' : 'back';
 
             foreach ($cardData['texts'] as $text) {
-                if (!is_array($text) || !isset($text['text'], $text['left'], $text['top'], $text['fontFamily'], $text['fontSize'], $text['fill'], $text['angle'])) {
+                if (! is_array($text) || ! isset($text['text'], $text['left'], $text['top'], $text['fontFamily'], $text['fontSize'], $text['fill'], $text['angle'])) {
                     throw new \Exception("Invalid text data structure for card ID: {$cardId}");
                 }
 
                 // إصلاح textBaseline إذا كانت القيمة غير صحيحة
                 $textBaseline = isset($text['textBaseline']) && $text['textBaseline'] === 'alphabetical' ? 'alphabetic' : ($text['textBaseline'] ?? 'top');
-                if (!in_array($textBaseline, ['top', 'middle', 'bottom', 'hanging', 'alphabetic'])) {
+                if (! in_array($textBaseline, ['top', 'middle', 'bottom', 'hanging', 'alphabetic'])) {
                     $textBaseline = 'top'; // قيمة افتراضية
                 }
 
-                 DocumentField::create([
+                DocumentField::create([
                     'field_key' => $text['text'],
                     'label' => $text['text'],
                     'position_x' => $text['left'],
@@ -94,7 +95,4 @@ class DocumentTemplateRepository
             }
         }
     }
-
-
-
 }

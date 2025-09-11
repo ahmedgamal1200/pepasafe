@@ -3,25 +3,21 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TranslationKeyResource\Pages;
-use App\Filament\Resources\TranslationKeyResource\RelationManagers;
 use App\Models\TranslationKey;
-use Filament\Forms;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TranslationKeyResource extends Resource
 {
     protected static ?string $model = TranslationKey::class;
 
     protected static ?string $navigationLabel = 'Translation keys';
+
     protected static ?string $navigationGroup = 'Translation settings';
+
     protected static ?string $navigationIcon = 'heroicon-o-key';
 
     public static function canAccess(): bool
@@ -31,16 +27,15 @@ class TranslationKeyResource extends Resource
         ]);
     }
 
-
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                        TextInput::make('key')
-                            ->label('Key (مثلاً: document.title.default)')
-                            ->required()
-                            ->unique()
-                            ->maxLength(255),
+                TextInput::make('key')
+                    ->label('Key (مثلاً: document.title.default)')
+                    ->required()
+                    ->unique()
+                    ->maxLength(255),
             ]);
     }
 

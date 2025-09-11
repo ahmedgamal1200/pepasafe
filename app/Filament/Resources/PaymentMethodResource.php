@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PaymentMethodResource\Pages;
-use App\Filament\Resources\PaymentMethodResource\RelationManagers;
 use App\Models\PaymentMethod;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -11,7 +10,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
-
 
 class PaymentMethodResource extends Resource
 {
@@ -50,7 +48,6 @@ class PaymentMethodResource extends Resource
             'delete payment method',
         ]);
     }
-
 
     public static function form(Form $form): Form
     {

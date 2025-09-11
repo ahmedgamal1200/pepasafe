@@ -2,17 +2,16 @@
 
 namespace App\Repositories\Eventor;
 
-
 use Illuminate\Support\Facades\Auth;
 
 class SubscriptionRepository
 {
-//    public function checkBalance(int $required): bool
-//    {
-//        $user = Auth::user();
-//        $subscription = $user->subscription;
-//        return $subscription->remaining >= $required;
-//    }
+    //    public function checkBalance(int $required): bool
+    //    {
+    //        $user = Auth::user();
+    //        $subscription = $user->subscription;
+    //        return $subscription->remaining >= $required;
+    //    }
 
     public function hasEnoughBalance(int $count): bool
     {
@@ -32,16 +31,11 @@ class SubscriptionRepository
 
     /**
      * Charge the user for a document generation.
-     *
-     * @param int $count
-     * @return bool
      */
-
     public function chargeDocument(int $count): bool
     {
         $user = Auth::user();
         $subscription = $user->subscription;
-
 
         $priceInPlan = $subscription?->plan->document_price_in_plan ?? 0;
         $priceOutsidePlan = $subscription?->plan->document_price_outside_plan ?? 0;
@@ -53,6 +47,7 @@ class SubscriptionRepository
         // خصم من الباقة لو عنده رصيد كافي فيها
         if ($subscription && $subscription->remaining >= $totalInPlan) {
             $subscription->decrement('remaining', $totalInPlan);
+
             return true;
         }
 
@@ -60,8 +55,10 @@ class SubscriptionRepository
 
         if ($subscription->balance >= $totalOutsidePlan) {
             $user->decrement('balance', $totalOutsidePlan);
+
             return true;
         }
+
         return false;
     }
 }

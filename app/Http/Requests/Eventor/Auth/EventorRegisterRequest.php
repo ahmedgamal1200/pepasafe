@@ -49,7 +49,7 @@ class EventorRegisterRequest extends FormRequest
     {
         $planId = $this->input('plan');
 
-        if (!$planId) {
+        if (! $planId) {
             return;
         }
 

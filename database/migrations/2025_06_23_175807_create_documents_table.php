@@ -24,7 +24,7 @@ return new class extends Migration
             $table->text('message');
             $table->timestamp('send_at');
             $table->enum('send_via', ['email', 'sms', 'whatsapp'])
-                ->default('email');// email , what's up , SMS
+                ->default('email'); // email , what's up , SMS
 
             $table->foreignIdFor(Event::class)
                 ->constrained()

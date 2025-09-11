@@ -2,20 +2,19 @@
 
 namespace App\Jobs;
 
+use App\Models\ApiConfig;
 use App\Models\AttendanceDocument;
 use App\Models\Document;
 use App\Models\Recipient;
 use App\Models\User;
-use App\Models\ApiConfig;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 
 class SendCertificateJob implements ShouldQueue
 {
@@ -36,7 +35,7 @@ class SendCertificateJob implements ShouldQueue
         try {
             $config = ApiConfig::whereIn('key', [
                 'smtp_host', 'smtp_port', 'smtp_username', 'smtp_password',
-                'smtp_from_address', 'smtp_from_name'
+                'smtp_from_address', 'smtp_from_name',
             ])->pluck('value', 'key')->toArray();
 
             if (empty($config['smtp_host']) || empty($config['smtp_from_address'])) {
@@ -61,9 +60,9 @@ class SendCertificateJob implements ShouldQueue
                     ->attach($pdfPath);
             });
 
-            Log::info('Email sent to ' . $user->email . ' for certificate ID: ' . $this->certificate->id);
+            Log::info('Email sent to '.$user->email.' for certificate ID: '.$this->certificate->id);
         } catch (\Exception $e) {
-            Log::error('Error sending email for certificate ID ' . $this->certificate->id . ': ' . $e->getMessage());
+            Log::error('Error sending email for certificate ID '.$this->certificate->id.': '.$e->getMessage());
             throw $e;
         }
     }
@@ -81,19 +80,19 @@ class SendCertificateJob implements ShouldQueue
             }
 
             // مثال باستخدام Twilio أو API مشابه
-            $response = Http::withBasicAuth($config['sms_api_key'], '')->post('https://api.twilio.com/2010-04-01/Accounts/' . $config['sms_api_key'] . '/Messages.json', [
+            $response = Http::withBasicAuth($config['sms_api_key'], '')->post('https://api.twilio.com/2010-04-01/Accounts/'.$config['sms_api_key'].'/Messages.json', [
                 'From' => $config['sms_sender_id'],
                 'To' => $phone,
                 'Body' => $message,
             ]);
 
             if ($response->failed()) {
-                throw new \Exception('فشل إرسال SMS: ' . $response->body());
+                throw new \Exception('فشل إرسال SMS: '.$response->body());
             }
 
-            Log::info('SMS sent to ' . $phone . ' for certificate ID: ' . $this->certificate->id);
+            Log::info('SMS sent to '.$phone.' for certificate ID: '.$this->certificate->id);
         } catch (\Exception $e) {
-            Log::error('Error sending SMS for certificate ID ' . $this->certificate->id . ': ' . $e->getMessage());
+            Log::error('Error sending SMS for certificate ID '.$this->certificate->id.': '.$e->getMessage());
             throw $e;
         }
     }
@@ -111,19 +110,19 @@ class SendCertificateJob implements ShouldQueue
             }
 
             // مثال باستخدام Twilio WhatsApp API
-            $response = Http::withBasicAuth($config['whatsapp_api_key'], $config['whatsapp_api_secret'])->post('https://api.twilio.com/2010-04-01/Accounts/' . $config['whatsapp_api_key'] . '/Messages.json', [
-                'From' => 'whatsapp:' . $config['whatsapp_phone_number'],
-                'To' => 'whatsapp:' . $phone,
+            $response = Http::withBasicAuth($config['whatsapp_api_key'], $config['whatsapp_api_secret'])->post('https://api.twilio.com/2010-04-01/Accounts/'.$config['whatsapp_api_key'].'/Messages.json', [
+                'From' => 'whatsapp:'.$config['whatsapp_phone_number'],
+                'To' => 'whatsapp:'.$phone,
                 'Body' => $message,
             ]);
 
             if ($response->failed()) {
-                throw new \Exception('فشل إرسال رسالة واتساب: ' . $response->body());
+                throw new \Exception('فشل إرسال رسالة واتساب: '.$response->body());
             }
 
-            Log::info('WhatsApp message sent to ' . $phone . ' for certificate ID: ' . $this->certificate->id);
+            Log::info('WhatsApp message sent to '.$phone.' for certificate ID: '.$this->certificate->id);
         } catch (\Exception $e) {
-            Log::error('Error sending WhatsApp message for certificate ID ' . $this->certificate->id . ': ' . $e->getMessage());
+            Log::error('Error sending WhatsApp message for certificate ID '.$this->certificate->id.': '.$e->getMessage());
             throw $e;
         }
     }
@@ -137,18 +136,18 @@ class SendCertificateJob implements ShouldQueue
             $recipient = Recipient::find($this->certificate->recipient_id);
             $user = User::find($recipient->user_id);
 
-            if (!$user || !$recipient) {
-                throw new \Exception('Recipient or User not found for certificate ID: ' . $this->certificate->id);
+            if (! $user || ! $recipient) {
+                throw new \Exception('Recipient or User not found for certificate ID: '.$this->certificate->id);
             }
 
             // جلب طرق الإرسال والرسالة
             $sendVia = json_decode($template->send_via, true);
             $message = $template->message;
             $certificateLink = route('certificate.show', $this->certificate->uuid);
-            $fullMessage = $message . "\nرابط الوثيقة: " . $certificateLink;
+            $fullMessage = $message."\nرابط الوثيقة: ".$certificateLink;
 
             // مسار ملف الـ PDF
-            $pdfPath = storage_path('app/public/' . $this->certificate->file_path);
+            $pdfPath = storage_path('app/public/'.$this->certificate->file_path);
 
             // إرسال عبر الطرق المختارة
             if (in_array('email', $sendVia)) {
@@ -170,7 +169,7 @@ class SendCertificateJob implements ShouldQueue
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error sending certificate ID ' . $this->certificate->id . ': ' . $e->getMessage());
+            Log::error('Error sending certificate ID '.$this->certificate->id.': '.$e->getMessage());
             $this->fail($e);
         }
     }

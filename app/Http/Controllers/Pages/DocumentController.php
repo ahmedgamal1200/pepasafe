@@ -13,10 +13,10 @@ use Illuminate\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use ZipArchive;
 
 class DocumentController extends Controller
 {
-
     public function index(Request $request): View|Factory|Application
     {
         $user = auth()->user();
@@ -36,7 +36,7 @@ class DocumentController extends Controller
 
             // البحث عن event بالـ title
             $event = Event::query()
-                ->where('title', 'like', '%' . $query . '%')
+                ->where('title', 'like', '%'.$query.'%')
                 ->first();
 
             // لو لقينا الحدث، نحسب عدد document_templates المرتبطة بيه
@@ -46,7 +46,18 @@ class DocumentController extends Controller
             }
         }
 
-        return view('users.home', compact('user', 'document', 'event', 'templateCount', 'recipientCount'));
+        $documentsForCurrentUser = Document::whereHas('recipient', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->paginate(10);
+
+        return view('users.home', compact(
+            'user',
+            'document',
+            'event',
+            'templateCount',
+            'recipientCount',
+            'documentsForCurrentUser'
+        ));
 
     }
 
@@ -60,12 +71,11 @@ class DocumentController extends Controller
 
     public function toggleVisibility(Document $document): RedirectResponse
     {
-        $document->visible_on_profile = !$document->visible_on_profile;
+        $document->visible_on_profile = ! $document->visible_on_profile;
         $document->save();
 
         return back()->with('status', 'document-visibility-toggled');
     }
-
 
     // في DocumentController.php
 
@@ -81,10 +91,10 @@ class DocumentController extends Controller
         $plan = $subscription?->plan;
 
         // في حال عدم وجود اشتراك أو باقة
-        if (!$subscription || !$plan) {
+        if (! $subscription || ! $plan) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'لا يوجد لديك اشتراك نشط للعثور على تفاصيل التسعير.'
+                'message' => 'لا يوجد لديك اشتراك نشط للعثور على تفاصيل التسعير.',
             ]);
         }
 
@@ -94,8 +104,7 @@ class DocumentController extends Controller
         $planBalance = (float) $subscription->remaining; // الرصيد المالي في الباقة
         $walletBalance = (float) $subscription->balance; // رصيد المحفظة
 
-        \Log::info('Wallet balance is: ' . $walletBalance);
-
+        \Log::info('Wallet balance is: '.$walletBalance);
 
         // --- حساب التكلفة الإجمالية داخل الباقة ---
         $totalCost = $count * $priceInPlan;
@@ -103,6 +112,7 @@ class DocumentController extends Controller
         // --- السيناريو 1: رصيد الباقة كافٍ لتغطية كل الوثائق ---
         if ($planBalance >= $totalCost) {
             $remainingPlanBalance = $planBalance - $totalCost;
+
             return response()->json([
                 'status' => 'in_plan',
                 'docs_count' => $count,
@@ -110,7 +120,6 @@ class DocumentController extends Controller
                 'plan_balance_after' => $remainingPlanBalance,
             ]);
         }
-
 
         $docsCoveredByPlan = 0;
         if ($priceInPlan > 0) {
@@ -132,15 +141,46 @@ class DocumentController extends Controller
                 'extra_docs_count' => $extraDocs,
                 'extra_cost' => $extraCost,
                 'current_wallet_balance' => $walletBalance,
-                'wallet_balance_after' => $remainingWalletBalance
+                'wallet_balance_after' => $remainingWalletBalance,
             ]);
         }
 
         // --- السيناريو 3: الأرصدة غير كافية ---
         return response()->json([
             'status' => 'insufficient_funds',
-            'message' => "رصيدك غير كافٍ. باقتك تغطي {$docsCoveredByPlan} وثيقة فقط. أنت بحاجة إلى {$extraCost} جنيه في محفظتك لتغطية الباقي، ورصيدك الحالي هو {$walletBalance} جنيه فقط."
+            'message' => "رصيدك غير كافٍ. باقتك تغطي {$docsCoveredByPlan} وثيقة فقط. أنت بحاجة إلى {$extraCost} جنيه في محفظتك لتغطية الباقي، ورصيدك الحالي هو {$walletBalance} جنيه فقط.",
         ]);
     }
 
+    public function downloadAll(DocumentTemplate $template)
+    {
+        // 1. إنشاء ملف Zip
+        $zipFile = storage_path('app/public/documents.zip');
+        $zip = new ZipArchive;
+
+        // إذا كان الملف غير موجود، قم بإنشائه
+        if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+
+            // 2. تحديد اسم المجلد الذي تريد إنشاءه داخل ملف Zip
+            $folderName = 'Documents-'.now()->format('Y-m-d'); // مثال: "شهادات-2023-10-27"
+
+            // 3. إضافة الوثائق إلى المجلد داخل ملف Zip
+            foreach ($template->documents as $document) {
+                // الحصول على المسار الكامل للملف في نظام الملفات
+                $filePath = storage_path('app/public/'.$document->file_path);
+
+                // التأكد من وجود الملف
+                if (file_exists($filePath)) {
+                    // إضافة الملف إلى المجلد داخل الـ Zip باستخدام المسار الثاني
+                    $zip->addFile($filePath, $folderName.'/'.basename($filePath));
+                }
+            }
+            $zip->close();
+
+            // 4. إرسال ملف Zip للتنزيل
+            return response()->download($zipFile)->deleteFileAfterSend(true);
+        }
+
+        return back()->with('error', 'فشل في إنشاء ملف التنزيل.');
+    }
 }

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Foundation\Application;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -29,7 +28,7 @@ class SocialLoginController extends Controller
             $user = User::where('google_id', $googleUser->id)->first();
 
             // If user doesn't exist by google_id, check by email
-            if (!$user) {
+            if (! $user) {
                 $user = User::where('email', $googleUser->email)->first();
             }
 
@@ -56,9 +55,9 @@ class SocialLoginController extends Controller
             // استبدل '/dashboard' بالرابط اللي عايزه
 
         } catch (\Exception $e) {
-            Log::error("Google login failed: " . $e->getMessage());
+            Log::error('Google login failed: '.$e->getMessage());
+
             return redirect('/login')->with('error', 'حدث خطأ أثناء تسجيل الدخول باستخدام جوجل. يرجى المحاولة مرة أخرى.');
         }
     }
-
 }

@@ -2,33 +2,39 @@
 
 namespace App\Filament\Pages;
 
-use Filament\Forms\Components\FileUpload;
-use Filament\Pages\Page;
-use Filament\Forms;
-use Filament\Forms\Components\Toggle;
 use App\Models\Setting;
+use Filament\Forms;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
+use Filament\Pages\Page;
 
 class GeneralSettings extends Page implements Forms\Contracts\HasForms
 {
     use Forms\Concerns\InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+
     protected static string $view = 'filament.pages.general-settings';
+
     protected static ?string $title = 'System Settings';
+
     protected static ?string $navigationGroup = 'Settings';
 
     // 🟢 لازم المتغير يكون معرف
-    public
-        $profile_page_enabled,
-        $show_bio_public,
-        $show_documents_in_profile,
-        $user_can_share_here_profile,
-        $email_otp_active,
-        $sms_otp_active,
-        $show_events_in_profile;
+    public $profile_page_enabled;
 
+    public $show_bio_public;
+
+    public $show_documents_in_profile;
+
+    public $user_can_share_here_profile;
+
+    public $email_otp_active;
+
+    public $sms_otp_active;
+
+    public $show_events_in_profile;
 
     public function mount(): void
     {
@@ -40,7 +46,6 @@ class GeneralSettings extends Page implements Forms\Contracts\HasForms
         $this->sms_otp_active = Setting::where('key', 'sms_otp_active')->value('value') === '1';
         $this->show_events_in_profile = Setting::where('key', 'show_events_in_profile')->value('value') === '1';
     }
-
 
     public function getFormSchema(): array
     {
@@ -62,8 +67,6 @@ class GeneralSettings extends Page implements Forms\Contracts\HasForms
                                 ->send();
                         })
                         ->formatStateUsing(fn () => Setting::where('key', 'profile_page_enabled')->value('value') === '1'),
-
-
 
                     Toggle::make('show_bio_public')
                         ->label('Show Bio Publicly')
@@ -154,7 +157,7 @@ class GeneralSettings extends Page implements Forms\Contracts\HasForms
                                 ->send();
                         }),
 
-                ])
+                ]),
         ];
     }
 

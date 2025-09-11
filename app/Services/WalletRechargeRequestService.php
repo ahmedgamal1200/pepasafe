@@ -4,9 +4,7 @@ namespace App\Services;
 
 use App\Http\Requests\Eventor\Wallet\StoreWalletRechargetRequest;
 use App\Mail\WalletRechargeRequestRejected;
-use App\Models\Subscription;
 use App\Models\WalletRechargeRequest;
-use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Mail;
 
 class WalletRechargeRequestService
@@ -24,6 +22,7 @@ class WalletRechargeRequestService
         $data['subscription_id'] = $request->input('subscription_id');
 
         unset($data['receipt']);
+
         return WalletRechargeRequest::query()->create($data);
     }
 
@@ -43,8 +42,7 @@ class WalletRechargeRequestService
         WalletRechargeRequest $walletRechargeRequest,
         string $adminNote,
         bool $sendEmail
-    ): void
-    {
+    ): void {
         $walletRechargeRequest->update([
             'status' => 'rejected',
             'reviewed_by' => auth()->id(),
@@ -53,7 +51,7 @@ class WalletRechargeRequestService
         if ($sendEmail) {
             Mail::to($walletRechargeRequest->user->email)->send(
                 new WalletRechargeRequestRejected($walletRechargeRequest)
-        );
+            );
         }
     }
 }

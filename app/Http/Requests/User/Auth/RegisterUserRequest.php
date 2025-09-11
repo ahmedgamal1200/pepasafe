@@ -22,14 +22,14 @@ class RegisterUserRequest extends FormRequest
      */
     public function rules(): array
     {
-            return [
-                'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
-                'password' => ['required', 'confirmed', Rules\Password::defaults()],
-                'phone' => ['required', 'string', 'max:255'],
-                'category' => ['nullable'],
-                'role' => ['required', 'in:user'],
-                'terms_agreement' => ['accepted'],
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'phone' => ['required', 'string', 'max:255'],
+            'category' => ['nullable'],
+            'role' => ['required', 'in:user'],
+            'terms_agreement' => ['accepted'],
         ];
     }
 }

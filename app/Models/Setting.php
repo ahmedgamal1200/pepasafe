@@ -12,5 +12,4 @@ class Setting extends Model
     {
         return static::where('key', $key)->value('value');
     }
-
 }

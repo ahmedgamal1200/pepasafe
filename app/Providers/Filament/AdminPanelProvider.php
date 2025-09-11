@@ -61,7 +61,7 @@ class AdminPanelProvider extends PanelProvider
     public function boot(): void
     {
         Filament::serving(function () {
-            if (!Auth::check() || !Auth::user()->hasAnyRole(['super admin', 'admin', 'eventor', 'employee'])) {
+            if (! Auth::check() || ! Auth::user()->hasAnyRole(['super admin', 'admin', 'eventor', 'employee'])) {
                 abort(403, 'Unauthorized: You do not have permission to access the admin panel.');
             }
         });

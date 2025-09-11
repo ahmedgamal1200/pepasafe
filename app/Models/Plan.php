@@ -9,12 +9,11 @@ class Plan extends Model
 {
     protected $guarded = ['id'];
 
-
     protected $casts = [
         'carry_over_credit' => 'boolean',
         'enable_attendance' => 'boolean',
         'enabled_channels' => 'array',
-
+        //        'is_public' => 'boolean',
     ];
 
     public function subscriptions(): HasMany
@@ -37,17 +36,14 @@ class Plan extends Model
         return $this->hasMany(WalletRechargeRequest::class);
     }
 
-
-
     public function getFeaturesListAttribute(): array
     {
         return collect(
             preg_match_all('/<li.*?>(.*?)<\/li>/s', $this->feature, $matches)
                 ? $matches[1]
                 : []
-        )->map(function ($text){
+        )->map(function ($text) {
             return html_entity_decode(strip_tags($text));
-    })->toArray();
+        })->toArray();
     }
 }
-

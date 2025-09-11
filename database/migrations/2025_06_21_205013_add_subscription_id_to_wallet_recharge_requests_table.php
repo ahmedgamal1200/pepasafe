@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('wallet_recharge_requests', 'subscription_id')) {
+        if (! Schema::hasColumn('wallet_recharge_requests', 'subscription_id')) {
             Schema::table('wallet_recharge_requests', function (Blueprint $table) {
                 $table->foreignIdFor(Subscription::class)
                     ->constrained()

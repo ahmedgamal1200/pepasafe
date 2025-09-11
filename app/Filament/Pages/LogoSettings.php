@@ -2,23 +2,27 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Logo;
 use Filament\Forms;
-use Filament\Pages\Page;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
-use Filament\Notifications\Notification;
-use App\Models\Logo;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
+use Filament\Pages\Page;
 
 class LogoSettings extends Page implements Forms\Contracts\HasForms
 {
     use Forms\Concerns\InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-photo';
+
     protected static ?string $title = 'Logo & Branding Settings';
+
     protected static ?string $navigationGroup = 'Site Content';
+
     protected static ?string $panel = 'admin';
+
     protected static string $view = 'filament.pages.logo-settings';
 
     public array $data = [];
@@ -43,7 +47,6 @@ class LogoSettings extends Page implements Forms\Contracts\HasForms
                             ->visibility('public')
                             ->downloadable()
                             ->openable(),
-
 
                         Forms\Components\Actions::make([
                             Forms\Components\Actions\Action::make('deleteLogo')

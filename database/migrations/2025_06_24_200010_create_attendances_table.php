@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\AttendanceTemplate;
-use App\Models\DocumentTemplate;
 use App\Models\Event;
 use App\Models\Recipient;
 use Illuminate\Database\Migrations\Migration;

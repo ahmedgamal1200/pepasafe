@@ -15,10 +15,11 @@ class CheckCookieConsent
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->cookie('cookie_consent')) {
+        if (! $request->cookie('cookie_consent')) {
             // لو مفيش كوكيز موافقة، نمرر معلومة للـ view
             view()->share('showCookieConsent', true);
         }
+
         return $next($request);
     }
 }
