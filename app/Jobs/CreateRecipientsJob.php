@@ -38,13 +38,18 @@ class CreateRecipientsJob implements ShouldQueue
         $newUsers = [];
         $now = now();
 
+        $lastSlug = User::withTrashed()->max('slug') ?: 999;
+
         foreach ($recipientsData as $row) {
             if (!in_array($row['email'], $existingEmails)) {
+                $lastSlug++;
+
                 $newUsers[] = [
                     'name' => $row['name'],
                     'email' => $row['email'],
                     'password' => bcrypt('password123'),
                     'phone' => $row['phone_number'] ?? null,
+                    'slug' => $lastSlug, // إضافة حقل الـ slug هنا
                     'created_at' => $now,
                     'updated_at' => $now,
                 ];

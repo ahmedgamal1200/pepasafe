@@ -14,7 +14,7 @@ class Plan extends Model
         'carry_over_credit' => 'boolean',
         'enable_attendance' => 'boolean',
         'enabled_channels' => 'array',
-
+//        'is_public' => 'boolean',
     ];
 
     public function subscriptions(): HasMany
@@ -49,5 +49,6 @@ class Plan extends Model
             return html_entity_decode(strip_tags($text));
     })->toArray();
     }
+
 }
 

@@ -7,6 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-zip": "*",
         "barryvdh/laravel-dompdf": "^3.1",
         "codeat3/blade-phosphor-icons": "^2.3",
         "filament/filament": "^3.3",
@@ -20,9 +21,11 @@
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-permission": "^6.19",
         "spatie/laravel-translatable": "^6.11",
-        "twilio/sdk": "^8.6"
+        "twilio/sdk": "^8.6",
+        "webmozart/json": "^1.1"
     },
     "require-dev": {
+        "barryvdh/laravel-debugbar": "^3.16",
         "fakerphp/faker": "^1.23",
         "laravel/breeze": "^2.3",
         "laravel/pail": "^1.1",

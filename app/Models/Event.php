@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Event extends Model
 {
@@ -30,8 +31,15 @@ class Event extends Model
         return $this->hasMany(DocumentTemplate::class);
     }
 
-    public function recipients()
+    public function recipients(): HasMany
     {
         return $this->hasMany(Recipient::class);
+    }
+
+    protected static  function booted(): void
+    {
+        static::creating(function ($event) {
+            $event->slug = Str::slug($event->title . '-' . Str::random(4));
+        });
     }
 }

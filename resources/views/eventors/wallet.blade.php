@@ -57,7 +57,7 @@
     </style>
 
 </head>
-<body class="min-h-screen bg-[#F9FAFB]">
+<body>
 
 <!-- Navbar -->
 @include('partials.auth-navbar')
@@ -107,27 +107,32 @@
                     <span class="font-bold text-gray-500">اسم الباقة:</span>
                     <span>{{ ($user->subscription?->plan?->name) }}</span>
                 </div>
-                @if ($user->subscription?->plan?->carry_over_credit)
-                <div class="flex justify-between">
-                    <span class="font-bold text-gray-500">المتبقي من الوثائق:</span>
-                    <span>{{ intval(($user->subscription?->remaining)) }}</span>
-                </div>
-                @else
-                <div class="flex justify-between">
-                    <span class="font-bold text-gray-500">الحد الأقصى للوثائق:</span>
-                    <span>{{ intval(($user->subscription?->plan?->credit_amount)) }}</span>
-                </div>
                     <div class="flex justify-between">
-                        <span class="font-bold text-gray-500">المتبقي من الوثائق:</span>
+                        <span class="font-bold text-gray-500">المتبقي من الرصيد في باقتك:</span>
                         <span>{{ intval(($user->subscription?->remaining)) }}</span>
                     </div>
+                @if ($user->subscription?->plan)
+                    <div class="flex justify-between">
+                        <span class="font-bold text-gray-500">ترحيل الرصيد:</span>
+
+                        @if ($user->subscription->plan->carry_over_credit)
+                            <span class="px-3 py-1 rounded-lg bg-green-100 text-green-700 font-semibold border border-green-300 shadow-sm">
+                        نعم، يتم ترحيل الرصيد
+                    </span>
+                                @else
+                                    <span class="px-3 py-1 rounded-lg bg-red-100 text-red-700 font-semibold border border-red-300 shadow-sm">
+                        لا، لا يتم ترحيل الرصيد
+                    </span>
+                        @endif
+                    </div>
                 @endif
+
                 <div class="flex justify-between">
                     <span class="font-bold text-gray-500">المستخدم:</span>
                     <span> {{ ($user->name) }}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="font-bold text-gray-500">تاريخ التجديد:</span>
+                    <span class="font-bold text-gray-500">تاريخ الانتهاء:</span>
                     <span>{{ ($user->subscription?->end_date) }}</span>
                 </div>
             </div>
@@ -227,76 +232,143 @@
 
     <hr class="border-gray-300 my-4 fade-in" />
     <!-- Section: ترقية الباقة -->
-    <div class="text-right fade-in mb-2">
-        <h2 class="text-2xl font-bold">ترقية الباقة</h2>
+    <div class="bg-gray-50 rounded-lg p-6 mb-8 shadow-sm">
+        <div class="text-center">
+            <h2 class="text-3xl font-extrabold text-gray-900 leading-tight mb-1">
+                ترقية الباقة
+            </h2>
+            <p class="text-xl font-medium text-blue-600 mb-4">
+                اختر الباقة المناسبة لك
+            </p>
+        </div>
     </div>
 
-    <div class="text-lg font-semibold text-right mb-4">أختيار الباقة </div>
-
     <div id="upgrade" class="custom-plan-style flex justify-center">
-        <div class="flex flex-wrap justify-center gap-4 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-screen-xl mx-auto p-4">
             @foreach ($plans as $plan)
-                <input type="radio" name="plan" id="plan-{{ $plan->id }}" value="{{ $plan->id }}" class="hidden" >
-                <label for="plan-{{ $plan->id }}" class="card-label w-full sm:w-[calc(50%-8px)] md:w-[calc(33.333%-10.666px)] lg:w-[calc(25%-12px)] h-auto min-h-[24rem] bg-white rounded-lg p-4 hover:shadow-lg transition cursor-pointer">
-                    <div class="text-lg font-semibold text-right mb-3">{{ $plan->name }}</div>
-                    <div class="text-right text-xl font-bold mb-2">
-                        @if ($plan->compare_price)
-                            <span class="text-gray-500 line-through text-base ml-2">{{ $plan->compare_price }} ج.م</span>
+                @if($plan->is_public || ($plan->user_id == auth()->id()))
+                    {{-- Check if this is the current user's plan --}}
+                    @php
+                        $isCurrentPlan = (auth()->check() && auth()->user()->subscription->plan_id == $plan->id);
+                    @endphp
+
+                    <input type="radio" name="plan" id="plan-{{ $plan->id }}" value="{{ $plan->id }}" class="hidden peer"
+                        {{ $isCurrentPlan ? 'checked disabled' : '' }}>
+
+                    <label for="plan-{{ $plan->id }}"
+                           class="card-label relative flex-grow flex-shrink-0 min-h-[24rem] bg-white rounded-xl shadow-md p-6 border-2
+                              {{ $isCurrentPlan ? 'border-green-500' : 'border-transparent peer-checked:border-blue-600' }}
+                              hover:shadow-lg transition-all duration-300 ease-in-out cursor-pointer flex flex-col justify-between">
+
+                        @if($isCurrentPlan)
+                            <div class="absolute top-4 left-1/2 transform -translate-x-1/2">
+                                <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-0.5 text-sm font-semibold text-green-800">
+                                    <i class="fas fa-star ml-2"></i> باقتك الحالية
+                                </span>
+                            </div><br>
                         @endif
-                        <span>{{ $plan->price }} ج.م</span>
-                    </div>
-                    <ul class="space-y-2 text-right mb-4">
-                        @foreach ( $plan->features_list as $feature)
-                            <li><i class="fas fa-check-circle text-green-500 ml-2"></i>{{ $feature }}</li>
-                        @endforeach
-                    </ul>
 
-                    @if ($plan->price > 0)
-                        <div class="bg-gray-100 rounded p-3 mb-4 text-right">
-                            @foreach($paymentMethods as $payment)
-                                <div class="mb-2">
-                                    <div class="mb-1 font-semibold">{{ $payment->key }}:</div>
-                                    <div class="flex items-center justify-between bg-white p-2 rounded border font-mono text-sm">
-                                        <span id="value-{{ $loop->index }}">{{ $payment->value }}</span>
-                                        <button type="button" onclick="copyToClipboard('value-{{ $loop->index }}')" class="text-blue-500 hover:text-blue-700">
-                                            <i class="fas fa-copy"></i>
-                                        </button>
-                                    </div>
+
+                        <div class="flex flex-col h-full">
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-800 mb-2 text-right">{{ $plan->name }}</h3>
+                                <div class="text-right text-3xl font-extrabold text-gray-900 mb-4">
+                                    @if ($plan->compare_price)
+                                        <span class="text-gray-500 line-through text-lg ml-2">{{ $plan->compare_price }} ج.م</span>
+                                    @endif
+                                    <span>{{ $plan->price }} ج.م</span>
                                 </div>
-                            @endforeach
+                            </div>
+
+                            <ul class="space-y-3 text-right flex-1 mb-4">
+                                @foreach ( $plan->features_list as $feature)
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-green-500 mt-1 ml-2 flex-shrink-0"></i>
+                                        <span class="text-gray-600 text-base">{{ $feature }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+
+                            <div class="mt-auto">
+                                @if ($plan->price > 0 && !$isCurrentPlan)
+                                    <div class="bg-blue-50 rounded-lg p-3 mb-4 text-right">
+                                        <h4 class="font-bold text-blue-800 mb-2">تفاصيل الدفع</h4>
+                                        @foreach($paymentMethods as $payment)
+                                            <div class="mb-2 last:mb-0">
+                                                <p class="mb-1 font-semibold text-gray-700">{{ $payment->key }}:</p>
+                                                <div class="flex items-center justify-between bg-white p-2 rounded-lg border border-gray-200 font-mono text-sm text-gray-900">
+                                                    <span id="value-{{ $loop->index }}" class="truncate">{{ $payment->value }}</span>
+                                                    <button type="button" onclick="copyToClipboard('value-{{ $loop->index }}')" class="text-blue-500 hover:text-blue-700 transition-colors duration-200" title="نسخ">
+                                                        <i class="fas fa-copy"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <form action="{{ route('plan.upgrade.request') }}" method="POST" enctype="multipart/form-data">
+                                        @csrf
+                                        <!-- hidden inputs -->
+                                        <input type="hidden" name="plan_id" value="{{ $plan->id }}">
+                                        <input type="hidden" name="subscription_id" value="{{ $user->subscription->id }}">
+
+                                    <div id="filename-{{ $plan->id }}" class="mt-2 text-sm text-gray-500 text-center mb-2"></div>
+
+                                    <label for="payment_receipt_{{ $plan->id }}" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer flex items-center justify-center font-semibold">
+                                        <i class="fas fa-cloud-upload-alt ml-2"></i>
+                                        إرفاق وصل الدفع
+                                        <input
+                                            type="file"
+                                            id="payment_receipt_{{ $plan->id }}"
+                                            name="receipt_path"
+                                            class="hidden payment-upload"
+                                            data-plan="{{ $plan->id }}"
+                                        >
+                                    </label>
+
+{{--                                    <a href="#" class="block text-center w-full bg-green-500 text-white py-3 rounded-lg mt-2 hover:bg-green-600 transition-colors duration-200 cursor-pointer font-semibold">--}}
+{{--                                        ترقية الباقة--}}
+{{--                                    </a>--}}
+                                        <button type="submit"
+                                                class="block text-center w-full bg-green-500 text-white py-3 rounded-lg mt-2 hover:bg-green-600 transition-colors duration-200 font-semibold">
+                                            ترقية الباقة
+                                        </button>
+                                @endif
+                            </div>
                         </div>
-
-                        <div id="filename-{{ $plan->id }}" class="mt-2 text-sm text-gray-500 text-center mb-2"></div>
-
-                        <label for="payment_receipt_{{ $plan->id }}" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition cursor-pointer flex items-center justify-center">
-                            <i class="fas fa-cloud-upload-alt ml-2"></i>إرفاق وصل الدفع
-                            <input
-                                type="file"
-                                id="payment_receipt_{{ $plan->id }}"
-                                name="payment_receipt[{{ $plan->id }}]"
-                                class="hidden payment-upload"
-                                data-plan="{{ $plan->id }}"
-                            >
-                        </label>
-
-                        <a href="#" class="block text-center w-full bg-blue-500 text-white py-2 rounded mt-2 hover:bg-blue-600 transition cursor-pointer">
-                            ترقية الباقة
-                        </a>
-
-                    @endif
-                </label>
+                    </label>
+                @endif
             @endforeach
 
-            <div class="card-label w-full sm:w-[calc(50%-8px)] md:w-[calc(33.333%-10.666px)] lg:w-[calc(25%-12px)] bg-white rounded-lg p-4 hover:shadow-lg transition cursor-pointer flex flex-col justify-between">
-                <div class="text-lg font-semibold text-right mb-3">باقة مخصصة</div>
-                <div class="text-center my-4">
-                    <i class="fas fa-phone-alt text-4xl text-blue-500"></i>
+                <div class="flex-grow flex-shrink-0 min-h-[24rem] bg-gray-100 rounded-xl shadow-md p-6 flex flex-col justify-between items-center text-center">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">باقة مخصصة</h3>
+                        <div class="font-base text-xl mb-2">
+                            <p class="text-gray-600 text-base mb-2">
+                                لأن احتياجاتك مختلفة، وفرنا لك إمكانية تصميم باقة تناسب نشاطك بالضبط.
+                                تواصل معنا وسنساعدك في اختيار الحل الأمثل لك.
+                            </p>
+                            <p class="text-gray-600 text-base">لطلب باقة مخصصة، اتصل بنا على:</p>
+                            <div class="my-4">
+                                <i class="fas fa-phone-alt text-5xl text-blue-600"></i>
+                            </div>
+                            @foreach($phones as $phone)
+                                <div class="flex items-center justify-between mb-2">
+                                    <a href="tel:{{ $phone->phone_number }}"
+                                       class="text-blue-600 hover:underline transition-colors duration-200 font-bold">
+                                        {{ $phone->phone_number }}
+                                    </a>
+                                    <button type="button" onclick="copyToClipboard('{{ $phone->phone_number }}')"
+                                            class="text-blue-500 hover:text-blue-700 transition-colors duration-200" title="نسخ">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            @endforeach
+
+                        </div>
+                    </div>
+                    <div class="min-h-[1rem]"></div>
                 </div>
-                <div class="text-center font-bold text-xl mb-2">
-                    <p class="text-gray-600 text-sm">لطلب باقة مخصصة، اتصل على:</p>
-                    <a href="tel:1234567890" class="text-blue-500 hover:underline">1234567890</a>
-                </div>
-            </div>
+
         </div>
     </div>
 
@@ -530,124 +602,127 @@
         </div>
     </section>
 
-@include('partials.footer')
 
 </main>
 
+@include('partials.footer')
 <script>
-    window.copyToClipboard = function(elementId) {
-        const el = document.getElementById(elementId);
-        if (!el) return;
-
-        const text = el.innerText || el.textContent;
-
-        navigator.clipboard.writeText(text).then(() => {
-            Toastify({
-                text: " تم النسخ إلى الحافظة",
-                duration: 2000,
-                gravity: "top",
-                position: "right",
-                backgroundColor: "#10B981",
-                stopOnFocus: true
-            }).showToast();
-        }).catch(() => {
-            Toastify({
-                text: "فشل النسخ!",
-                duration: 2000,
-                gravity: "top",
-                position: "right",
-                backgroundColor: "#EF4444",
-                stopOnFocus: true
-            }).showToast();
-        });
-    }
-
-
-    // جزء شحن المحفظة
     document.addEventListener('DOMContentLoaded', function() {
+
+        // =================================================================================
+        //  1. وظائف نسخ إلى الحافظة (Clipboard)
+        // =================================================================================
+
+        window.copyToClipboard = function(input) {
+            let textToCopy;
+
+            // Check if the input is a DOM element ID
+            const el = document.getElementById(input);
+            if (el) {
+                textToCopy = el.innerText || el.textContent;
+            } else {
+                // Assume the input is the text itself
+                textToCopy = input;
+            }
+
+            if (!textToCopy) {
+                return;
+            }
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                Toastify({
+                    text: "تم النسخ إلى الحافظة",
+                    duration: 2000,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "#10B981",
+                    stopOnFocus: true
+                }).showToast();
+            }).catch(() => {
+                Toastify({
+                    text: "فشل النسخ!",
+                    duration: 2000,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "#EF4444",
+                    stopOnFocus: true
+                }).showToast();
+            });
+        };
+
+        // =================================================================================
+        //  2. وظائف نافذة شحن المحفظة المنبثقة (Popup)
+        // =================================================================================
+
+        // تحديد العناصر
         const chargeWalletBtn = document.getElementById('charge-wallet-btn');
         const walletChargePopup = document.getElementById('wallet-charge-popup');
         const closePopupBtn = document.getElementById('close-popup-btn');
-        const confirmChargePopupBtn = document.getElementById('confirm-charge-popup');
+        const chargeWalletForm = document.getElementById('charge-wallet-form');
 
-        // **تمت الإضافة: عنصر الرسالة (notification)**
-        const notificationContainer = document.createElement('div');
-        notificationContainer.id = 'custom-notification';
-        notificationContainer.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-md shadow-lg opacity-0 transition-opacity duration-300 z-[9999]';
-        document.body.appendChild(notificationContainer);
-
-        // دالة مساعدة لإخفاء البوب أب ومسح البيانات
+        // دالة مساعدة لإخفاء البوب أب
         function hidePopup() {
             walletChargePopup.classList.add('hidden');
-            document.getElementById('charge-amount').value = '';
-            document.getElementById('receipt-upload').value = '';
+            chargeWalletForm.reset();
         }
 
-        // **تمت الإضافة: دالة لعرض الرسالة المخصصة**
-        function showNotification(message, type = 'success') {
-            notificationContainer.textContent = message;
-            if (type === 'success') {
-                notificationContainer.style.backgroundColor = '#4CAF50'; // لون أخضر للنجاح
-            } else if (type === 'error') {
-                notificationContainer.style.backgroundColor = '#F44336'; // لون أحمر للخطأ
-            } else {
-                notificationContainer.style.backgroundColor = '#333'; // لون افتراضي
-            }
-
-            notificationContainer.classList.remove('opacity-0');
-            notificationContainer.classList.add('opacity-100');
-
-            setTimeout(() => {
-                notificationContainer.classList.remove('opacity-100');
-                notificationContainer.classList.add('opacity-0');
-            }, 3000); // إخفاء الرسالة بعد 3 ثواني
+        // دالة مساعدة لعرض رسائل Toastify
+        function showToast(message, type = 'success') {
+            const backgroundColor = (type === 'success') ? '#10B981' : '#EF4444';
+            Toastify({
+                text: message,
+                duration: 2000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: backgroundColor,
+                stopOnFocus: true
+            }).showToast();
         }
 
-
-        // لما المستخدم يضغط على زر "شحن المحفظة"
+        // فتح نافذة البوب أب عند الضغط على زر "شحن المحفظة"
         chargeWalletBtn.addEventListener('click', function(event) {
             event.preventDefault();
             walletChargePopup.classList.remove('hidden');
         });
 
-        // لما المستخدم يضغط على زر الـ X
+        // إغلاق البوب أب عند الضغط على زر الإغلاق (X)
         closePopupBtn.addEventListener('click', hidePopup);
 
-        // لما المستخدم يضغط في أي مكان خارج البوب أب (الخلفية الشفافة)
+        // إغلاق البوب أب عند الضغط على الخلفية الشفافة
         walletChargePopup.addEventListener('click', function(event) {
             if (event.target === walletChargePopup) {
                 hidePopup();
             }
         });
 
-        // لما المستخدم يضغط على زر "تأكيد الشحن" داخل البوب أب
-        confirmChargePopupBtn.addEventListener('click', function() {
+        // التعامل مع إرسال الفورم
+        chargeWalletForm.addEventListener('submit', function(event) {
             const chargeAmount = document.getElementById('charge-amount').value;
             const receiptFile = document.getElementById('receipt-upload').files[0];
 
-            if (chargeAmount && receiptFile) {
-                // هنا هتحط الكود الخاص بإرسال البيانات (قيمة الشحن والوصل) للسيرفر
-                console.log('قيمة الشحن:', chargeAmount);
-                console.log('وصل الدفع:', receiptFile.name);
-
-                // الحصول على الفورم من زر التأكيد والقيام بالإرسال
-                const form = confirmChargePopupBtn.closest('form'); // ده بيجيب أقرب فورم للزرار
-                if (form) {
-                    form.submit(); // بيتم إرسال الفورم
-                    // بعد ما تعمل submit، الصفحة هتعمل reload، فمش هتظهر الـ notification
-                    // أو الـ hidePopup() إلا لو الـ server side رجع نفس الصفحة بـ flash message
-                }
-
-                // showNotification('تم إرسال طلب شحن المحفظة بنجاح!', 'success'); // هذا السطر لن يظهر إلا لو لم يحدث reload
-                // hidePopup(); // هذا السطر لن يتم تنفيذه قبل الـ reload
-
-            } else {
-                showNotification('الرجاء إدخال قيمة الشحن ورفع الوصل.', 'error');
+            if (!chargeAmount || !receiptFile) {
+                event.preventDefault();
+                showToast('الرجاء إدخال قيمة الشحن ورفع الوصل.', 'error');
             }
         });
+
+        // =================================================================================
+        // 3. وظائف إرفاق وصل الدفع
+        // =================================================================================
+
+        document.querySelectorAll('.payment-upload').forEach(input => {
+            input.addEventListener('change', function (e) {
+                const planId = e.target.dataset.plan;
+                const filenameDiv = document.getElementById(`filename-${planId}`);
+                if (e.target.files.length > 0) {
+                    filenameDiv.textContent = e.target.files[0].name;
+                } else {
+                    filenameDiv.textContent = '';
+                }
+            });
+        });
+
     });
-
-
 </script>
 
 <script src=" {{ asset('js/cash.js') }}"></script>

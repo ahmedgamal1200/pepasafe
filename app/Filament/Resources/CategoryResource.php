@@ -4,12 +4,14 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CategoryResource\Pages;
 use App\Filament\Resources\CategoryResource\RelationManagers;
+use App\Helpers\IconHelper;
 use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ViewColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -31,14 +33,19 @@ class CategoryResource extends Resource
 
     public static function form(Form $form): Form
     {
+
         return $form
             ->schema([
                 Forms\Components\TextInput::make('type')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('icon')
+                Forms\Components\Select::make('icon')
+                    ->options(IconHelper::all())
                     ->required()
-                    ->maxLength(255),
+                    // ودي الخطوة الأساسية لتفعيل عرض الـ HTML
+                    ->allowHtml()
+                    // إضافة هذا السطر الجديد
+                    ->native(false),
             ]);
     }
 
@@ -46,8 +53,9 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('type')->searchable(),
-                TextColumn::make('icon'),
+                TextColumn::make('type')->searchable()->sortable(),
+                // تعديل هنا: استخدم ViewColumn فقط
+                ViewColumn::make('icon')->view('filament.tables.columns.icon'),
             ])
             ->filters([
                 //

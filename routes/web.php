@@ -7,16 +7,16 @@ use App\Http\Controllers\Eventor\DocumentVerificationController;
 use App\Http\Controllers\Eventor\EventController;
 use App\Http\Controllers\Eventor\HomeController;
 use App\Http\Controllers\Eventor\NotificationController;
-use App\Http\Controllers\Eventor\WalletController;
-use App\Http\Controllers\Eventor\WalletRechargeRequestController;
+use App\Http\Controllers\Eventor\Wallet\WalletController;
+use App\Http\Controllers\Eventor\Wallet\WalletRechargeRequestController;
 use App\Http\Controllers\Pages\DocumentController;
+use App\Http\Controllers\Pages\PrivacyAndPolicyController;
+use App\Http\Controllers\Pages\TermsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiteInfo\ContactUsController;
 use App\Http\Controllers\User\RegisteredUserController;
-use App\Notifications\TestNotification;
+use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
-
-use App\Models\User;
 
 
 Route::get('/', function () {
@@ -105,7 +105,6 @@ Route::middleware(['auth','role:eventor|super admin|admin|employee'])->group(fun
         Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
 
 
-
     // wallet
         Route::get('wallet', [WalletController::class, 'eventorWallet'])->name('wallet');
         // Auto Renew
@@ -130,10 +129,20 @@ Route::middleware(['auth','role:eventor|super admin|admin|employee'])->group(fun
         // Wallet Recharge Requests
         Route::post('wallet-recharge-request', [WalletRechargeRequestController::class, 'store'])->name('wallet-recharge-request');
 
+        // Upgrade Plan Requests
+        Route::post('wallet/plan-upgrade-request', [\App\Http\Controllers\Eventor\Wallet\PlanUpgradeRequestController::class, 'upgrade'])
+            ->name('plan.upgrade.request');
+
         // Document Generation
     Route::post('document-generation', [DocumentGenerationController::class, 'store'])->name('document-generation.store');
     // اما اليوزر يضغط ع لينك الشهاده تظهرله
     Route::get('/documents/verify/{uuid}', [DocumentVerificationController ::class, 'verify'])->name('documents.verify');
+
+    Route::post('/update-attendance', [UserController::class, 'updateAttendance']);
+
+    Route::get('/download-documents/{template}', [DocumentController::class, 'downloadAll'])->name('documents.download');
+
+
 
 
 
@@ -153,9 +162,6 @@ Route::middleware('guest')->group(function () {
 
     Route::post('register-user', [RegisteredUserController::class, 'store']);
 
-    // about
-    Route::get('about', [AboutController::class, 'index'])->name('about');
-
     Route::get('home-for-guests', [HomeController::class, 'homeForGuests'])->name('homeForGuests');
 
 
@@ -170,6 +176,11 @@ Route::middleware('auth')->group(function () {
 
 Route::post('/calculate-document-price', [DocumentController::class, 'calculateDocumentPrice'])
     ->middleware('auth');
+
+// about
+Route::get('about', [AboutController::class, 'index'])->name('about');
+Route::get('terms', [TermsController::class, 'index'])->name('terms');
+Route::get('privacy', [PrivacyAndPolicyController::class, 'index'])->name('privacy');
 
 
 

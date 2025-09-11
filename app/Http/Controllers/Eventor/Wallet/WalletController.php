@@ -1,19 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\Eventor;
+namespace App\Http\Controllers\Eventor\Wallet;
 
 use App\Http\Controllers\Controller;
-use App\Mail\SubscriptionRenewedMail;
-use App\Models\Category;
 use App\Models\PaymentMethod;
+use App\Models\PhoneNumber;
 use App\Models\Plan;
-use App\Notifications\InsufficientBalanceNotification;
-use App\Notifications\SubscriptionRenewedNotification;
 use App\Services\RenewSubscriptionNow;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 
 class WalletController extends Controller
 {
@@ -25,7 +21,9 @@ class WalletController extends Controller
 
         $plans = Plan::query()->get();
 
-        return view('eventors.wallet', compact('user', 'paymentMethods', 'plans'));
+        $phones = PhoneNumber::query()->get();
+
+        return view('eventors.wallet', compact('user', 'paymentMethods', 'plans', 'phones'));
     }
 
     // التجديد التلقائي

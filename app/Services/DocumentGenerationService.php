@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Jobs\SendCertificateJob;
 use App\Models\DocumentTemplate;
 use App\Models\AttendanceTemplate;
 use App\Repositories\Eventor\AttendanceDocumentRepository;
 use App\Repositories\Eventor\DocumentRepository;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Intervention\Image\ImageManager;
 //use Intervention\Image\Laravel\Facades\Image;
@@ -13,7 +15,13 @@ use Intervention\Image\Laravel\Facades\Image;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\DocumentDataImport;
 use Illuminate\Support\Facades\Storage;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Intervention\Image\Drivers\Gd\Driver;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Webmozart\Json\JsonDecoder;
+
+// أو Driver\\Imagick إذا كنت تستخدم Imagick
+
+
 
 
 class DocumentGenerationService
@@ -147,120 +155,504 @@ class DocumentGenerationService
 //    }
 
     // ما قبل الجوب
-    public function generateDocuments(DocumentTemplate $template, array $recipients, $templateDataFile, $canvasWidth, $canvasHeight): void
+    /**
+     * @throws Exception
+     */
+//    public function generateDocuments(DocumentTemplate $template, array $recipients, $templateDataFile, $canvasWidth, $canvasHeight): void
+//    {
+//        $frontTemplate = $template->templateFiles()->where('side', 'front')->first();
+//        $backTemplate = $template->templateFiles()->where('side', 'back')->first();
+//
+//        if (!$frontTemplate) {
+//            throw new Exception('Front document template not found');
+//        }
+//
+//        $documentDataImport = new DocumentDataImport();
+//        Excel::import($documentDataImport, $templateDataFile);
+//        $documentRows = $documentDataImport->rows;
+//
+//        if (count($documentRows) < count($recipients)) {
+//            throw new Exception('Not enough data rows in Excel for all recipients');
+//        }
+//
+//        $backgroundPathFront = storage_path('app/public/' . $frontTemplate->file_path);
+//        if (!file_exists($backgroundPathFront)) {
+//            throw new Exception("Front background file not found: $backgroundPathFront");
+//        }
+//
+//        $backgroundPathBack = null;
+//        if ($backTemplate) {
+//            $backgroundPathBack = storage_path('app/public/' . $backTemplate->file_path);
+//            if (!file_exists($backgroundPathBack)) {
+//                throw new Exception("Back background file not found: $backgroundPathBack");
+//            }
+//        }
+//
+//        $totalHeight = $backTemplate ? $canvasHeight * 2 : $canvasHeight;
+//        $manager = new ImageManager(new Driver());
+//
+//        foreach ($recipients as $index => $recipient) {
+//            $dataRow = $documentRows[$index] ?? [];
+//            $frontFields = $template->fields()->where('side', 'front')->get();
+//            $backFields = $template->fields()->where('side', 'back')->get();
+//
+//            $frontRenderedFields = [];
+//            foreach ($frontFields as $field) {
+//                $value = $dataRow[$field->field_key] ?? $field->field_key;
+//                $frontRenderedFields[] = [
+//                    'text' => $value,
+//                    'x' => $field->position_x,
+//                    'y' => $field->position_y,
+//                    'font' => $field->font_family,
+//                    'size' => $field->font_size,
+//                    'color' => $field->font_color,
+//                    'align' => $field->text_align,
+//                    'weight' => $field->font_weight,
+//                    'rotation' => $field->rotation,
+//                ];
+//            }
+//
+//            $backRenderedFields = [];
+//            foreach ($backFields as $field) {
+//                $value = $dataRow[$field->field_key] ?? $field->field_key;
+//                $backRenderedFields[] = [
+//                    'text' => $value,
+//                    'x' => $field->position_x,
+//                    'y' => $field->position_y,
+//                    'font' => $field->font_family,
+//                    'size' => $field->font_size,
+//                    'color' => $field->font_color,
+//                    'align' => $field->text_align,
+//                    'weight' => $field->font_weight,
+//                    'rotation' => $field->rotation,
+//                ];
+//            }
+//
+//            // ----------------------------------------------------
+//            // الكود المعدل يبدأ من هنا
+//            // ----------------------------------------------------
+//
+//            // إنشاء الصورة من قالب الواجهة الأمامية
+//            // إنشاء الصورة من قالب الواجهة الأمامية
+//            $image = $manager->read($backgroundPathFront);
+//
+//            // إضافة حقول النص على الصورة
+//            foreach ($frontRenderedFields as $field) {
+//                // يتم ضبط الخط والخصائص الأخرى هنا
+//                $image->text($field['text'], $field['x'], $field['y'], function($font) use ($field) {
+//                    // قد تحتاج إلى تعديل مسار الخط ليتناسب مع مشروعك
+//                    $fontPath = public_path('fonts/' . $field['font'] . '.ttf');
+//                    if (file_exists($fontPath)) {
+//                        $font->file($fontPath);
+//                    } else {
+//                        $font->file(public_path('fonts/arial.ttf')); // استخدام خط احتياطي
+//                    }
+//
+//                    $font->size($field['size']);
+//                    $font->color($field['color']);
+//                    $font->align($field['align']);
+//                    $font->valign('top');
+//                });
+//            }
+//
+//            // التحقق من وجود قالب الوجه الخلفي وإضافته
+//            if ($backgroundPathBack) {
+//                $backImage = $manager->read($backgroundPathBack);
+//
+//                $image->scale(width: $canvasWidth); // يتم تصغير الصورة الأمامية إلى العرض المطلوب
+//                $backImage->scale(width: $canvasWidth); // يتم تصغير الصورة الخلفية إلى نفس العرض
+//                $image->place($backImage, 'bottom');
+//
+//                // إضافة حقول النص على الوجه الخلفي
+//                foreach ($backRenderedFields as $field) {
+//                    // y_position of the back-side fields should be shifted by the height of the front-side image
+//                    $yPosition = $field['y'] + $canvasHeight;
+//                    $image->text($field['text'], $field['x'], $yPosition, function($font) use ($field) {
+//                        $fontPath = public_path('fonts/' . $field['font'] . '.ttf');
+//                        if (file_exists($fontPath)) {
+//                            $font->file($fontPath);
+//                        } else {
+//                            $font->file(public_path('fonts/arial.ttf')); // استخدام خط احتياطي
+//                        }
+//
+//                        $font->size($field['size']);
+//                        $font->color($field['color']);
+//                        $font->align($field['align']);
+//                        $font->valign('top');
+//                    });
+//                }
+//            }
+//
+//
+//            // تحديد مسار الصورة وحفظها
+//            $imagePath = "certificates/" . auth()->id() . "/" . uniqid() . ".jpg";
+//            $imageFullPath = storage_path("app/public/{$imagePath}");
+//            Storage::disk('public')->makeDirectory("certificates/" . auth()->id());
+//            $image->save($imageFullPath);
+//
+//            $document = $this->documentRepository->create([
+//                'file_path' => $imagePath,
+//                'document_template_id' => $template->id,
+//                'recipient_id' => $recipient->id,
+//                'valid_from' => $template->valid_from,
+//                'valid_until' => $template->valid_until,
+//            ]);
+//
+//            $this->dispatchCertificate($document, $template->send_at);
+//        }
+//    }
+
+
+    public function generateDocuments(DocumentTemplate $template, array $recipients, $templateDataFile, $canvasWidth, $canvasHeight, string $certificateTextData = ''): void
     {
+
         $frontTemplate = $template->templateFiles()->where('side', 'front')->first();
+
         $backTemplate = $template->templateFiles()->where('side', 'back')->first();
 
+
+
         if (!$frontTemplate) {
-            throw new \Exception('Front document template not found');
+
+            throw new Exception('Front document template not found');
+
         }
+
+
 
         $documentDataImport = new DocumentDataImport();
+
         Excel::import($documentDataImport, $templateDataFile);
+
         $documentRows = $documentDataImport->rows;
 
+
+
         if (count($documentRows) < count($recipients)) {
-            throw new \Exception('Not enough data rows in Excel for all recipients');
+
+            throw new Exception('Not enough data rows in Excel for all recipients');
+
         }
+
+
 
         $backgroundPathFront = storage_path('app/public/' . $frontTemplate->file_path);
+
         if (!file_exists($backgroundPathFront)) {
-            throw new \Exception("Front background file not found: $backgroundPathFront");
+
+            throw new Exception("Front background file not found: $backgroundPathFront");
+
         }
 
+
+
         $backgroundPathBack = null;
+
         if ($backTemplate) {
+
             $backgroundPathBack = storage_path('app/public/' . $backTemplate->file_path);
+
             if (!file_exists($backgroundPathBack)) {
-                throw new \Exception("Back background file not found: $backgroundPathBack");
+
+                throw new Exception("Back background file not found: $backgroundPathBack");
+
             }
+
         }
+
+
 
         $totalHeight = $backTemplate ? $canvasHeight * 2 : $canvasHeight;
 
+        $manager = new ImageManager(new Driver());
+
+
+
+// تحليل الـ JSON لو موجود (اختياري، لو مش موجود استخدم الـ DB القديم)
+
+        $frontTextData = [];
+
+        if (!empty($certificateTextData)) {
+
+            $parsedTextData = json_decode($certificateTextData, true);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+
+                $frontTextData = $parsedTextData['document_template_file_path[]-front']['texts'] ?? [];
+
+// استخدم أبعاد الكانفاس من الـ JSON لو مختلفة
+
+                $canvasWidth = $parsedTextData['document_template_file_path[]-front']['canvasWidth'] ?? $canvasWidth;
+
+                $canvasHeight = $parsedTextData['document_template_file_path[]-front']['canvasHeight'] ?? $canvasHeight;
+
+            }
+
+        }
+
+
+
         foreach ($recipients as $index => $recipient) {
+
             $dataRow = $documentRows[$index] ?? [];
-            $frontFields = $template->fields()->where('side', 'front')->get();
-            $backFields = $template->fields()->where('side', 'back')->get();
+
+
+
+// لو الـ JSON موجود، استخدمه للـ front؛ غير كده استخدم الـ DB
 
             $frontRenderedFields = [];
-            foreach ($frontFields as $field) {
-                $value = $dataRow[$field->field_key] ?? $field->field_key;
-                $frontRenderedFields[] = [
-                    'text' => $value,
-                    'x' => $field->position_x,
-                    'y' => $field->position_y,
-                    'font' => $field->font_family,
-                    'size' => $field->font_size,
-                    'color' => $field->font_color,
-                    'align' => $field->text_align,
-                    'weight' => $field->font_weight,
-                    'rotation' => $field->rotation,
-                ];
+
+            if (!empty($frontTextData)) {
+
+// استخدام الـ JSON للـ positions والخصائص، واستبدال placeholders بالقيم الحقيقية
+
+                foreach ($frontTextData as $jsonField) {
+
+                    $placeholder = $jsonField['text']; // زي "name"
+
+                    $value = $dataRow[$placeholder] ?? $placeholder;
+
+                    $frontRenderedFields[] = [
+
+                        'text' => $value,
+
+                        'x' => $jsonField['left'],
+
+                        'y' => $jsonField['top'],
+
+                        'font' => $jsonField['fontFamily'],
+
+                        'size' => $jsonField['fontSize'],
+
+                        'color' => $jsonField['fill'],
+
+                        'align' => 'left', // افتراضي، أو أضف 'textAlign' لو موجود في JSON
+
+                        'rotation' => $jsonField['angle'],
+
+                        'baseline' => $jsonField['textBaseline'],
+
+                    ];
+
+                }
+
+            } else {
+
+// المنطق القديم من الـ DB
+
+                $frontFields = $template->fields()->where('side', 'front')->get();
+
+                foreach ($frontFields as $field) {
+
+                    $value = $dataRow[$field->field_key] ?? $field->field_key;
+
+                    $frontRenderedFields[] = [
+
+                        'text' => $value,
+
+                        'x' => $field->position_x,
+
+                        'y' => $field->position_y,
+
+                        'font' => $field->font_family,
+
+                        'size' => $field->font_size,
+
+                        'color' => $field->font_color,
+
+                        'align' => $field->text_align,
+
+                        'weight' => $field->font_weight,
+
+                        'rotation' => $field->rotation,
+
+                    ];
+
+                }
+
             }
+
+
 
             $backRenderedFields = [];
+
+            $backFields = $template->fields()->where('side', 'back')->get();
+
             foreach ($backFields as $field) {
+
                 $value = $dataRow[$field->field_key] ?? $field->field_key;
+
                 $backRenderedFields[] = [
+
                     'text' => $value,
+
                     'x' => $field->position_x,
+
                     'y' => $field->position_y,
+
                     'font' => $field->font_family,
+
                     'size' => $field->font_size,
+
                     'color' => $field->font_color,
+
                     'align' => $field->text_align,
+
                     'weight' => $field->font_weight,
+
                     'rotation' => $field->rotation,
+
                 ];
+
             }
 
-            $pdf = Pdf::loadView('pdf.template', [
-                'backgroundFront' => $backgroundPathFront,
-                'backgroundBack' => $backgroundPathBack,
-                'frontFields' => $frontRenderedFields,
-                'backFields' => $backRenderedFields,
-                'canvasWidth' => $canvasWidth,
-                'canvasHeight' => $canvasHeight,
-                'hasBack' => $backTemplate ? true : false,
-            ])->setPaper([0, 0, $canvasWidth, $totalHeight], 'px');
 
-            $pdfPath = "certificates/" . auth()->id() . "/" . uniqid() . ".pdf";
-            $pdfFullPath = storage_path("app/public/{$pdfPath}");
+
+// ----------------------------------------------------
+
+// الكود المعدل يبدأ من هنا
+
+// ----------------------------------------------------
+
+
+
+// إنشاء الصورة من قالب الواجهة الأمامية
+
+            $image = $manager->read($backgroundPathFront);
+
+
+
+// **التعديل الرئيسي: تعديل أبعاد الصورة لتطابق الكانفاس عشان الـ positions تكون صح**
+
+// استخدم resize لتعديل الحجم بالضبط (لو عايز تحافظ على النسب، استخدم fit أو crop)
+
+            $image->resize($canvasWidth, $canvasHeight); // ده هيعدل الصورة للأبعاد الدقيقة
+
+
+
+// إضافة حقول النص على الصورة
+
+            foreach ($frontRenderedFields as $field) {
+
+                $image->text($field['text'], $field['x'], $field['y'], function($font) use ($field) {
+
+                    $fontPath = public_path('fonts/' . $field['font'] . '.ttf');
+
+                    if (file_exists($fontPath)) {
+
+                        $font->file($fontPath);
+
+                    } else {
+
+                        $font->file(public_path('fonts/arial.ttf')); // خط احتياطي
+
+                    }
+
+
+
+                    $font->size($field['size']);
+
+                    $font->color($field['color']);
+
+                    $font->align($field['align']);
+
+                    $font->valign($field['baseline'] ?? 'top'); // استخدم baseline من JSON أو افتراضي
+
+                    $font->angle($field['rotation']); // دوران من JSON
+
+                });
+
+            }
+
+
+
+// التحقق من وجود قالب الوجه الخلفي وإضافته
+
+            if ($backgroundPathBack) {
+
+                $backImage = $manager->read($backgroundPathBack);
+
+                $backImage->resize($canvasWidth, $canvasHeight);
+
+
+                $image->resizeCanvas($canvasWidth, $totalHeight, 0, 0, false, false); // توسيع الكانفاس للأسفل
+
+                $image->place($backImage, 0, $canvasHeight); // وضع الخلفية تحت الأمامية
+
+
+
+// إضافة حقول النص على الوجه الخلفي مع إزاحة y
+
+                foreach ($backRenderedFields as $field) {
+
+                    $yPosition = $field['y'] + $canvasHeight;
+
+                    $image->text($field['text'], $field['x'], $yPosition, function($font) use ($field) {
+
+                        $fontPath = public_path('fonts/' . $field['font'] . '.ttf');
+
+                        if (file_exists($fontPath)) {
+
+                            $font->file($fontPath);
+
+                        } else {
+
+                            $font->file(public_path('fonts/arial.ttf'));
+
+                        }
+
+
+
+                        $font->size($field['size']);
+
+                        $font->color($field['color']);
+
+                        $font->align($field['align']);
+
+                        $font->valign('top');
+
+                        $font->angle($field['rotation']); // دوران
+
+                    });
+
+                }
+
+            }
+
+
+
+// تحديد مسار الصورة وحفظها
+
+            $imagePath = "certificates/" . auth()->id() . "/" . uniqid() . ".jpg";
+
+            $imageFullPath = storage_path("app/public/{$imagePath}");
+
             Storage::disk('public')->makeDirectory("certificates/" . auth()->id());
-            $pdf->save($pdfFullPath);
+
+            $image->save($imageFullPath);
+
+
 
             $document = $this->documentRepository->create([
-                'file_path' => $pdfPath,
+
+                'file_path' => $imagePath,
+
                 'document_template_id' => $template->id,
+
                 'recipient_id' => $recipient->id,
+
                 'valid_from' => $template->valid_from,
+
                 'valid_until' => $template->valid_until,
+
             ]);
 
-//            dd($result);
 
-//            $document = $result['document'];
-//            $qrPath = $result['qrPath'];
-//
-//
-//            $pdf = Pdf::loadView('pdf.template', [
-//                'backgroundFront' => $backgroundPathFront,
-//                'backgroundBack' => $backgroundPathBack,
-//                'frontFields' => $frontRenderedFields,
-//                'backFields' => $backRenderedFields,
-//                'canvasWidth' => $canvasWidth,
-//                'canvasHeight' => $canvasHeight,
-//                'hasBack' => $backTemplate ? true : false,
-//                'qrPath' => $qrPath, // أضف $qrPath كمتغير صريح
-//                'qrCodeUrl' => url("storage/{$qrPath}"), // احتفظ بالـ URL
-//            ])->setPaper([0, 0, $canvasWidth, $totalHeight], 'px');
-//
-//            $pdf->save($pdfFullPath);
 
             $this->dispatchCertificate($document, $template->send_at);
+
         }
+
     }
 
 
@@ -271,7 +663,7 @@ class DocumentGenerationService
         $backTemplate = $template->templateFiles()->where('side', 'back')->first();
 
         if (!$frontTemplate) {
-            throw new \Exception('Front attendance template not found');
+            throw new Exception('Front attendance template not found');
         }
 
         // استيراد بيانات الإكسيل
@@ -283,7 +675,7 @@ class DocumentGenerationService
 
         // التحقق من أن عدد الصفوف يطابق عدد المستلمين
         if (count($attendanceDataRows) < count($recipients)) {
-            throw new \Exception('Not enough data rows in Excel for all attendance recipients');
+            throw new Exception('Not enough data rows in Excel for all attendance recipients');
         }
 
         $canvasWidth = 900;
@@ -294,7 +686,7 @@ class DocumentGenerationService
         $resizedBackgroundPathFront = storage_path('app/public/templates/resized_' . basename($frontTemplate->file_path));
 
         if (!file_exists($backgroundPathFront)) {
-            throw new \Exception("Front background file not found: $backgroundPathFront");
+            throw new Exception("Front background file not found: $backgroundPathFront");
         }
 
         $image = Image::read($backgroundPathFront)->resize(900, 600, function ($constraint) {
@@ -308,7 +700,7 @@ class DocumentGenerationService
             $resizedBackgroundPathBack = storage_path('app/public/templates/resized_' . basename($backTemplate->file_path));
 
             if (!file_exists($backgroundPathBack)) {
-                throw new \Exception("Back background file not found: $backgroundPathBack");
+                throw new Exception("Back background file not found: $backgroundPathBack");
             }
 
             $image = Image::read($backgroundPathBack)->resize(900, 600, function ($constraint) {
@@ -384,6 +776,6 @@ class DocumentGenerationService
 
     protected function dispatchCertificate($certificate, $sendAt): void
     {
-        \App\Jobs\SendCertificateJob::dispatch($certificate)->delay($sendAt);
+        SendCertificateJob::dispatch($certificate)->delay($sendAt);
     }
 }

@@ -54,6 +54,7 @@ class ProfileController extends Controller
             'events' => $events,
             'templateCount' => $templateCount,
             'recipientCount' => $recipientCount,
+            'category' => $user->category,
         ]);
     }
 
@@ -146,6 +147,8 @@ class ProfileController extends Controller
                 $recipientCount += $event->recipients->count();
             }
 
+        $category = $user->category;
+
 
 
         return view('profile.partials.show-profile-guest', compact(
@@ -154,6 +157,7 @@ class ProfileController extends Controller
             'events',
             'templateCount',
             'recipientCount',
+            'category'
         ));
     }
 

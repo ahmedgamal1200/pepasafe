@@ -23,7 +23,7 @@ class DocumentTemplate extends Model
 
     public function templateFiles(): HasMany
     {
-        return $this->hasMany(TemplateFile::class);
+        return $this->hasMany(TemplateFile::class, 'document_template_id');
     }
 
     public function fields(): HasMany

@@ -67,18 +67,25 @@
 
 
 <!-- قسم البحث -->
-@if(auth()->check() && auth()->user()->hasAnyRole(['eventor', 'super admin']) && $user->paymentReceipts->where('status', 'approved')->isNotEmpty())
+@if(auth()->check() && auth()->user()->hasAnyRole(['eventor', 'super admin', 'employee']))
     <div dir="rtl" class="text-left">
         @include('partials.search-bar')
     </div>
 @endif
 
+
 @if($events->isNotEmpty())
-<a href="{{ route('create-event') }}"
-   class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 ms-40">
-   + {{ trans_db('home.event.create.event') }}
-</a>
+    <a href="{{ route('create-event') }}"
+       class="bg-green-600 hover:bg-green-700 text-white font-semibold
+              py-1 px-2 sm:py-2 sm:px-4
+              rounded-lg transition-colors duration-200
+              ms-0 sm:ms-40 mt-4 sm:mt-0
+              block sm:inline-block sm:w-auto w-full text-center">
+        + {{ trans_db('home.event.create.event') }}
+    </a>
 @endif
+
+
 
 
 
@@ -212,8 +219,6 @@
     @foreach($events as $event)
             <div class="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2">
         <a href="#">
-{{--            <section class="max-w-xs bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105--}}
-{{--                        mr-4 ml-auto px-4 sm:px-0">--}}
             <section class="h-full flex flex-col justify-between bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105">
 
 

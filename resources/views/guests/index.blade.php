@@ -38,6 +38,7 @@
 
 
 
+
 <!-- بطاقة النتيجة صغيرة على اليمين -->
 @if(request()->has('query') && $document)
     <h2 class="text-xl font-medium text-right mt-4 mb-2 mr-2">قائمة الشهادات</h2><br>
@@ -47,14 +48,14 @@
                         mx-auto lg:ml-auto lg:mr-5 relative">
 
             {{-- صورة الشهادة --}}
-            <div class="relative w-full h-32">
-                <iframe src="{{ asset('storage/' . $document->file_path) }}"
-                        class="w-full h-full object-cover {{ auth()->check() ? '' : 'blur-sm' }}">
-                </iframe>
+            <div class="relative w-full h-48"> {{-- يمكنك زيادة ارتفاع الصورة إذا أردت --}}
+                <img src="{{ asset('storage/' . $document->file_path) }}"
+                     alt="صورة الوثيقة"
+                     class="w-full h-full object-cover rounded-t-lg" /> {{-- تم التعديل هنا --}}
 
                 {{-- Overlay بلور وقفل لو مش مسجل دخول --}}
                 @guest
-                    <div class="absolute inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex flex-col justify-center items-center space-y-2 text-white text-center">
+                    <div class="absolute inset-0 bg-black bg-opacity-30 backdrop-blur-md flex flex-col justify-center items-center space-y-2 text-white text-center"> {{-- تم التعديل هنا --}}
                         <i class="fas fa-lock text-2xl"></i>
                         <a href="{{ route('login') }}"
                            class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm font-medium">
@@ -67,11 +68,8 @@
             {{-- تفاصيل الوثيقة --}}
             <div class="p-3 space-y-2 text-right">
                 <h2 class="text-lg font-semibold">وثيقة: {{ $document->template->title ?? ''}}</h2>
-                <h3 class="text-gray-500 text-sm">تاريخ الإصدار: {{ $document->template->send_at->format('Y-m-d')}}</h3>
+                <h3 class="text-gray-500 text-sm">تاريخ الإصدار: {{ optional($document->template->send_at)->format('Y-m-d') ?? 'N/A' }}</h3>
                 <p class="text-gray-600 text-sm">{{ $document->template->event->title ?? ''}}</p>
-                <span class="inline-block border border-gray-300 p-1 rounded hover:border-blue-600 transition">
-                    <i class="bi bi-eye-fill text-gray-500 hover:text-blue-600 cursor-pointer"></i>
-                </span>
             </div>
 
         </section>

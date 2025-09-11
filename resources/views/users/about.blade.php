@@ -11,44 +11,30 @@
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
     />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
 </head>
 <body class="antialiased text-gray-800">
 
-@include('partials.auth-navbar')
-
+@if(auth()->check())
+        @include('partials.auth-navbar')
+@else
+    <div dir="ltr" class="text-right">
+    @include('partials.navbar')
+    </div>
+@endif
 <!-- SECTION 1: عن المشروع -->
-<section id="about" class="bg-[#F9FAFB] py-16">
-    <div class="container mx-auto px-4 text-center">
-        <h2 class="text-3xl font-bold mb-4">عن المشروع</h2>
-        <p class="mx-auto max-w-2xl mb-8 leading-relaxed">
-            مرحباَ بك في موقعنا نحن نسعي لتقديم خدمة مميزة تلبي احتياجات وتساعد وتساد في تحقيق اهداف تعمل بشكل لتقدم تجربة فريدة وممميزة .
-        </p>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <!-- بطاقة 1 -->
-            <div class="bg-white p-6 rounded-lg shadow transform transition duration-300 hover:scale-105 hover:shadow-lg">
-                <div class="text-blue-600 text-4xl mb-4">
-                    <i class="bi bi-rocket-takeoff-fill"></i>
-                </div>
-                <h3 class="text-xl font-semibold mb-2">سرعة الأداء</h3>
-                <p class="text-gray-600">نقدم خدماتنا بأ علي كفائة وسرعة ممكنة </p>
-            </div>
-            <!-- بطاقة 2 -->
-            <div class="bg-white p-6 rounded-lg shadow transform transition duration-300 hover:scale-105 hover:shadow-lg">
-                <div class="text-blue-600 text-4xl mb-4">
-                    <i class="bi bi-shield-fill-check"></i>
-                </div>
-                <h3 class="text-xl font-semibold mb-2"> الأمان</h3>
-                <p class="text-gray-600">تحسين حماية بيناتك وخصوصيتك</p>
-            </div>
-            <!-- بطاقة 3 -->
-            <div class="bg-white p-6 rounded-lg shadow transform transition duration-300 hover:scale-105 hover:shadow-lg">
-                <div class="text-blue-600 text-4xl mb-4">
-                    <i class="bi bi-headset"></i>
-                </div>
-                <h3 class="text-xl font-semibold mb-2">الدعم</h3>
-                <p class="text-gray-600">فريق دعم كامل يساعدك</p>
-            </div>
-        </div>
+
+
+<section id="about-us" class="bg-[#F9FAFB] py-16">
+    <div class="container mx-auto px-4 max-w-3xl text-right">
+        <h2 class="text-3xl font-bold mb-4 text-center">من نحن</h2>
+        @foreach($about as $ab)
+            <p class="leading-relaxed mb-4">
+                {!! $ab?->description !!}
+            </p>
+        @endforeach
     </div>
 </section>
 
@@ -117,31 +103,8 @@
     </div>
 </section>
 
-<!-- SECTION 4: سياسة الخصوصية -->
-<section id="privacy" class="bg-white py-16">
-    <div class="container mx-auto px-4 max-w-3xl text-right">
-        <h2 class="text-3xl font-bold mb-4 text-center">سياسة الخصوصية</h2>
-        @foreach($privacyAndPolicy as $privacy)
-        <p class="leading-relaxed mb-4">
-            {!! $privacy?->content !!}
-        </p>
-        @endforeach
-    </div>
-</section>
 
-<!-- SECTION 5: الشروط والأحكام -->
-<section id="terms" class="bg-[#F9FAFB] py-16">
-    <div class="container mx-auto px-4 max-w-3xl text-right">
-        <h2 class="text-3xl font-bold mb-4 text-center">الشروط والأحكام</h2>
-        @foreach($termsAndConditions as $tc)
-            <p class="leading-relaxed mb-4">
-                {!! $tc?->content !!}
-            </p>
-        @endforeach
-    </div>
-</section>
-
-
+@include('partials.footer')
 
 </body>
 </html>

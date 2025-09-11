@@ -36,9 +36,8 @@ class AboutUsResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('description')
-                    ->required()
-                    ->maxLength(255),
+                Forms\Components\RichEditor::make('description')
+                    ->required(),
             ]);
     }
 

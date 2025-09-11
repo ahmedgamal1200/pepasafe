@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Eventor;
+namespace App\Http\Controllers\Eventor\Wallet;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Eventor\Wallet\StoreWalletRechargetRequest;
 use App\Models\WalletRechargeRequest;
 use App\Services\WalletRechargeRequestService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 class WalletRechargeRequestController extends Controller
 {

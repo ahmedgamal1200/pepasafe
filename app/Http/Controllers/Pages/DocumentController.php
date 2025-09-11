@@ -13,6 +13,9 @@ use Illuminate\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Response;
+use ZipArchive;
 
 class DocumentController extends Controller
 {
@@ -46,7 +49,18 @@ class DocumentController extends Controller
             }
         }
 
-        return view('users.home', compact('user', 'document', 'event', 'templateCount', 'recipientCount'));
+        $documentsForCurrentUser = Document::whereHas('recipient', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->paginate(10);
+
+        return view('users.home', compact(
+            'user',
+            'document',
+            'event',
+            'templateCount',
+            'recipientCount',
+            'documentsForCurrentUser'
+        ));
 
     }
 
@@ -142,5 +156,39 @@ class DocumentController extends Controller
             'message' => "رصيدك غير كافٍ. باقتك تغطي {$docsCoveredByPlan} وثيقة فقط. أنت بحاجة إلى {$extraCost} جنيه في محفظتك لتغطية الباقي، ورصيدك الحالي هو {$walletBalance} جنيه فقط."
         ]);
     }
+
+
+    public function downloadAll(DocumentTemplate $template)
+    {
+        // 1. إنشاء ملف Zip
+        $zipFile = storage_path('app/public/documents.zip');
+        $zip = new ZipArchive();
+
+        // إذا كان الملف غير موجود، قم بإنشائه
+        if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+
+            // 2. تحديد اسم المجلد الذي تريد إنشاءه داخل ملف Zip
+            $folderName = 'Documents-' . now()->format('Y-m-d'); // مثال: "شهادات-2023-10-27"
+
+            // 3. إضافة الوثائق إلى المجلد داخل ملف Zip
+            foreach ($template->documents as $document) {
+                // الحصول على المسار الكامل للملف في نظام الملفات
+                $filePath = storage_path('app/public/' . $document->file_path);
+
+                // التأكد من وجود الملف
+                if (file_exists($filePath)) {
+                    // إضافة الملف إلى المجلد داخل الـ Zip باستخدام المسار الثاني
+                    $zip->addFile($filePath, $folderName . '/' . basename($filePath));
+                }
+            }
+            $zip->close();
+
+            // 4. إرسال ملف Zip للتنزيل
+            return response()->download($zipFile)->deleteFileAfterSend(true);
+        }
+
+        return back()->with('error', 'فشل في إنشاء ملف التنزيل.');
+    }
+
 
 }

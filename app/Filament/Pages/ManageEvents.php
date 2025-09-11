@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Role;
 use Filament\Forms;
 use Filament\Pages\Page;
 use Filament\Forms\Contracts\HasForms;
@@ -66,6 +67,10 @@ class ManageEvents extends Page implements HasForms
                 $newUser->givePermissionTo($this->permissions);
             }
 
+            Role::firstOrCreate(['name' => 'employee']);
+
+            $newUser->assignRole('employee');
+
             // خصم 1 من عدد المستخدمين المتاحين للمستخدم الحالي
             // تم تغيير هذا الجزء ليستخدم $user->max_users بدلاً من $plan->max_users
             $user->max_users = $user->max_users - 1;
@@ -96,6 +101,8 @@ class ManageEvents extends Page implements HasForms
     protected function getFormSchema(): array
     {
         return [
+            Forms\Components\View::make('filament.components.max-users-counter'),
+
             Forms\Components\TextInput::make('name')
                 ->label('name')
                 ->required(),
@@ -119,9 +126,8 @@ class ManageEvents extends Page implements HasForms
                 ->options([
                     'full access to events' => 'Full access to events',
                     'search for a document'   => 'Search for a document',
-                    'search by QR code'     => 'Search by QR code',
+                    'search by qr code'     => 'Search by QR code',
                     'create an event'          => 'Create an event',
-                    'manage events'            => 'Manage Events',
                     'edit events'           => 'Edit events',
                     'delete event'           => 'Delete event',
                 ])

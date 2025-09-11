@@ -648,6 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const texts = canvas.getObjects()
             .filter(obj => obj.selectable && (obj.type === 'i-text')) // نركز على i-text للفالديشن
             .map(obj => ({
+                id: obj.id,
                 text: obj.text,
                 left: obj.left,
                 top: obj.top,
@@ -711,7 +712,8 @@ document.addEventListener('DOMContentLoaded', () => {
             type: cardId.includes('front') ? 'certificate-front' : 'certificate-back',
             canvasWidth: allCardData[cardId].canvasWidth,
             canvasHeight: allCardData[cardId].canvasHeight,
-            texts: texts
+            texts: texts,
+            qrCodes: qrCodes,
         };
 
         inputField.value = JSON.stringify(currentInputData);
@@ -1160,7 +1162,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     fill: '#000000',
                     selectable: true,
                     hasControls: true,
-                    textBaseline: 'top' // تصحيح textBaseline
+                    textBaseline: 'top', // تصحيح textBaseline
+                    id: `text_${Math.random().toString(36).substr(2, 9)}`
                 });
                 canvas.add(text);
                 console.log(`Added header "${header}" to canvas at (${position.left}, ${position.top})`);
@@ -1427,7 +1430,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                         canvas.renderAll();
                         activeCanvas = canvas;
-                        updateObjectPosition(currentCanvasId, obj);
+                        updateObjectPosition(currentCanvasId, canvas, obj);
                     }
                 }
             });
@@ -1436,7 +1439,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const obj = e.target;
                 if (obj.type === 'i-text') {
                     activeCanvas = this;
-                    updateObjectPosition(this.cardIdentifier, obj);
+                    updateObjectPosition(this.cardIdentifier, canvas, obj);
                 }
             });
 
@@ -1489,8 +1492,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function updateObjectPosition(cardIdentifier, canvas, object) {
-            if (!canvas || !object) {
-                console.error('Invalid canvas or object in updateObjectPosition');
+            if (!canvas || !object || !object.id) { // التحقق من وجود الـ ID
+                console.error('Invalid canvas or object ID in updateObjectPosition');
                 return;
             }
 
@@ -1523,17 +1526,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentInputData[cardIdentifier] = {
                     canvasWidth: canvas.width,
                     canvasHeight: canvas.height,
-                    objects: []
+                    texts: [], // استخدم 'texts' بدلاً من 'objects' لتوضيح المحتوى
+                    qrCodes: []
                 };
             }
 
-            const objects = currentInputData[cardIdentifier].objects || [];
-            const objectIndex = objects.findIndex(obj =>
-                (obj.type === 'i-text' && obj.text === object.text) ||
-                (obj.type === 'qr-code' && obj.subtype === object.subtype)
-            );
+            const texts = currentInputData[cardIdentifier].texts || [];
+            const qrCodes = currentInputData[cardIdentifier].qrCodes || [];
+
+            // الحل هنا: ابحث عن العنصر بالـ ID
+            const objectIndex = texts.findIndex(obj => obj.id === object.id);
+            const qrCodeIndex = qrCodes.findIndex(obj => obj.id === object.id);
 
             const objectData = {
+                id: object.id,
                 type: object.type,
                 left: object.left,
                 top: object.top,
@@ -1543,6 +1549,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             if (object.type === 'i-text') {
+                // ... (باقي البيانات كما هي)
                 objectData.text = object.text;
                 objectData.fontFamily = object.fontFamily || 'Arial';
                 objectData.fontSize = object.fontSize || 20;
@@ -1551,25 +1558,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 objectData.textAlign = object.textAlign || 'left';
                 objectData.fontWeight = object.fontWeight || 'normal';
                 objectData.zIndex = object.zIndex || 1;
+
+                if (objectIndex !== -1) {
+                    texts[objectIndex] = objectData;
+                } else {
+                    texts.push(objectData);
+                }
             } else if (object.type === 'qr-code') {
+                // ... (باقي البيانات كما هي)
                 objectData.subtype = object.subtype;
                 objectData.width = object.width * (object.scaleX || 1);
                 objectData.height = object.height * (object.scaleY || 1);
+
+                if (qrCodeIndex !== -1) {
+                    qrCodes[qrCodeIndex] = objectData;
+                } else {
+                    qrCodes.push(objectData);
+                }
             }
 
-            if (objectIndex !== -1) {
-                objects[objectIndex] = objectData;
-            } else {
-                objects.push(objectData);
-            }
-
-            currentInputData[cardIdentifier].objects = objects;
+            currentInputData[cardIdentifier].texts = texts;
+            currentInputData[cardIdentifier].qrCodes = qrCodes;
             currentInputData[cardIdentifier].canvasWidth = canvas.width;
             currentInputData[cardIdentifier].canvasHeight = canvas.height;
 
             inputField.value = JSON.stringify(currentInputData);
             console.log(`Value set to ${inputFieldName} input:`, inputField.value);
-            console.log(`Updated position for ${object.type === 'i-text' ? object.text : object.subtype} in ${cardIdentifier}`, objects);
+            console.log(`Updated position for ${object.type === 'i-text' ? object.text : object.subtype} in ${cardIdentifier}`, objectData);
         }
 
         function saveITextObjectsFromSpecificCanvas(cardId, canvas) {
@@ -2228,18 +2243,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (shouldShowBottomCard) {
             // Container for the logo and QR code
             const bottomCard = document.createElement('div');
-            bottomCard.style.cssText =`
-                background-color: white; border: 1px solid #ccc; border-radius: 4px;
-            padding: 3px 8px; display: flex; justify-content: space-between;
-            align-items: center; width: 449px; box-sizing: border-box;
-            margin-top: -5px;
-            `;
+            // bottomCard.style.cssText =`
+            //     background-color: white; border: 1px solid #ccc; border-radius: 4px;
+            // padding: 3px 8px; display: flex; justify-content: space-between;
+            // align-items: center; width: 449px; box-sizing: border-box;
+            // margin-top: -5px;
+            // `;
 
-            //         bottomCard.style.cssText =
-//     background-color: white; border: 1px solid #ccc; border-radius: 4px;
-//     padding: 3px 8px; display: flex; flex-direction: row-reverse; gap: 8px;
-//     align-items: center; width: 64%; box-sizing: border-box;
-//     margin-top: -5px;
+                    bottomCard.style.cssText =`
+    background-color: white; border: 1px solid #ccc; border-radius: 4px;
+    padding: 3px 8px; display: flex; flex-direction: row-reverse; gap: 8px;
+    align-items: center; width: 64%; box-sizing: border-box;
+    margin-top: -5px`;
 
 
 

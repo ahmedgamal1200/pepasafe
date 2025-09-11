@@ -45,44 +45,26 @@
 
 
 
-<!-- بطاقة النتيجة صغيرة على اليمين -->
-@if(request()->has('query') && $document)
-<!-- عنوان قائمة الشهادات -->
-<h2 class="text-xl font-medium text-right mt-4 mb-2 mr-2">قائمة الشهادات</h2><br>
 
-<a href="{{ route('documents.show', $document->uuid) }}">
-    <section class="max-w-xs bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105
-                    mx-auto lg:ml-auto lg:mr-5"> <iframe src="{{ asset('storage/' . $document->file_path) }}" class="w-full h-32 object-cover"></iframe>
+{{--  section not found document     --}}
 
-        <div class="p-3 space-y-2 text-right">
-            <h2 class="text-lg font-semibold"> وثيقة: {{ $document->template->title ?? ''}}</h2>
-            <h3 class="text-gray-500 text-sm">تاريخ الإصدار: {{ $document->template->send_at->format('Y-m-d')}}</h3>
-            <p class="text-gray-600 text-sm">{{ $document->template->event->title ?? ''}}</p>
-            <span class="inline-block border border-gray-300 p-1 rounded hover:border-blue-600 transition">
-            <i class="bi bi-eye-fill text-gray-500 hover:text-blue-600 cursor-pointer"></i>
-          </span>
+@if(request()->has('query') && !$document && !$event)
+    <section class="w-full py-10 px-4 sm:px-6">
+        <div class="max-w-3xl mx-auto">
+            <div class="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center text-center space-y-4">
+                <i class="fas fa-times-circle text-7xl text-red-500"></i>
+                <p class="text-gray-600 text-lg leading-relaxed">
+                    لم يتم العثور على شهادة او حدث بهذا الكود او بهذا الاسم.
+                </p>
+            </div>
         </div>
     </section>
-</a>
-@endif
-
-@if(!request()->has('query') && $user->documents->isEmpty())
-<section class="w-full py-10 px-4 sm:px-6">
-    <div class="max-w-3xl mx-auto"> {{-- تم التعديل هنا من max-w-xl إلى max-w-3xl --}}
-        <div class="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center text-center space-y-4">
-            <i class="fas fa-folder-open text-7xl text-gray-400"></i>
-            <p class="text-gray-600 text-lg leading-relaxed">
-                لم يتم إضافة أي شهادات إلى حسابك بعد. أضف شهادتك ، لبدء استخدامها.
-            </p>
-        </div>
-    </div>
-</section>
 @endif
 
 
 
 @if(request()->has('query') && $event)
-{{--                   section search for event --}}
+    {{--                   section search for event --}}
     <a href="#">
         <section class="max-w-xs bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105
                         mr-4 ml-auto px-4 sm:px-0">
@@ -138,26 +120,116 @@
 
 
 
+<!-- بطاقة النتيجة صغيرة على اليمين -->
+@if(request()->has('query') && $document)
+    <!-- عنوان قائمة الشهادات -->
+    <h2 class="text-xl font-bold text-right mt-4 mb-2 mr-2">نتيجة البحث: </h2><br>
 
+    <a href="{{ route('documents.show', $document->uuid) }}">
+        <section class="max-w-xs bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105
+                    mx-auto lg:ml-auto lg:mr-5">
+            <img src="{{ asset('storage/' . $document->file_path) }}"
+                 alt="صورة الوثيقة"
+                 class="w-full h-auto object-contain rounded-lg shadow-md" />
 
-
-
-
-
-{{--  section not found document     --}}
-
-@if(request()->has('query') && !$document && !$event)
-<section class="w-full py-10 px-4 sm:px-6">
-    <div class="max-w-3xl mx-auto">
-        <div class="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center text-center space-y-4">
-            <i class="fas fa-times-circle text-7xl text-red-500"></i>
-            <p class="text-gray-600 text-lg leading-relaxed">
-                لم يتم العثور على شهادة او حدث بهذا الكود او بهذا الاسم.
-            </p>
-        </div>
-    </div>
-</section>
+            <div class="p-3 space-y-2 text-right">
+                <h2 class="text-lg font-semibold"> وثيقة: {{ $document->template->title ?? ''}}</h2>
+                <h3 class="text-gray-500 text-sm">تاريخ الإصدار: {{ $document->template->send_at->format('Y-m-d')}}</h3>
+                <p class="text-gray-600 text-sm">{{ $document->template->event->title ?? ''}}</p>
+                @if(auth()->id() === $document->recipient->user_id)
+                    <div class="inline-block border border-gray-300 p-1 rounded hover:border-blue-600 transition relative">
+                        <form method="POST" action="{{ route('documents.toggleVisibility', $document->id) }}">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="text-gray-500 hover:text-blue-600">
+                                <i class="bi {{ $document->visible_on_profile ? 'bi-eye-fill' : 'bi-eye-slash-fill' }}"></i>
+                            </button>
+                        </form>
+                    </div>
+                    @endif
+                    </span>
+            </div>
+        </section>
+    </a>
 @endif
+
+@if(!request()->has('query') && $user->documents->isEmpty())
+    <section class="w-full py-10 px-4 sm:px-6">
+        <div class="max-w-3xl mx-auto"> {{-- تم التعديل هنا من max-w-xl إلى max-w-3xl --}}
+            <div class="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center text-center space-y-4">
+                <i class="fas fa-folder-open text-7xl text-gray-400"></i>
+                <p class="text-gray-600 text-lg leading-relaxed">
+                    لم يتم إضافة أي شهادات إلى حسابك بعد. أضف شهادتك ، لبدء استخدامها.
+                </p>
+            </div>
+        </div>
+    </section>
+@endif
+
+
+{{-- section Doc For current user --}}
+
+@if(session('status') === 'document-visibility-toggled')
+    <div id="flash-message" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-green-100 border border-green-400 text-green-700 px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300">
+        <strong class="font-bold">تم بنجاح!</strong>
+        <span class="ml-2">تم تحديث حالة ظهور الوثيقة في البروفايل.</span>
+    </div>
+
+    <script>
+        setTimeout(() => {
+            const msg = document.getElementById('flash-message');
+            if (msg) {
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 300); // يُزال من الـ DOM بعد الإخفاء
+            }
+        }, 3000); // تختفي بعد 3 ثوانٍ
+    </script>
+@endif
+
+
+@if($documentsForCurrentUser->isNotEmpty())
+    <h2 class="text-xl font-bold text-right mt-4 mb-2 mr-2">شهاداتك الحالية :</h2>
+
+    {{-- Container لترتيب الكاردات من اليمين --}}
+    <div class="flex flex-wrap justify-end gap-6 p-4">
+
+        @foreach($documentsForCurrentUser as $document)
+            <a href="{{ route('documents.show', $document->uuid) }}">
+                <section class="max-w-xs bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 scale-105 -translate-y-8 mx-auto">
+
+                <img src="{{ asset('storage/' . $document->file_path) }}"
+                         alt="صورة الوثيقة"
+                         class="w-full h-auto object-contain rounded-lg shadow-md" />
+
+                    <div class="p-3 space-y-2 text-right">
+                        <h2 class="text-lg font-semibold"> وثيقة: {{ $document->template->title ?? ''}}</h2>
+                        <h3 class="text-gray-500 text-sm">تاريخ الإصدار: {{ $document->template->send_at->format('Y-m-d')}}</h3>
+                        <p class="text-gray-600 text-sm">{{ $document->template->event->title ?? ''}}</p>
+                        @if(auth()->id() === $document->recipient->user_id)
+                            <div class="inline-block border border-gray-300 p-1 rounded hover:border-blue-600 transition relative">
+                                <form method="POST" action="{{ route('documents.toggleVisibility', $document->id) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="text-gray-500 hover:text-blue-600">
+                                        <i class="bi {{ $document->visible_on_profile ? 'bi-eye-fill' : 'bi-eye-slash-fill' }}"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
+                    </div>
+                </section>
+            </a>
+        @endforeach
+
+    </div>
+
+    <div class="mt-6 flex justify-center">
+        {{ $documentsForCurrentUser->links('vendor.pagination.tailwind-custom') }}
+    </div>
+
+@endif
+
+
 
 <!-- ثلاث بطاقات تعريفية للموقع -->
 <section class="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6">

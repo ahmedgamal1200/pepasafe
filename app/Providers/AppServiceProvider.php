@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Interfaces\Eventor\Auth\EventorRepositoryInterface;
+use App\Models\Plan;
+use App\Observers\PlanObserver;
 use App\Repositories\Eventor\AttendanceDocumentRepository;
 use App\Repositories\Eventor\AttendanceTemplateRepository;
 use App\Repositories\Eventor\Auth\EventorAuthRepository;
@@ -58,5 +60,6 @@ class AppServiceProvider extends ServiceProvider
     {
         // الجزء الخاص ب النتوفكيشن عشان يظهر النتوفكيشن في ال navbar
         View::composer('partials.auth-navbar', NotificationComposer::class);
+        Plan::observe(PlanObserver::class);
     }
 }
