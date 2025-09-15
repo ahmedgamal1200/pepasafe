@@ -5,7 +5,7 @@
         <a href="{{ route('login') }}" class="bg-blue-600 text-white px-4 py-2 rounded-md
                           text-base font-medium transition-colors duration-200
                           hover:bg-blue-700">
-            تسجيل الدخول
+            {{trans_db('login')}}
         </a>
 
         <!-- مبدل اللغة -->

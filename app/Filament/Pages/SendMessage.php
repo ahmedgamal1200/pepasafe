@@ -33,7 +33,7 @@ class SendMessage extends Page
 
     public $scheduled_at;
 
-    public array $scheduled_dates = [['scheduled_at' => null]]; // هذا هو التعديل الأساسي
+    public array $scheduled_dates = [['scheduled_at' => null]];
 
     public static function canAccess(): bool
     {

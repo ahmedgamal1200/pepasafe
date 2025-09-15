@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eventor;
 
+use App\Models\AttendanceDocumentField;
 use App\Models\AttendanceTemplate;
 use App\Models\DocumentField;
 use App\Models\ExcelUpload;
@@ -70,8 +71,7 @@ class AttendanceTemplateRepository
                 if (! in_array($textBaseline, ['top', 'middle', 'bottom', 'hanging', 'alphabetic'])) {
                     //                    $textBaseline = 'top'; // قيمة افتراضية
                 }
-
-                DocumentField::create([
+                AttendanceDocumentField::create([
                     'field_key' => $text['text'],
                     'label' => $text['text'],
                     'position_x' => $text['left'],

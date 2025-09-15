@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>إنشاء حساب جديد</title>
+    <link rel="icon" type="image/png" href="{{ asset('assets/logo.jpg') }}">
+    <title>Create New Account For Eventor</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" defer></script>
@@ -113,9 +114,18 @@
 
 <div class="flex flex-col items-center">
     <div class="form-container">
-        <div class="form-header">إنشاء حساب جديد</div>
+        <div class="form-header">{{ trans_db('register.title') }}</div>
 
-        <div class="text-sm font-medium text-right mb-2">نوع الحساب</div>
+        @php
+            // هذا الجزء يجب أن يكون معرّفًا مرة واحدة في بداية ملف الـ Blade
+            $isRTL = app()->getLocale() === 'ar';
+            $textAlignment = $isRTL ? 'text-right' : 'text-left'; // المحاذاة الديناميكية
+            $direction = $isRTL ? 'rtl' : 'ltr'; // الاتجاه الديناميكي
+        @endphp
+
+        <div class="text-sm font-medium {{ $textAlignment }} mb-2" dir="{{ $direction }}">
+            {{ trans_db('account.type') }}
+        </div>
 
         <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data" onsubmit="return validatePlanSelection()" >
             @csrf
@@ -131,33 +141,85 @@
             @endif
 
             <div class="toggle-buttons">
-                <a href="{{ route('register.user') }}" class="user-btn">مستخدم</a>
+                <a href="{{ route('register.user') }}" class="user-btn">{{ trans_db('type.user') }}</a>
                 <input type="radio" name="role" id="acct_org" value="eventor" class="hidden" checked required>
-                <label for="acct_org" class="advanced-btn label-btn">منظم</label>
+                <label for="acct_org" class="advanced-btn label-btn">{{ trans_db('type.eventor') }}</label>
 
             </div>
 
-            <div class="text-lg font-semibold text-right mb-4">البيانات الأساسية</div>
 
 
-            <label for="name" class="block text-sm font-medium text-right mb-1">الاسم الكامل</label>
-            <input type="text" id="name" name="name" required value="{{ old('name') }}" class="w-full p-2 border border-gray-300 rounded mb-4 text-right">
+            @php
+                $isRTL = app()->getLocale() === 'ar';
+                $textAlignment = $isRTL ? 'text-right' : 'text-left';
+                $direction = $isRTL ? 'rtl' : 'ltr';
+                $placeholderAlignment = $isRTL ? 'placeholder-right' : 'placeholder-left'; // قد تحتاج لتطبيق هذا في CSS
+            @endphp
 
-            <label for="phone" class="block text-sm font-medium text-right mb-1">رقم الهاتف</label>
-            <input type="text" id="phone" name="phone" required placeholder="{{ trans_db('register.phone.placeholder') }}"  value="{{ old('phone') }}" class="w-full p-2 border border-gray-300 rounded mb-4 text-right">
+            <label for="name" class="block text-sm font-medium {{ $textAlignment }} mb-1" dir="{{ $direction }}">
+                {{ trans_db('register.name') }}
+            </label>
 
-            <label for="email" class="block text-sm font-medium text-right mb-1">البريد الإلكتروني</label>
-            <input type="email" id="email" name="email" placeholder="{{ trans_db('register.email.placeholder') }}" required value="{{ old('email') }}" class="w-full p-2 border border-gray-300 rounded mb-4 text-right">
+            <input type="text"
+                   id="name"
+                   name="name"
+                   required
+                   placeholder="{{ trans_db('register.name.placeholder') }}"
+                   value="{{ old('name') }}"
+                   class="w-full p-2 border border-gray-300 rounded mb-4 {{ $textAlignment }}"
+                   dir="{{ $direction }}">
 
-            <label for="password" class="block text-sm font-medium text-right mb-1">كلمة المرور</label>
-            <input type="password" id="password" placeholder="{{ trans_db('login.password.placeholder') }}" name="password" required class="w-full p-2 border border-gray-300 rounded mb-4 text-right">
+            <label for="phone" class="block text-sm font-medium {{ $textAlignment }} mb-1" dir="{{ $direction }}">
+                {{ trans_db('register.phone') }}
+            </label>
+            <input type="text"
+                   id="phone"
+                   name="phone"
+                   required
+                   placeholder="{{ trans_db('register.phone.placeholder') }}"
+                   value="{{ old('phone') }}"
+                   class="w-full p-2 border border-gray-300 rounded mb-4 {{ $textAlignment }}"
+                   dir="{{ $direction }}">
 
-            <label for="confirm_password" class="block text-sm font-medium text-right mb-1">تأكيد كلمة المرور</label>
-            <input type="password" id="confirm_password" placeholder="تأكيد كلمة المرور" name="password_confirmation" required class="w-full p-2 border border-gray-300 rounded mb-6 text-right">
+            <label for="email" class="block text-sm font-medium {{ $textAlignment }} mb-1" dir="{{ $direction }}">
+                {{ trans_db('register.email') }}
+            </label>
+            <input type="email"
+                   id="email"
+                   name="email"
+                   placeholder="{{ trans_db('register.email.placeholder') }}"
+                   required
+                   value="{{ old('email') }}"
+                   class="w-full p-2 border border-gray-300 rounded mb-4 {{ $textAlignment }}"
+                   dir="{{ $direction }}">
 
-            <div class="text-sm font-medium text-right mb-2">الفئة</div>
+            <label for="password" class="block text-sm font-medium {{ $textAlignment }} mb-1" dir="{{ $direction }}">
+                {{ trans_db('login.password') }}
+            </label>
+            <input type="password"
+                   id="password"
+                   placeholder="{{ trans_db('login.password.placeholder') }}"
+                   name="password"
+                   required
+                   class="w-full p-2 border border-gray-300 rounded mb-4 {{ $textAlignment }}"
+                   dir="{{ $direction }}">
+
+            <label for="confirm_password" class="block text-sm font-medium {{ $textAlignment }} mb-1" dir="{{ $direction }}">
+                {{ trans_db('login.password.conf') }}
+            </label>
+            <input type="password"
+                   id="confirm_password"
+                   placeholder="{{ trans_db('login.password.placeholder') }}"
+                   name="password_confirmation"
+                   required
+                   class="w-full p-2 border border-gray-300 rounded mb-6 {{ $textAlignment }}"
+                   dir="{{ $direction }}">
+
+
+            <div class="text-sm font-medium mb-2 {{ $textAlignment }}"
+                 dir="{{ $direction }}">{{ trans_db('category') }}</div>
             <select id="category" name="category" required class="w-full p-2 border border-gray-300 rounded">
-                <option value="">اختر فئة</option>
+                <option value="">{{ trans_db('choose.cat') }}</option>
                 @foreach($categories as $category)
                     <option value="{{ $category->id }}"
                             data-icon='{!! App\Helpers\IconHelper::get($category->icon) !!}'>
@@ -192,14 +254,16 @@
             </script>
 
 
-            <div class="w-full text-right mb-6">
+            <div class="w-full mb-6 {{ $textAlignment }}"
+                 dir="{{ $direction }}">
                 <label for="terms" class="inline-block align-middle">
-                    <input type="checkbox" id="terms" name="terms_agreement" required class="w-4 h-4 align-middle ml-2">
-                    <span>أوافق على <a href="{{ route('about') }}#terms" class="text-blue-500 underline">الشروط والأحكام</a></span>
+                    <input type="checkbox" id="terms" name="terms_agreement" required class="w-4 h-4 ml-2" >
+                    <span>{{ trans_db('i.agree') }} <a href="{{ route('about') }}#terms" class="text-blue-500 underline">{{ trans_db('terms') }}</a></span>
                 </label>
             </div>
 
-            <div class="text-lg font-semibold text-right mb-4">أختيار الباقة </div>
+            <div class="text-lg font-semibold mb-4  {{ $textAlignment }}"
+                 dir="{{ $direction }}">{{ trans_db('choose.plan') }}</div>
 
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -207,26 +271,47 @@
                     @if($plan->is_public == 1)
                     <input type="radio" name="plan" id="plan-{{ $plan->id }}" value="{{ $plan->id }}" class="hidden" >
                     <label for="plan-{{ $plan->id }}" class="card-label bg-white rounded-lg p-4 hover:shadow-lg transition cursor-pointer">
-                        <div class="text-lg font-semibold text-right mb-3">{{ $plan->name }}</div>
-                        <div class="text-right text-xl font-bold mb-2">
-                            @if ($plan->compare_price)
-                                <span class="text-gray-500 line-through text-base ml-2">{{ $plan->compare_price }} ج.م</span>
-                            @endif
-                            <span>{{ $plan->price }} ج.م</span>
+                        @php
+                            // هذا الجزء يفترض وجوده مرة واحدة في بداية ملف الـ Blade
+                            $isRTL = app()->getLocale() === 'ar';
+                            $textAlignment = $isRTL ? 'text-right' : 'text-left';
+                            $direction = $isRTL ? 'rtl' : 'ltr';
+                            // الهامش يكون يمين الأيقونة (mr-2) في RTL، ويسارها (ml-2) في LTR
+                            $iconMargin = $isRTL ? 'mr-2' : 'ml-2';
+                        @endphp
+
+                        <div class="text-lg font-semibold {{ $textAlignment }} mb-3" dir="{{ $direction }}">
+                            {{ $plan->name }}
                         </div>
-                        <ul class="space-y-2 text-right mb-4">
+
+                        <div class="{{ $textAlignment }} text-xl font-bold mb-2" dir="{{ $direction }}">
+                            @if ($plan->compare_price)
+                                <span class="text-gray-500 line-through text-base {{ $isRTL ? 'mr-2' : 'ml-2' }}">
+                                    {{ $plan->compare_price }} {{ trans_db('EG') }}
+                                </span>
+                            @endif
+                            <span>{{ $plan->price }} {{ trans_db('EG') }}</span>
+                        </div>
+
+                        <ul class="space-y-2 {{ $textAlignment }} mb-4" dir="{{ $direction }}">
                             @foreach ( $plan->features_list as $feature)
-                                <li><i class="fas fa-check-circle text-green-500 ml-2"></i>{{ $feature }}</li>
+                                <li class="flex items-start {{ $isRTL ? 'flex-row-reverse' : 'flex-row' }}">
+                                    <i class="fas fa-check-circle text-green-500 {{ $iconMargin }}"></i>
+                                    {{ $feature }}
+                                </li>
                             @endforeach
                         </ul>
 
                         @if ($plan->price > 0)
                             <div class="bg-gray-100 rounded p-3 mb-4 text-right">
                                 @foreach($paymentMethods as $payment)
-                                    <div class="mb-2">
-                                        <div class="mb-1 font-semibold">{{ $payment->key }}:</div>
+                                    <div class="mb-2" dir="{{ $direction }}">
+                                        <div class="mb-1 font-semibold {{ $textAlignment }}">{{ $payment->key }}:</div>
+
                                         <div class="flex items-center justify-between bg-white p-2 rounded border font-mono text-sm">
-                                            <span id="value-{{ $loop->index }}">{{ $payment->value }}</span>
+
+                                            <span id="value-{{ $loop->index }}" class="{{ $textAlignment }}">{{ $payment->value }}</span>
+
                                             <button type="button" onclick="copyToClipboard('value-{{ $loop->index }}')" class="text-blue-500 hover:text-blue-700">
                                                 <i class="fas fa-copy"></i>
                                             </button>
@@ -234,10 +319,26 @@
                                     </div>
                                 @endforeach
                             </div>
-                            {{-- هنا أضفت الـ div الجديد لعرض اسم الملف --}}
-                            <div class="mt-2 mb-2 text-sm text-gray-500 text-center" id="filename-{{ $plan->id }}"></div>
-                            <label for="payment_receipt_{{ $plan->id }}" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition cursor-pointer flex items-center justify-center">
-                                <i class="fas fa-cloud-upload-alt ml-2"></i>إرفاق وصل الدفع
+
+                            @php
+                                // هذا الجزء يفترض وجوده مرة واحدة في بداية ملف الـ Blade
+                                $isRTL = app()->getLocale() === 'ar';
+                                $textAlignment = $isRTL ? 'text-right' : 'text-left';
+                                $direction = $isRTL ? 'rtl' : 'ltr';
+                                $flexDirection = $isRTL ? 'flex-row-reverse' : 'flex-row';
+                            @endphp
+
+                            <label for="payment_receipt_{{ $plan->id }}"
+                                   class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition cursor-pointer
+                                      flex items-center justify-center
+                                      {{ $flexDirection }}
+                                      gap-3"
+                                   dir="{{ $direction }}">
+
+                                <i class="fas fa-cloud-upload-alt"></i>
+
+                                {{ trans_db('attachments') }}
+
                                 <input
                                     type="file"
                                     id="payment_receipt_{{ $plan->id }}"
@@ -246,6 +347,7 @@
                                     data-plan="{{ $plan->id }}"
                                 >
                             </label>
+
                         @endif
                     </label>
                     @endif
@@ -253,10 +355,10 @@
             </div>
 
 
-            <button type="submit" class="login-btn">إنشاء الحساب</button>
+            <button type="submit" class="login-btn">{{ trans_db('create.acc') }}</button>
 
             <div class="signup">
-                لديك حساب ؟ <a href="{{ route('login') }}">تسجيل دخول </a>
+                {{ trans_db('Do.you.have.an.account') }} <a href="{{ route('login') }}">{{trans_db('login')}} </a>
             </div>
         </form>
     </div>

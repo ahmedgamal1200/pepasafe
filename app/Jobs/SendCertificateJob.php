@@ -100,29 +100,68 @@ class SendCertificateJob implements ShouldQueue
     /**
      * إرسال رسالة واتساب باستخدام إعدادات واتساب من api_configs
      */
-    protected function sendWhatsApp($phone, $message)
+
+    protected function sendWhatsApp($phone, $message): void
     {
+        // Token الثابت الذي أرسلته (يمكنك جلب هذا من ApiConfig إذا أردت المرونة)
+        $apiToken = 'OEklukhmcMiXQKrBS13UKHciPOFfWINIagSgZB0D4CTeoSx1h8OwrlR3FP9t';
+
+        // إعدادات الـ Template الثابتة
+        $templateId = 1492;
+        $templateName = 'pepasafe_test';
+
+        // التأكد من أن رقم الهاتف بصيغة دولية
+        $sanitizedPhone = str_starts_with($phone, '+') ? $phone : "+{$phone}";
+
         try {
-            $config = ApiConfig::whereIn('key', ['whatsapp_api_key', 'whatsapp_api_secret', 'whatsapp_phone_number'])->pluck('value', 'key')->toArray();
-
-            if (empty($config['whatsapp_api_key']) || empty($config['whatsapp_phone_number'])) {
-                throw new \Exception('إعدادات واتساب غير مكتملة.');
+            if (empty($apiToken)) {
+                // رمي استثناء إذا كان الـ Token مفقودًا
+                throw new \Exception('إعدادات واتساب غير مكتملة: API Token مفقود.');
             }
 
-            // مثال باستخدام Twilio WhatsApp API
-            $response = Http::withBasicAuth($config['whatsapp_api_key'], $config['whatsapp_api_secret'])->post('https://api.twilio.com/2010-04-01/Accounts/'.$config['whatsapp_api_key'].'/Messages.json', [
-                'From' => 'whatsapp:'.$config['whatsapp_phone_number'],
-                'To' => 'whatsapp:'.$phone,
-                'Body' => $message,
-            ]);
+            $apiPayload = [
+                "name"             => 'gouda',
+                "phoneNumber"      => $sanitizedPhone,
+                "template_content" => $message,
+                "template_id"      => $templateId,
+                "workflow_id"      => 1, // تأكد من هذه القيمة
+                "template" => [
+                    "name"     => $templateName,
+                    "language" => ["code" => "ar"],
+                    "components" => [
+                        [
+                            "type" => "body",
+                            "parameters" => [
+                                ["type" => "text", "text" => $message],
+                            ]
+                        ]
+                    ]
+                ]
+            ];
 
+            // إرسال طلب الـ API لـ BeOn.chat
+            $response = Http::withHeaders([
+                'beon-token' => $apiToken,
+                'Accept'     => 'application/json',
+            ])
+                ->timeout(30)
+                ->post('https://v3.api.beon.chat/api/v3/messages/whatsapp/template', $apiPayload);
+
+            // التحقق من حالة الاستجابة
             if ($response->failed()) {
-                throw new \Exception('فشل إرسال رسالة واتساب: '.$response->body());
+                // تسجيل الخطأ ورمي استثناء لكي يفشل الـ Job
+                $errorMessage = "API Error: {$response->status()} | Details: ".$response->body();
+                Log::error('فشل إرسال رسالة واتساب لـ '.$phone.': '.$errorMessage);
+                throw new \Exception('فشل إرسال رسالة واتساب: '.$errorMessage);
             }
 
-            Log::info('WhatsApp message sent to '.$phone.' for certificate ID: '.$this->certificate->id);
+            // تسجيل النجاح كما كان مطلوبًا في الكود الأصلي
+            // ملاحظة: لقد افترضت أن لديك وصول إلى $this->certificate->id في هذا السياق
+            Log::info('WhatsApp message sent to '.$phone.' for certificate ID: ' . ($this->certificate->id ?? 'N/A'));
+
         } catch (\Exception $e) {
-            Log::error('Error sending WhatsApp message for certificate ID '.$this->certificate->id.': '.$e->getMessage());
+            // تسجيل الخطأ ورمي الاستثناء كما كان في الكود الأصلي
+            Log::error('Error sending WhatsApp message for certificate ID ' . ($this->certificate->id ?? 'N/A') . ': '.$e->getMessage());
             throw $e;
         }
     }
@@ -143,7 +182,7 @@ class SendCertificateJob implements ShouldQueue
             // جلب طرق الإرسال والرسالة
             $sendVia = json_decode($template->send_via, true);
             $message = $template->message;
-            $certificateLink = route('certificate.show', $this->certificate->uuid);
+            $certificateLink = route('documents.show', $this->certificate->uuid);
             $fullMessage = $message."\nرابط الوثيقة: ".$certificateLink;
 
             // مسار ملف الـ PDF

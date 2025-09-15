@@ -12,15 +12,21 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use ZipArchive;
+use App\Models\AttendanceDocument; // استيراد نموذج وثيقة الحضور
+use App\Models\AttendanceTemplate; // استيراد نموذج قالب الحضور
 
 class DocumentController extends Controller
 {
+
     public function index(Request $request): View|Factory|Application
     {
         $user = auth()->user();
-        $document = null;
+        $document = null;      // ستبقى هذه للوثائق العادية
+        $attendanceDocument = null; // جديد: لوثائق الحضور
         $event = null;
         $templateCount = 0;
         $recipientCount = 0;
@@ -28,37 +34,72 @@ class DocumentController extends Controller
         if ($request->has('query')) {
             $query = $request->query('query');
 
-            // البحث عن document بالـ UUID أو الكود
+            // 1. البحث عن Document (الوثائق العادية) بالـ UUID أو الكود
             $document = Document::query()
                 ->where('unique_code', $query)
                 ->orWhere('uuid', $query)
                 ->first();
 
-            // البحث عن event بالـ title
+            // 2. البحث عن AttendanceDocument (وثائق الحضور) بالـ UUID أو الكود
+            $attendanceDocument = AttendanceDocument::query()
+                ->where('unique_code', $query) // إذا كان AttendanceDocument يحتوي على unique_code
+                ->orWhere('uuid', $query)      // إذا كان AttendanceDocument يحتوي على uuid
+                ->first();
+
+            // 3. البحث عن event بالـ title (يبقى كما هو)
             $event = Event::query()
                 ->where('title', 'like', '%'.$query.'%')
                 ->first();
 
-            // لو لقينا الحدث، نحسب عدد document_templates المرتبطة بيه
+            // 4. لو لقينا الحدث، نحسب العدد (نجمع الوثائق وقوالب الحضور)
             if ($event) {
-                $templateCount = DocumentTemplate::where('event_id', $event->id)->count();
+                // عدد قوالب الوثائق العادية + عدد قوالب الحضور
+                $documentTemplateCount = DocumentTemplate::where('event_id', $event->id)->count();
+                $attendanceTemplateCount = AttendanceTemplate::where('event_id', $event->id)->count();
+                $templateCount = $documentTemplateCount + $attendanceTemplateCount;
+
                 $recipientCount = Recipient::where('event_id', $event->id)->count();
             }
         }
 
-        $documentsForCurrentUser = Document::whereHas('recipient', function ($query) use ($user) {
+        // 5. جلب وثائق الوثائق العادية للمستخدم الحالي (للعرض في الصفحة)
+        $documents = Document::whereHas('recipient', function ($query) use ($user) {
             $query->where('user_id', $user->id);
-        })->paginate(10);
+        });
+
+        // 6. جلب وثائق الحضور للمستخدم الحالي (للعرض في الصفحة)
+        $attendanceDocuments = AttendanceDocument::whereHas('recipient', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        });
+
+        // 7. دمج وتصفيف كل المستندات (Collection Merge)
+        // جمع كل المستندات وفرزها حسب تاريخ الإنشاء مثلاً
+        $allDocuments = $documents->get()
+            ->merge($attendanceDocuments->get())
+            ->sortByDesc('created_at');
+
+
+        $perPage = 10;
+        $currentPage = Paginator::resolveCurrentPage() ?: 1;
+        $pagedDocuments = $allDocuments->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+        $documentsForCurrentUser = new LengthAwarePaginator(
+            $pagedDocuments,
+            $allDocuments->count(),
+            $perPage,
+            $currentPage,
+            ['path' => Paginator::resolveCurrentPath()]
+        );
 
         return view('users.home', compact(
             'user',
             'document',
+            'attendanceDocument', // تمرير وثيقة الحضور في حال البحث
             'event',
             'templateCount',
             'recipientCount',
-            'documentsForCurrentUser'
+            'documentsForCurrentUser' // يحتوي الآن على الوثائق ووثائق الحضور
         ));
-
     }
 
     public function show($uuid): View|Application|Factory

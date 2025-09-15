@@ -11,6 +11,7 @@ use App\Services\RecipientService;
 use App\Services\SubscriptionService;
 use App\Services\TemplateService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -30,13 +31,14 @@ class DocumentGenerationController extends Controller
     protected CertificateDispatchService $certificateDispatchService;
 
     public function __construct(
-        EventService $eventService,
-        TemplateService $templateService,
-        DocumentGenerationService $documentGenerationService,
-        RecipientService $recipientService,
-        SubscriptionService $subscriptionService,
+        EventService               $eventService,
+        TemplateService            $templateService,
+        DocumentGenerationService  $documentGenerationService,
+        RecipientService           $recipientService,
+        SubscriptionService        $subscriptionService,
         CertificateDispatchService $certificateDispatchService
-    ) {
+    )
+    {
         $this->eventService = $eventService;
         $this->templateService = $templateService;
         $this->documentGenerationService = $documentGenerationService;
@@ -50,7 +52,7 @@ class DocumentGenerationController extends Controller
      */
     public function store(StoreEventRequest $request): RedirectResponse
     {
-//                dd($request->all());
+//        dd($request->all());
         set_time_limit(300);
 
         DB::beginTransaction();
@@ -58,7 +60,7 @@ class DocumentGenerationController extends Controller
         try {
             // Check the subscription balance
             $recipientCount = $this->recipientService->getRecipientCount($request->file('recipient_file_path'));
-            if (! $this->subscriptionService->hasEnoughBalance($recipientCount)) {
+            if (!$this->subscriptionService->hasEnoughBalance($recipientCount)) {
                 return back()->with('error', "عدد الشهادات المطلوبة ($recipientCount) أكبر من رصيدك الحالي.");
             }
 
@@ -74,7 +76,6 @@ class DocumentGenerationController extends Controller
             // Create recipients
             $recipients = $this->recipientService->createRecipients($request->file('recipient_file_path'), $event->id);
 
-            //            $recipients = Recipient::where('event_id', $event->id)->get()->toArray();
 
             // جلب ابعاد الصورة الخاصة ب الشهادات من الريكوست
             $certificateData = json_decode($request->input('certificate_text_data'), true);
@@ -99,7 +100,8 @@ class DocumentGenerationController extends Controller
                     $recipients,
                     $request->file('attendance_template_data_file_path'),
                     $attendanceCanvasWidth,
-                    $attendanceCanvasHeight
+                    $attendanceCanvasHeight,
+                    $request->attendance_text_data,
                 );
             }
 
@@ -123,9 +125,9 @@ class DocumentGenerationController extends Controller
             return back()->with('success', 'تم إنشاء الحدث وتجهيز الشهادات بنجاح.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error generating documents: '.$e->getMessage());
+            Log::error('Error generating documents: ' . $e->getMessage());
 
-            return back()->with('error', 'حدث خطأ أثناء إنشاء الحدث: '.$e->getMessage());
+            return back()->with('error', 'حدث خطأ أثناء إنشاء الحدث: ' . $e->getMessage());
         }
     }
 }

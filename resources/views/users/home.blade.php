@@ -1,16 +1,19 @@
-<!DOCTYPE html>
+@php use App\Models\AttendanceDocument; @endphp
+    <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>صفحة الشهادات</title>
+    <link rel="icon" type="image/png" href="{{ asset('assets/logo.jpg') }}">
+    <title>Home | pepasafe</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+          integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-
 
 
     <link rel="stylesheet" href=" {{ asset('css/eventor-home.css') }} ">
@@ -21,6 +24,7 @@
         *, *::before, *::after {
             box-sizing: border-box;
         }
+
         /* Custom font if 'Inter' is not part of default Tailwind sans-serif stack */
         body {
             font-family: "Inter", sans-serif;
@@ -28,7 +32,7 @@
             padding: 0;
             background-color: #f0f0f0; /* لون خلفية خفيف لرؤية الناف بار بوضوح */
         }
-        </style>
+    </style>
 
 </head>
 <body class="space-y-12 bg-white">
@@ -54,7 +58,7 @@
             <div class="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center text-center space-y-4">
                 <i class="fas fa-times-circle text-7xl text-red-500"></i>
                 <p class="text-gray-600 text-lg leading-relaxed">
-                    لم يتم العثور على شهادة او حدث بهذا الكود او بهذا الاسم.
+                  {{ trans_db('search.no.results') }}
                 </p>
             </div>
         </div>
@@ -63,8 +67,8 @@
 
 
 
+{{--                   section search for event --}}
 @if(request()->has('query') && $event)
-    {{--                   section search for event --}}
     <a href="#">
         <section class="max-w-xs bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105
                         mr-4 ml-auto px-4 sm:px-0">
@@ -130,14 +134,15 @@
                     mx-auto lg:ml-auto lg:mr-5">
             <img src="{{ asset('storage/' . $document->file_path) }}"
                  alt="صورة الوثيقة"
-                 class="w-full h-auto object-contain rounded-lg shadow-md" />
+                 class="w-full h-auto object-contain rounded-lg shadow-md"/>
 
             <div class="p-3 space-y-2 text-right">
                 <h2 class="text-lg font-semibold"> وثيقة: {{ $document->template->title ?? ''}}</h2>
                 <h3 class="text-gray-500 text-sm">تاريخ الإصدار: {{ $document->template->send_at->format('Y-m-d')}}</h3>
                 <p class="text-gray-600 text-sm">{{ $document->template->event->title ?? ''}}</p>
                 @if(auth()->id() === $document->recipient->user_id)
-                    <div class="inline-block border border-gray-300 p-1 rounded hover:border-blue-600 transition relative">
+                    <div
+                        class="inline-block border border-gray-300 p-1 rounded hover:border-blue-600 transition relative">
                         <form method="POST" action="{{ route('documents.toggleVisibility', $document->id) }}">
                             @csrf
                             @method('PATCH')
@@ -159,7 +164,7 @@
             <div class="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center text-center space-y-4">
                 <i class="fas fa-folder-open text-7xl text-gray-400"></i>
                 <p class="text-gray-600 text-lg leading-relaxed">
-                    لم يتم إضافة أي شهادات إلى حسابك بعد. أضف شهادتك ، لبدء استخدامها.
+                    {{ trans_db('banar.home.users') }}
                 </p>
             </div>
         </div>
@@ -170,7 +175,8 @@
 {{-- section Doc For current user --}}
 
 @if(session('status') === 'document-visibility-toggled')
-    <div id="flash-message" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-green-100 border border-green-400 text-green-700 px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300">
+    <div id="flash-message"
+         class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-green-100 border border-green-400 text-green-700 px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300">
         <strong class="font-bold">تم بنجاح!</strong>
         <span class="ml-2">تم تحديث حالة ظهور الوثيقة في البروفايل.</span>
     </div>
@@ -188,30 +194,62 @@
 
 
 @if($documentsForCurrentUser->isNotEmpty())
-    <h2 class="text-xl font-bold text-right mt-4 mb-2 mr-2">شهاداتك الحالية :</h2>
+    <h2 class="text-xl font-bold text-right mt-4 mb-2 mr-2">شهاداتك الحالية:</h2>
 
     {{-- Container لترتيب الكاردات من اليمين --}}
     <div class="flex flex-wrap justify-end gap-6 p-4">
 
-        @foreach($documentsForCurrentUser as $document)
-            <a href="{{ route('documents.show', $document->uuid) }}">
-                <section class="max-w-xs bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 scale-105 -translate-y-8 mx-auto">
+        @foreach($documentsForCurrentUser as $doc)
+            @php
+                // تحديد ما إذا كان المستند هو Document أو AttendanceDocument
+                $isAttendance = $doc instanceof AttendanceDocument;
 
-                <img src="{{ asset('storage/' . $document->file_path) }}"
-                         alt="صورة الوثيقة"
-                         class="w-full h-auto object-contain rounded-lg shadow-md" />
+                // تحديد مسار العرض بناءً على نوع المستند
+                $route = $isAttendance ? route('attendance.show', $doc->uuid) : route('documents.show', $doc->uuid);
+
+                // تحديد اسم القالب
+                $title = $doc->template->title ?? ($doc->template ? 'وثيقة حضور' : '');
+
+                // تحديد مسار الصورة
+                $filePath = asset('storage/' . $doc->file_path);
+
+                // تحديد تاريخ الإرسال/الإصدار
+//                $sendDate = $doc->template->send_at ? $doc->template->send_at->format('Y-m-d') : 'غير محدد';
+                $sendDate = '10-10-2023'; // مؤقتًا حتى يتم إصلاح مشكلة التاريخ
+
+                // تحديد الحدث
+                $eventTitle = $doc->template->event->title ?? '';
+            @endphp
+
+            <a href="{{ $route }}">
+                <section
+                    class="max-w-xs bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 scale-105 -translate-y-8 mx-auto">
+
+                    <img src="{{ $filePath }}"
+                         alt="صورة المستند"
+                         class="w-full h-auto object-contain rounded-lg shadow-md"/>
 
                     <div class="p-3 space-y-2 text-right">
-                        <h2 class="text-lg font-semibold"> وثيقة: {{ $document->template->title ?? ''}}</h2>
-                        <h3 class="text-gray-500 text-sm">تاريخ الإصدار: {{ $document->template->send_at->format('Y-m-d')}}</h3>
-                        <p class="text-gray-600 text-sm">{{ $document->template->event->title ?? ''}}</p>
-                        @if(auth()->id() === $document->recipient->user_id)
-                            <div class="inline-block border border-gray-300 p-1 rounded hover:border-blue-600 transition relative">
-                                <form method="POST" action="{{ route('documents.toggleVisibility', $document->id) }}">
+                        <h2 class="text-lg font-semibold">
+                            @if ($isAttendance)
+                                شهادة حضور: {{ $eventTitle }}
+                            @else
+                                وثيقة: {{ $title }}
+                            @endif
+                        </h2>
+
+                        <h3 class="text-gray-500 text-sm">تاريخ الإصدار: {{ $sendDate }}</h3>
+                        <p class="text-gray-600 text-sm">{{ $eventTitle }}</p>
+
+                        {{-- منطق زر التبديل (يفترض أن visibility logic ينطبق فقط على الوثائق العادية) --}}
+                        @if(!$isAttendance && auth()->id() === $doc->recipient->user_id)
+                            <div
+                                class="inline-block border border-gray-300 p-1 rounded hover:border-blue-600 transition relative">
+                                <form method="POST" action="{{ route('documents.toggleVisibility', $doc->id) }}">
                                     @csrf
                                     @method('PATCH')
                                     <button type="submit" class="text-gray-500 hover:text-blue-600">
-                                        <i class="bi {{ $document->visible_on_profile ? 'bi-eye-fill' : 'bi-eye-slash-fill' }}"></i>
+                                        <i class="bi {{ $doc->visible_on_profile ? 'bi-eye-fill' : 'bi-eye-slash-fill' }}"></i>
                                     </button>
                                 </form>
                             </div>
@@ -234,27 +272,29 @@
 <!-- ثلاث بطاقات تعريفية للموقع -->
 <section class="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6">
     <!-- بطاقة 1 -->
-    <div class="bg-white p-6 shadow-md rounded-lg text-center space-y-3 transition-transform duration-200 hover:scale-105">
+    <div
+        class="bg-white p-6 shadow-md rounded-lg text-center space-y-3 transition-transform duration-200 hover:scale-105">
         <i class="bi bi-fingerprint text-blue-600 text-2xl mx-auto"></i>
-        <h4 class="font-semibold text-lg">كود فريد</h4>
-        <p class="text-gray-600 text-sm">كود خاص بكل شهادة</p>
+        <h4 class="font-semibold text-lg">{{ trans_db('words.unique') }}</h4>
+        <p class="text-gray-600 text-sm">{{ trans_db('words.for') }}</p>
     </div>
     <!-- بطاقة 2 -->
-    <div class="bg-white p-6 shadow-md rounded-lg text-center space-y-3 transition-transform duration-200 hover:scale-105">
+    <div
+        class="bg-white p-6 shadow-md rounded-lg text-center space-y-3 transition-transform duration-200 hover:scale-105">
         <i class="bi bi-qr-code text-blue-600 text-2xl mx-auto"></i>
         <h4 class="font-semibold text-lg">QR Code</h4>
-        <p class="text-gray-600 text-sm">مسح سريع التحقق</p>
+        <p class="text-gray-600 text-sm">{{ trans_db('words.fast.dele') }}</p>
     </div>
     <!-- بطاقة 3 -->
-    <div class="bg-white p-6 shadow-md rounded-lg text-center space-y-3 transition-transform duration-200 hover:scale-105">
+    <div
+        class="bg-white p-6 shadow-md rounded-lg text-center space-y-3 transition-transform duration-200 hover:scale-105">
         <i class="bi bi-link-45deg text-blue-600 text-3xl mx-auto"></i>
-        <h4 class="font-semibold text-lg">روابط مباشرة</h4>
-        <p class="text-gray-600 text-sm">مشاركة سريعة وسهلة</p>
+        <h4 class="font-semibold text-lg">{{ trans_db('words.links') }}</h4>
+        <p class="text-gray-600 text-sm">{{ trans_db('words.share') }}</p>
     </div>
 </section>
 
 @include('partials.footer')
-
 
 
 </body>

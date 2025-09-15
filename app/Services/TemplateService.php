@@ -19,6 +19,9 @@ class TemplateService
         $this->attendanceTemplateRepository = $attendanceTemplateRepository;
     }
 
+    /**
+     * @throws \Exception
+     */
     public function createDocumentTemplate(array $data, int $eventId): \App\Models\DocumentTemplate
     {
         $templateData = [
@@ -26,7 +29,7 @@ class TemplateService
             'message' => $data['document_message'],
             'send_at' => $data['document_send_at'],
             'send_via' => $data['document_send_via'],
-            'is_attendance_enabled' => isset($data['is_attendance_enabled']) ? $data['is_attendance_enabled'] : false,
+            'is_attendance_enabled' => $data['is_attendance_enabled'] ?? false,
             'event_id' => $eventId,
             'validity' => $data['document_validity'],
             'valid_from' => $data['document_validity'] === 'temporary' ? $data['valid_from'] : null,

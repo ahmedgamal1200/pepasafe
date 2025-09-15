@@ -1,25 +1,41 @@
 <section class="space max-w-xl mx-auto px-4 sm:px-0">
-    <form action="{{ auth()->check() ? route('home.users') : route('homeForGuests') }}" method="GET" class="relative flex flex-col sm:flex-row items-center">
+    <form action="{{ auth()->check() ? route('home.users') : route('homeForGuests') }}" method="GET" class="relative flex flex-col sm:flex-row items-stretch sm:items-center w-full">
+        {{-- جزء حقل الإدخال (Input) --}}
         @if(
-        !auth()->check() ||
-
-        auth()->user()->hasAnyRole(['eventor', 'super admin', 'user', 'employee']) ||
-        auth()->user()->hasAnyPermission(['full access to events', 'search for a document', 'full access'])
+            !auth()->check() ||
+            auth()->user()->hasAnyRole(['eventor', 'super admin', 'user', 'employee']) ||
+            auth()->user()->hasAnyPermission(['full access to events', 'search for a document', 'full access'])
         )
-            <input
-                name="query"
-                type="text"
-                placeholder="أدخل اسم الحدث او أدخل كود الشهادة أو امسح رمز QR"
-                required
-                class="w-full sm:flex-1 border border-gray-300 rounded-lg pl-20 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-xs sm:text-base" {{-- تم إضافة text-xs و sm:text-base --}}
-            />
+            @php
+                // هذا الجزء يجب أن يكون معرّفًا مرة واحدة في بداية ملف الـ Blade
+                $isRTL = app()->getLocale() === 'ar';
+                $direction = $isRTL ? 'rtl' : 'ltr';
+                $paddingStart = $isRTL ? 'pr-4' : 'pl-4'; // المسافة في بداية النص
+                $paddingEnd = $isRTL ? 'pl-3' : 'pr-3';   // المسافة في نهاية النص
+                $textAlignment = $isRTL ? 'text-right' : 'text-left'; // محاذاة النص داخل الحقل
+            @endphp
+
+            <div class="relative flex-grow">
+                <input
+                    name="query"
+                    type="text"
+                    placeholder="{{ trans_db('placeholder.search') }}"
+                    required
+                    class="w-full border border-gray-300 rounded-lg
+               {{ $paddingStart }} {{ $paddingEnd }} py-2
+               focus:outline-none focus:ring-2 focus:ring-blue-400
+               text-xs sm:text-base {{ $textAlignment }}"
+                    dir="{{ $direction }}"
+                />
+            </div>
         @endif
-        @if(!auth()->check() ||  auth()->user()->hasRole('eventor') || auth()->user()->hasAnyPermission([
+
+        @if(!auth()->check() ||  auth()->user()->hasRole(['user', 'eventor']) || auth()->user()->hasAnyPermission([
             'full access to events', 'search by qr code', 'full access'
         ]))
             <i
                 id="start-qr-btn"
-                class="icon bi bi-qr-code absolute left-6 sm:left-20 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-600 cursor-pointer"
+                class="icon bi bi-qr-code text-3xl sm:text-2xl text-gray-500 hover:text-blue-600 cursor-pointer p-2 sm:ml-2 mt-3 sm:mt-0 order-first sm:order-none"
             ></i>
         @endif
 
@@ -27,11 +43,11 @@
             type="submit"
             class="w-full sm:w-auto mt-3 sm:mt-0 bg-blue-600 text-white rounded-lg px-4 py-2 sm:mr-2 hover:bg-blue-700"
         >
-            بحث
+            {{ trans_db('buttons.search') }}
         </button>
     </form>
     <p class="mt-3 text-gray-700 text-center text-sm sm:text-base">
-        ادخل كود الشهادة أو امسح رمز QR للتحقق من صحتها
+       {{ trans_db('search.title') }}
     </p>
 
 

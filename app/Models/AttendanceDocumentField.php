@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AttendanceDocumentField extends Model
 {
+
+    protected $table = 'attendance_document_fields';
+
     protected $guarded = ['id'];
 
     public function template(): BelongsTo

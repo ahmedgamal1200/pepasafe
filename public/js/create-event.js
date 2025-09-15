@@ -843,8 +843,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // تأكد من أن cardData موجود ككائن عام
-        // إذا لم يكن معرفًا بعد، ستحتاج إلى تعريفه كـ `let cardData = {};` في النطاق العام.
+        // تأكد من أن cardData موجود ككائن عام (يجب أن يكون معرّفاً في النطاق العام)
 
         if (cardData[cardIdentifier] && cardData[cardIdentifier].fabricCanvas) {
             cardData[cardIdentifier].fabricCanvas.dispose();
@@ -881,20 +880,18 @@ document.addEventListener('DOMContentLoaded', () => {
             height: finalCanvasHeight,
             preserveObjectStacking: true
         });
-        currentCanvas.cardIdentifier = cardIdentifier; // <--- هذا هو التعديل الرئيسي هنا
+        currentCanvas.cardIdentifier = cardIdentifier;
 
-        // **تعديل مهم:** تأكد من تهيئة cardData[cardIdentifier] هنا
         cardData[cardIdentifier] = cardData[cardIdentifier] || {};
         cardData[cardIdentifier].fabricCanvas = currentCanvas;
 
         // تعيين الكانفاس النشط
-        // **تعديل:** استخدام دالة عادية لضمان أن 'this' تشير إلى الكانفاس
         currentCanvas.on('mouse:down', function() {
-            activeCanvas = this; // 'this' هو currentCanvas
+            activeCanvas = this;
             console.log(`Mouse down, activeCanvas set to: ${this.cardIdentifier}`);
         });
 
-        // إعداد محرر النصوص بناءً على نوع الكارد
+        // إعداد محرر النصوص
         const isAttendance = cardIdentifier.includes('attendance_template_data_file_path');
         const editorPanelId = isAttendance ? 'attendance-text-editor-panel' : 'text-editor-panel';
         const textEditorPanel = document.getElementById(editorPanelId);
@@ -915,7 +912,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     fontFamily: fontFamily.value
                 });
                 activeCanvas.renderAll();
-                // **تعديل:** تمرير cardData إلى saveITextObjectsFromSpecificCanvas
                 saveITextObjectsFromSpecificCanvas(activeCanvas, activeCanvas.cardIdentifier, cardData);
             }
         }
@@ -978,36 +974,47 @@ document.addEventListener('DOMContentLoaded', () => {
                 absolutePositioned: true
             });
 
-            // **تعديل:** تمرير cardData إلى restoreITextObjectsOnSpecificCanvas
             restoreITextObjectsOnSpecificCanvas(currentCanvas, cardIdentifier, cardData);
             currentCanvas.renderAll();
         }, { crossOrigin: 'Anonymous' });
 
-        // منطق السحب والإفلات
-        // **تعديل:** استخدام دالة عادية لضمان أن 'this' تشير إلى الكانفاس
+        // --------------------------------------------------------------------------------
+        // منطق السحب والإفلات المعدّل (ليدعم I-Text و QR Code)
+        // --------------------------------------------------------------------------------
+
         currentCanvas.on('mouse:down', function(opt) {
             const evt = opt.e;
             const target = opt.target;
-
-            if (target && target.type === 'i-text') {
+            // التعديل 1: دعم QR Code في mouse:down
+            if (target && (target.type === 'i-text' || target.type === 'qr-code')) {
                 isDragging = true;
                 currentlyDraggedFabricObject = target;
-                startDragCanvas = this; // 'this' هو الكانفاس الحالي
+                startDragCanvas = this;
 
                 target.set({ opacity: 0, selectable: false, evented: false });
-                startDragCanvas.renderAll(); // استخدام startDragCanvas
+                startDragCanvas.renderAll();
 
                 draggingProxyElement = document.createElement('div');
-                draggingProxyElement.textContent = target.text;
                 draggingProxyElement.style.position = 'fixed';
                 draggingProxyElement.style.zIndex = '99999';
                 draggingProxyElement.style.pointerEvents = 'none';
-                draggingProxyElement.style.backgroundColor = 'rgba(0, 0, 255, 0.6)';
-                draggingProxyElement.style.color = 'white';
-                draggingProxyElement.style.padding = '5px 10px';
-                draggingProxyElement.style.borderRadius = '5px';
-                draggingProxyElement.style.fontFamily = target.fontFamily;
-                draggingProxyElement.style.fontSize = `${target.fontSize * target.scaleX}px`;
+
+                if (target.type === 'i-text') {
+                    draggingProxyElement.textContent = target.text;
+                    draggingProxyElement.style.backgroundColor = 'rgba(0, 0, 255, 0.6)';
+                    draggingProxyElement.style.color = 'white';
+                    draggingProxyElement.style.padding = '5px 10px';
+                    draggingProxyElement.style.borderRadius = '5px';
+                    draggingProxyElement.style.fontFamily = target.fontFamily;
+                    draggingProxyElement.style.fontSize = `${target.fontSize * target.scaleX}px`;
+                } else if (target.type === 'qr-code') {
+                    draggingProxyElement.textContent = 'QR Code';
+                    draggingProxyElement.style.backgroundColor = 'rgba(255, 165, 0, 0.8)';
+                    draggingProxyElement.style.color = 'black';
+                    draggingProxyElement.style.padding = '5px 10px';
+                    draggingProxyElement.style.borderRadius = '5px';
+                }
+
                 document.body.appendChild(draggingProxyElement);
             }
         });
@@ -1020,10 +1027,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.addEventListener('mouseup', (evt) => {
-            if (isDragging && currentlyDraggedFabricObject) {
-                let targetCanvas = null;
-                let targetCardId = null;
+            // تصحيح خطأ targetCanvas is not defined (تحديد النطاق)
+            let targetCanvas = null;
+            let targetCardId = null;
 
+            if (isDragging && currentlyDraggedFabricObject) {
+                // تحديد الكانفاس المستهدف
                 for (const id in cardData) {
                     const canvasInstance = cardData[id].fabricCanvas;
                     if (canvasInstance && canvasInstance.getElement() &&
@@ -1038,46 +1047,102 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (targetCanvas && targetCanvas !== startDragCanvas) {
+                    // منطق الإفلات الناجح على كانفاس آخر
                     const pointer = targetCanvas.getPointer(evt, true);
 
                     startDragCanvas.remove(currentlyDraggedFabricObject);
-                    // **تعديل:** تمرير cardData
-                    if (cardData[startDragCanvas.cardIdentifier]) { // استخدام cardIdentifier من الكانفاس مباشرة
+                    // حفظ التغييرات على الكانفاس الأصلي (الحذف)
+                    if (cardData[startDragCanvas.cardIdentifier]) {
                         saveITextObjectsFromSpecificCanvas(startDragCanvas, startDragCanvas.cardIdentifier, cardData);
                     }
 
-                    const newObject = new fabric.IText(currentlyDraggedFabricObject.text, {
-                        left: pointer.x,
-                        top: pointer.y,
-                        fontFamily: currentlyDraggedFabricObject.fontFamily,
-                        fontSize: currentlyDraggedFabricObject.fontSize,
-                        fill: currentlyDraggedFabricObject.fill,
-                        selectable: true,
-                        hasControls: true,
-                        // **تعديل:** تغيير 'alphabetic' إلى 'top'
-                        textBaseline: 'top',
-                        scaleX: currentlyDraggedFabricObject.scaleX,
-                        scaleY: currentlyDraggedFabricObject.scaleY,
-                        angle: currentlyDraggedFabricObject.angle
-                    });
+                    if (currentlyDraggedFabricObject.type === 'qr-code') {
 
-                    targetCanvas.add(newObject);
-                    newObject.bringToFront();
-                    targetCanvas.setActiveObject(newObject);
-                    targetCanvas.renderAll();
+                        // 💥 التعديل الأهم لحل مشكلة تكرار QR Code (حذف القديم قبل إضافة الجديد)
+                        targetCanvas.getObjects().filter(obj => obj.type === 'qr-code').forEach(qr => {
+                            targetCanvas.remove(qr);
+                        });
 
-                    // **تعديل:** تمرير cardData
-                    if (cardData[targetCardId]) {
-                        saveITextObjectsFromSpecificCanvas(targetCanvas, targetCardId, cardData);
+                        const qrImageUrl = '/assets/qr-code.jpg';
+                        const originalObject = currentlyDraggedFabricObject; // حفظ مرجع
+                        const targetCard = targetCardId;
+
+                        // إنشاء كائن QR Code جديد بشكل غير متزامن
+                        fabric.Image.fromURL(qrImageUrl, (img) => {
+                            // التحقق من نجاح التحميل أولاً (يحل مشكلة الاختفاء عند فشل التحميل)
+                            if (!img) {
+                                console.error('Failed to load QR code image for drag and drop. Reverting drag.');
+                                return;
+                            }
+
+                            img.set({
+                                left: pointer.x,
+                                top: pointer.y,
+                                scaleX: originalObject.scaleX,
+                                scaleY: originalObject.scaleY,
+                                angle: originalObject.angle,
+                                selectable: true,
+                                hasControls: true,
+                                type: 'qr-code',
+                                subtype: originalObject.subtype,
+                                width: originalObject.width,
+                                height: originalObject.height,
+                                id: `qr_${Math.random().toString(36).substr(2, 9)}` // ID فريد
+                            });
+
+                            targetCanvas.add(img);
+                            img.bringToFront();
+                            targetCanvas.setActiveObject(img);
+                            targetCanvas.renderAll();
+
+                            // حفظ التغييرات على الكانفاس الهدف (الإضافة)
+                            if (cardData[targetCard]) {
+                                saveITextObjectsFromSpecificCanvas(targetCanvas, targetCard, cardData);
+                            }
+                            console.log(`تم إفلات QR Code على ${targetCard} في (${pointer.x}, ${pointer.y})`);
+                        }, { crossOrigin: 'Anonymous' }, (err) => {
+                            // معالج خطأ مخصص للتحميل
+                            console.error('Error loading QR code during drag-and-drop:', err);
+                        });
+
+                    } else if (currentlyDraggedFabricObject.type === 'i-text') {
+                        // منطق I-Text
+                        const newObject = new fabric.IText(currentlyDraggedFabricObject.text, {
+                            left: pointer.x,
+                            top: pointer.y,
+                            fontFamily: currentlyDraggedFabricObject.fontFamily,
+                            fontSize: currentlyDraggedFabricObject.fontSize,
+                            fill: currentlyDraggedFabricObject.fill,
+                            selectable: true,
+                            hasControls: true,
+                            textBaseline: 'top',
+                            scaleX: currentlyDraggedFabricObject.scaleX,
+                            scaleY: currentlyDraggedFabricObject.scaleY,
+                            angle: currentlyDraggedFabricObject.angle,
+                            id: `text_${Math.random().toString(36).substr(2, 9)}` // ID فريد
+                        });
+
+                        targetCanvas.add(newObject);
+                        newObject.bringToFront();
+                        targetCanvas.setActiveObject(newObject);
+                        targetCanvas.renderAll();
+
+                        // حفظ التغييرات على الكانفاس الهدف (الإضافة)
+                        if (cardData[targetCardId]) {
+                            saveITextObjectsFromSpecificCanvas(targetCanvas, targetCardId, cardData);
+                        }
+                        console.log(`تم إفلات النص '${newObject.text}' على ${targetCardId} في (${pointer.x}, ${pointer.y})`);
                     }
-                    console.log(`تم إفلات النص '${newObject.text}' على ${targetCardId} في (${pointer.x}, ${pointer.y})`);
+
                 } else {
+                    // منطق الإفلات الفاشل أو الإفلات على نفس الكانفاس (إرجاع العنصر)
                     currentlyDraggedFabricObject.set({ opacity: 1, selectable: true, evented: true });
                     startDragCanvas.renderAll();
                     startDragCanvas.setActiveObject(currentlyDraggedFabricObject);
-                    console.log('تم إرجاع النص للكانفاس الأصلي.');
+                    console.log('تم إرجاع العنصر للكانفاس الأصلي.');
                 }
 
+                // خطوة حاسمة: مسح المتغيرات المؤقتة والـ Proxy لإنهاء عملية السحب
                 if (draggingProxyElement) {
                     draggingProxyElement.remove();
                     draggingProxyElement = null;
@@ -1088,16 +1153,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // يجب أن تكون دالة setupDragDrop منفصلة ويتم استدعاؤها لكل كانفاس.
-        // ولكن نظرًا لأن الكود الخاص بك يدمج جزءًا من drag-drop هنا،
-        // فإن التعديلات تم تضمينها مباشرة حيثما كانت موجودة.
-        // يفضل فصلها إلى دالة setupDragDrop(currentCanvas, cardIdentifier)
-        // واستدعاؤها بعد تهيئة الكانفاس.
-
         return currentCanvas;
     }
-
-
 
 
 

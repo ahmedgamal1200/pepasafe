@@ -24,6 +24,8 @@ Route::get('/', function () {
 
 Route::get('/u/{user:slug}', [ProfileController::class, 'showProfileToGuest'])->name('showProfileToGuest');
 Route::get('/documents/{uuid}', [DocumentController::class, 'show'])->name('documents.show');
+// في routes/web.php مثلاً
+Route::get('/attendance/{uuid}', [DocumentController::class, 'show'])->name('attendance.show');
 
 Route::view('pry', 'pry')->name('pry');
 

@@ -639,18 +639,6 @@
     </button>
 
 
-    <!-- Adjusted Warning Section: unified design -->
-    <!-- Warning Card (yellow) -->
-{{--    <div class="max-w-5xl mx-auto bg-yellow-100 border border-yellow-400 text-yellow-800 rounded-lg p-6 flex items-start gap-4 mb-8">--}}
-{{--        <i class="fas fa-exclamation-circle text-3xl mt-1"></i>--}}
-{{--        <ul class="list-disc list-inside space-y-2">--}}
-{{--            <li>تأكد من مراجعة جميع البيانات قبل الإرسال.</li>--}}
-{{--            <li>لا تشارك معلوماتك الشخصية مع أي جهة غير موثوقة.</li>--}}
-{{--            <li>احتفظ بنسخة احتياطية من المستندات المرفوعة.</li>--}}
-{{--            <li>في حال واجهتك أي مشكلة تقنية، تواصل معنا فوراً.</li>--}}
-{{--        </ul>--}}
-{{--    </div>--}}
-
     <!-- Warning Card (red) -->
     <!-- بطاقة الرسالة النهائية (تم إضافة هذا الكود) -->
     <div id="warning-card" class="mt-6 mb-6 max-w-5xl mx-auto bg-gray-100 border border-gray-400 text-gray-700 rounded-lg p-6 flex items-center gap-4 hidden">

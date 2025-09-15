@@ -9,7 +9,9 @@ use App\Notifications\CustomAdminNotification;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class ScheduleDashboardNotificationJob implements ShouldQueue
@@ -54,9 +56,9 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
                 $messageForUser = $this->message['en'] ?? $this->message['ar'] ?? null;
             }
             match ($this->channel) {
-                'email' => $this->sendEmail($user, $settings),
-                'sms' => $this->sendSms($user, $settings),
-                'whatsapp' => $this->sendWhatsApp($user, $settings),
+                'email' => $this->sendEmail($user, $messageForUser, $subjectForUser),
+                'sms' => $this->sendSms($user, $messageForUser, ),
+                'whatsapp' => $this->sendWhatsApp($user, $messageForUser),
                 'database' => $user->notify(new CustomAdminNotification($messageForUser)),
                 default => null,
             };
@@ -133,131 +135,109 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
         }
     }
 
-    protected function sendSms(User $user, ?string $messageContent): void
+
+
+    protected function sendSms(User $user, ?string $messageContent): array
     {
-        $settings = ApiConfig::whereIn('key', [
-            'sms_api_key',          // Twilio SID
-            'sms_api_secret',       // Twilio Token
-            'sms_sender_number',    // Twilio sender number (رقم الشراء من Twilio)
-        ])->pluck('value', 'key');
-
-        $sid = $settings['sms_api_key'] ?? null;
-        $token = $settings['sms_api_secret'] ?? null;
-        $from = $settings['sms_sender_number'] ?? null;
+        $apiKey = 'OEklukhmcMiXQKrBS13UKHciPOFfWINIagSgZB0D4CTeoSx1h8OwrlR3FP9t' ?? null;
         $to = $user->phone ?? null;
-        //        $to      = '+201279678444';
 
-        if (! $sid || ! $token || ! $from || ! $to) {
-            Notification::make()
-                ->danger()
-                ->title('Missing SMS Configuration')
-                ->body('Please make sure SID, Token, Sender, and User Phone are set correctly.')
-                ->send();
+        $requestBody = [
+            "name" => "BeOn Sales",
+            "phoneNumber" => $to,
+            "template_id" => 1651,
+            "vars" => [
+                $messageContent
+            ]
+        ];
 
-            return;
-        }
+        $url = "https://v3.api.beon.chat/api/v3/messages/sms/template";
 
         try {
-            $twilio = new \Twilio\Rest\Client($sid, $token);
+            $response = Http::withHeaders([
+                'beon-token' => $apiKey,
+            ])->post($url, $requestBody);
 
-            $twilio->messages->create(
-                $to, // الرقم المستلم بصيغة دولية
-                [
-                    'from' => $from,
-                    'body' => $messageContent,
-                ]
-            );
 
-            Notification::make()
-                ->success()
-                ->title('SMS sent successfully!')
-                ->send();
+            if ($response->successful()) {
+                Notification::make()
+                    ->success()
+                    ->title('تم إرسال الرسالة القصيرة بنجاح!')
+                    ->send();
+                return ['success' => 'send', 'code' => 200];
+            } else {
+                // استخدام status() و body() للحصول على تفاصيل الخطأ من الاستجابة
+                $errorBody = json_decode($response->body(), true) ?? ['message' => 'استجابة غير صالحة'];
+                $errorMessage = $errorBody['message'] ?? 'فشل إرسال الرسالة';
 
+                Notification::make()
+                    ->danger()
+                    ->title('فشل إرسال الرسالة القصيرة')
+                    ->body($response->status() . ': ' . $errorMessage)
+                    ->send();
+
+                return ['error' => $errorMessage, 'code' => $response->status()];
+            }
         } catch (\Exception $e) {
+            // تسجيل الاستثناء في السجل
+            Log::error('BeOn API Request Failed:', ['exception' => $e->getMessage()]);
+
             Notification::make()
                 ->danger()
-                ->title('SMS Sending Failed')
-                ->body($e->getMessage())
+                ->title('فشل إرسال الرسالة القصيرة')
+                ->body('حدث خطأ غير متوقع: ' . $e->getMessage())
                 ->send();
+
+            return ['error' => 'Exception: ' . $e->getMessage(), 'code' => 500];
         }
     }
-
-//    protected function sendWhatsApp(User $user, ?string $messageContent): void
-//    {
-//        // جلب الإعدادات من قاعدة البيانات حسب الأسماء الجديدة
-//        $settings = ApiConfig::whereIn('key', [
-//            'whatsapp_api_key',
-//            'whatsapp_api_secret',
-//            'whatsapp_phone_number',
-//        ])->pluck('value', 'key');
-//
-//        // التحقق من وجود كل القيم
-//        if (
-//            empty($settings['whatsapp_api_key']) ||
-//            empty($settings['whatsapp_api_secret']) ||
-//            empty($settings['whatsapp_phone_number'])
-//        ) {
-//            Notification::make()
-//                ->danger()
-//                ->title('Missing WhatsApp Configuration')
-//                ->body('Please make sure API Key, Secret, and Phone Number are configured correctly.')
-//                ->send();
-//
-//            return;
-//        }
-//
-//        try {
-//            $sid = $settings['whatsapp_api_key'];
-//            $token = $settings['whatsapp_api_secret'];
-//            $from = $settings['whatsapp_phone_number'];
-//
-//            $twilio = new \Twilio\Rest\Client($sid, $token);
-//
-//            $twilio->messages->create(
-//                'whatsapp:'.$user->phone,
-//                [
-//                    'from' => 'whatsapp:'.$from,
-//                    'body' => $messageContent,
-//                ]
-//            );
-//
-//        } catch (\Exception $e) {
-//            Notification::make()
-//                ->danger()
-//                ->title('Failed to send WhatsApp Message')
-//                ->body($e->getMessage())
-//                ->send();
-//        }
-//    }
 
 
     protected function sendWhatsApp(User $user, ?string $messageContent): void
     {
+        // *** الخطوة 1: Logging لبداية العملية ***
+        Log::info('WhatsApp Job: Attempting to send message.', [
+            'user_id' => $user->id,
+            'user_phone_from_db' => $user->phone,
+            'message_content_excerpt' => substr($messageContent ?? 'N/A', 0, 50),
+        ]);
+
+        $targetPhoneNumber = $user->phone;
+
+
+
         try {
-            $response = Http::withHeaders([
-                'beon-token' => 'OEklukhmcMiXQKrBS13UKHciPOFfWINIagSgZB0D4CTeoSx1h8OwrlR3FP9t',
-                'Accept'        => 'application/json',
-            ])->post('https://v3.api.beon.chat/api/v3/messages/whatsapp/template', [ // شوف الـ endpoint الصح من Postman Docs
-//                'to'      => $user->phone,         // رقم المرسل له
-                "name"             => $user->name,
-                "phoneNumber"      => '+201205297854',      // لازم بصيغة دولية
-                "template_content" => $messageContent,   // النص اللي هيظهر
-                "template_id"      => 274,               // لازم تجيبه من حسابك
-                "workflow_id"      => 1,                 // حسب إعداداتك
+            $apiPayload = [
+                "name"             => 'gouda',
+                "phoneNumber"      => $targetPhoneNumber, // تم التعديل لاستخدام متغير
+                "template_content" => 'test',
+                "template_id"      => 1492,
+                "workflow_id"      => 1,
                 "template" => [
-                    "name"     => "template_name",       // اسم التيمبلت اللي متسجل عندهم
+                    "name"     => "pepasafe_test",
                     "language" => ["code" => "ar"],
                     "components" => [
                         [
                             "type" => "body",
                             "parameters" => [
-                                ["type" => "text", "text" => "100"],
-                                ["type" => "text", "text" => "منتج ١"],
-                                ["type" => "text", "text" => "100 جنيه"],
+                                ["type" => "text", "text" => $messageContent],
                             ]
                         ]
                     ]
-                ]      // محتوى الرسالة
+                ]
+            ];
+
+            // *** الخطوة 2: إضافة Timeout وإرسال الطلب ***
+            $response = Http::timeout(30)->withHeaders([
+                'beon-token' => 'OEklukhmcMiXQKrBS13UKHciPOFfWINIagSgZB0D4CTeoSx1h8OwrlR3FP9t',
+                'Accept'     => 'application/json',
+            ])->post('https://v3.api.beon.chat/api/v3/messages/whatsapp/template', $apiPayload);
+
+            // *** الخطوة 3: Logging لنتيجة الـ API ***
+            Log::info('WhatsApp Job: API Response.', [
+                'status' => $response->status(),
+                'successful' => $response->successful(),
+                'response_body' => $response->body(),
             ]);
 
             if ($response->successful()) {
@@ -267,17 +247,24 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
                     ->body('WhatsApp message sent successfully.')
                     ->send();
             } else {
+                // *** الخطوة 4: التعامل مع فشل الـ API (رسالة خطأ من المزود) ***
                 Notification::make()
                     ->danger()
-                    ->title('Failed to send WhatsApp Message')
-                    ->body('API Error: '.$response->body())
+                    ->title('Failed to send WhatsApp Message (API Error)')
+                    ->body("API Status: {$response->status()} | Details: ".$response->body())
                     ->send();
             }
         } catch (\Exception $e) {
+            // *** الخطوة 5: التعامل مع فشل الاتصال (Localhost, Network, الخ.) ***
+            Log::error('WhatsApp Job: Connection Exception.', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             Notification::make()
                 ->danger()
-                ->title('Failed to send WhatsApp Message')
-                ->body($e->getMessage())
+                ->title('Failed to send WhatsApp Message (Connection Error)')
+                ->body('Connection Error: '.$e->getMessage())
                 ->send();
         }
     }

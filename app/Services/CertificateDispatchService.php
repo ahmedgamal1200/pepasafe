@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Jobs\SendCertificateJob;
+
 class CertificateDispatchService
 {
     public function dispatch($certificate, $sendAt): void
     {
-        \App\Jobs\SendCertificateJob::dispatch($certificate)->delay($sendAt);
+        SendCertificateJob::dispatch($certificate)->delay($sendAt);
     }
 }

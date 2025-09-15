@@ -2,47 +2,41 @@
 
 namespace App\Jobs;
 
-use AllowDynamicProperties;
+use App\Repositories\Eventor\AttendanceDocumentRepository;
 use App\Services\DocumentGenerationService;
-use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use App\Models\DocumentTemplate;
-use App\Models\Recipient;
-use App\Repositories\Eventor\DocumentRepository;
 use Intervention\Image\Exceptions\DecoderException;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use App\Models\AttendanceTemplate;
+use App\Models\Recipient;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Exception;
+use Log;
 
-#[AllowDynamicProperties]
-class GenerateDocumentsJob implements ShouldQueue
+class GenerateAttendanceDocumentJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected DocumentTemplate $template;
+    protected AttendanceTemplate $template;
     protected Recipient $recipient;
     protected array $dataRow;
+    protected string $backgroundPathFront;
     protected array $frontTextData;
     protected array $frontQrCodesData;
-    protected string $certificateTextData;
-    protected string $backgroundPathFront;
     protected ?string $backgroundPathBack;
     protected int $canvasWidth;
     protected int $canvasHeight;
 
-
-    /**
-     * Create a new job instance.
-     */
     public function __construct(
-        DocumentTemplate $template,
+        AttendanceTemplate $template,
         Recipient $recipient,
         array $dataRow,
         array $frontTextData,
@@ -50,7 +44,7 @@ class GenerateDocumentsJob implements ShouldQueue
         string $backgroundPathFront,
         ?string $backgroundPathBack,
         int $canvasWidth,
-        int $canvasHeight,
+        int $canvasHeight
     ) {
         $this->template = $template;
         $this->recipient = $recipient;
@@ -64,18 +58,15 @@ class GenerateDocumentsJob implements ShouldQueue
     }
 
     /**
-     * Execute the job.
      * @throws Exception
      */
-    public function handle(DocumentRepository $documentRepository, DocumentGenerationService $service): void
+    public function handle(AttendanceDocumentRepository $attendanceDocumentRepository, DocumentGenerationService $service): void
     {
-        // === التحقق الأمني من القالب (لحل مشكلة fields() on null) ===
-        if (! $this->template) {
-            \Log::error("MISSING_TEMPLATE_ERROR: DocumentTemplate is null when running GenerateDocumentsJob. Job aborted.", [
-                'recipient_id' => $this->recipient->id ?? 'N/A',
-            ]);
+        if (!$this->template) {
+            Log::error("MISSING_ATTENDANCE_TEMPLATE_ERROR: Job aborted.");
             return;
         }
+
 
         $manager = new ImageManager(new Driver);
 
@@ -118,6 +109,7 @@ class GenerateDocumentsJob implements ShouldQueue
             }
         }
 
+
         $backRenderedFields = [];
         $backFields = $this->template->fields()->where('side', 'back')->get();
         foreach ($backFields as $field) {
@@ -139,6 +131,7 @@ class GenerateDocumentsJob implements ShouldQueue
         // 2. **منطق قراءة وتجهيز الصور ودمجها (التعديل باستخدام 'create' لـ v3)**
         $frontImage = null;
         $image = null;
+
 
         try {
             // أ. قراءة الصورة الأمامية وتغيير حجمها
@@ -204,7 +197,6 @@ class GenerateDocumentsJob implements ShouldQueue
             });
         }
 
-
         // 5. **إضافة QR Codes (مع التحقق)**
         if (! empty($this->frontQrCodesData)) {
             foreach ($this->frontQrCodesData as $qrCodeData) {
@@ -258,7 +250,7 @@ class GenerateDocumentsJob implements ShouldQueue
                 $finalQrCodeY = $qrCodeY + $yOffset;
 
                 $scanMeText = "SCAN ME!";
-                $scanMeFontSize = 12;
+                $scanMeFontSize = 14;
                 $scanMeMargin = 5;
 
                 // تطبيق الإزاحة على نص "SCAN ME!"
@@ -281,7 +273,7 @@ class GenerateDocumentsJob implements ShouldQueue
                 );
 
                 $textForUniqueCode = "Code:" . $currentUniqueCode;
-                $fontSize = 12;
+                $fontSize = 14;
                 $margin = 5;
 
                 // تطبيق الإزاحة على نص "Code"
@@ -298,6 +290,8 @@ class GenerateDocumentsJob implements ShouldQueue
             }
         }
         // --- نهاية إضافة QR Codes ---
+
+
 
         // 6. **رسم نصوص الوجه الخلفي (مع الإزاحة)**
         // ...
@@ -334,27 +328,29 @@ class GenerateDocumentsJob implements ShouldQueue
             }
         }
 
-        // 7. **حفظ المستند (يبقى في النهاية)**
-        $imagePath = 'certificates/'.auth()->id().'/'.uniqid().'.jpg';
+
+        // حفظ المستند النهائي
+        $imagePath = 'attendance_certificates/' . auth()->id() . '/' . uniqid() . '.jpg';
         $imageFullPath = storage_path("app/public/{$imagePath}");
-        Storage::disk('public')->makeDirectory('certificates/'.auth()->id());
+        Storage::disk('public')->makeDirectory('attendance_certificates/' . auth()->id());
         $image->save($imageFullPath);
 
-        $documentResult = $documentRepository->create([
+        // حفظ في الداتابيز
+        $attendanceDocumentResult= $attendanceDocumentRepository->create([
             'file_path' => $imagePath,
-            'document_template_id' => $this->template->id,
+            'attendance_template_id' => $this->template->id,
             'recipient_id' => $this->recipient->id,
             'valid_from' => $this->template->valid_from,
             'valid_until' => $this->template->valid_until,
-        ], $currentDocumentUuid, $currentUniqueCode);
+        ], $currentDocumentUuid);
 
 
-        $document = $documentResult['document'];
+        $attendanceDocument = $attendanceDocumentResult['attendanceDocument'];
 
-        // إذا كان لديك dispatchCertificate()، قم باستدعائها هنا
+        $service->dispatchCertificate($attendanceDocument, $this->template->send_at);
 
-        $service->dispatchCertificate($document, $this->template->send_at);
 
+//        -----------------------------------------------
 
     }
 }
