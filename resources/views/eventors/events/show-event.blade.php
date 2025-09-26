@@ -371,6 +371,7 @@
                 @if(@auth()->check() && @auth()->user()->hasAnyPermission([
                     'full access to events', 'full access', 'delete event'
                 ]))
+{{--                    saddsdsad--}}
                     <button
                         onclick="openDeleteModal()"
                         class="w-full sm:w-auto flex items-center justify-center gap-2 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 transition {{ $flexDirection }}">
