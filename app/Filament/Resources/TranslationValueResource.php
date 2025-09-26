@@ -6,6 +6,7 @@ use App\Filament\Resources\TranslationValueResource\Pages;
 use App\Models\TranslationKey;
 use App\Models\TranslationValue;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -43,10 +44,9 @@ class TranslationValueResource extends Resource
                 TextInput::make('locale')
                     ->required()
                     ->label('Locale (مثلاً ar أو en)'),
-                TextInput::make('value')
+                Textarea::make('value')
                     ->required()
                     ->label('Value'),
-
             ]);
     }
 

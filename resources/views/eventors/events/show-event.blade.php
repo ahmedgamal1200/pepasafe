@@ -24,41 +24,52 @@
 @include('partials.auth-navbar')
 
 <section class="space max-w-xl mx-auto px-4 sm:px-0">
-    <form action="{{ route('showEvent', $event->slug) }}" method="GET"
-          class="relative flex flex-col sm:flex-row items-center">
-        @if(
-        !auth()->check() ||
-        auth()->user()->hasAnyRole(['eventor', 'super admin']) ||
-        auth()->user()->hasAnyPermission(['full access to events', 'search for a document', 'full access']) ||
-        auth()->check()
-        )
-            <div class="relative w-full sm:w-[600px]">
 
+    <form action="{{ route('showEvent', $event->slug) }}" method="GET" class="relative flex flex-col sm:flex-row items-stretch sm:items-center w-full">
+        {{-- جزء حقل الإدخال (Input) --}}
+        @if(
+            !auth()->check() ||
+            auth()->user()->hasAnyRole(['eventor', 'super admin', 'user', 'employee']) ||
+            auth()->user()->hasAnyPermission(['full access to events', 'search for a document', 'full access'])
+        )
+            @php
+                // هذا الجزء يجب أن يكون معرّفًا مرة واحدة في بداية ملف الـ Blade
+                $isRTL = app()->getLocale() === 'ar';
+                $direction = $isRTL ? 'rtl' : 'ltr';
+                $paddingStart = $isRTL ? 'pr-4' : 'pl-4'; // المسافة في بداية النص
+                $paddingEnd = $isRTL ? 'pl-3' : 'pr-3';   // المسافة في نهاية النص
+                $textAlignment = $isRTL ? 'text-right' : 'text-left'; // محاذاة النص داخل الحقل
+            @endphp
+
+            <div class="relative flex-grow">
                 <input
                     name="query"
                     type="text"
-                    placeholder="أدخل الأسم أو رقم الهاتف أو البريد الإلكتروني الخاص بالمشارك أو امسح رمز QR"
+                    placeholder="{{ trans_db('show.event.search.placholder') }}"
                     required
-                    class="w-full sm:w-[600px] border border-gray-300 rounded-lg pl-12 pr-4 py-4 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-[9px] sm:text-base" {{-- تم تعديل هذا السطر --}}
+                    class="w-full border border-gray-300 rounded-lg
+               {{ $paddingStart }} {{ $paddingEnd }} py-2
+               focus:outline-none focus:ring-2 focus:ring-blue-400
+               text-xs sm:text-base {{ $textAlignment }}"
+                    dir="{{ $direction }}"
                 />
-
-                @if(!auth()->check() || auth()->user()->hasRole('eventor') || auth()->user()->hasAnyPermission([
-                'full access to events', 'search by qr code', 'full access'
-                ]))
-                    <i
-                        id="start-qr-btn"
-                        class="icon bi bi-qr-code absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-600 cursor-pointer"
-                    ></i>
-                @endif
             </div>
+        @endif
 
+        @if(!auth()->check() ||  auth()->user()->hasRole(['user', 'eventor']) || auth()->user()->hasAnyPermission([
+            'full access to events', 'search by qr code', 'full access'
+        ]))
+            <i
+                id="start-qr-btn"
+                class="icon bi bi-qr-code text-3xl sm:text-2xl text-gray-500 hover:text-blue-600 cursor-pointer p-2 sm:ml-2 mt-3 sm:mt-0 order-first sm:order-none"
+            ></i>
         @endif
 
         <button
             type="submit"
             class="w-full sm:w-auto mt-3 sm:mt-0 bg-blue-600 text-white rounded-lg px-4 py-2 sm:mr-2 hover:bg-blue-700"
         >
-            بحث
+            {{ trans_db('buttons.search') }}
         </button>
     </form>
 
@@ -180,10 +191,10 @@
                         <i class="fa-solid fa-envelope w-4 text-center"></i>
                         <span id="email">{{ $user->email }}</span>
                     </div>
-                    <div class="contact-item flex items-center gap-2 text-gray-600">
-                        <i class="fa-solid fa-certificate w-4 text-center"></i>
-                        <span id="certificate-label">شهادة الحضور</span>
-                    </div>
+{{--                    <div class="contact-item flex items-center gap-2 text-gray-600">--}}
+{{--                        <i class="fa-solid fa-certificate w-4 text-center"></i>--}}
+{{--                        <span id="certificate-label">شهادة الحضور</span>--}}
+{{--                    </div>--}}
                 </div>
 
                 <!-- قسم الأزرار مع السويتش الجديد -->
@@ -195,19 +206,19 @@
                                 id="print-btn"
                                 class="flex items-center gap-2 bg-purple-100 text-purple-700 py-2 px-4 rounded-lg hover:bg-purple-200 transition-colors">
                                 <i class="fa-solid fa-print"></i>
-                                <span id="print-btn">طباعة</span>
+                                <span id="print-btn">{{ trans_db('buttons.print') }}</span>
                             </button>
                             <button
                                 id="download-btn"
                                 class="flex items-center gap-2 bg-green-100 text-green-700 py-2 px-4 rounded-lg hover:bg-green-200 transition-colors">
                                 <i class="fa-solid fa-download"></i>
-                                <span id="download-btn">تنزيل</span>
+                                <span id="download-btn">{{ trans_db('buttons.download') }}</span>
                             </button>
                             <button
                                 onclick="previewFile('{{ asset('storage/' . optional($documents->first())->file_path) }}')"
                                 class="flex items-center gap-2 bg-blue-100 text-blue-700 py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors">
                                 <i class="fa-solid fa-eye"></i>
-                                <span>معاينة</span>
+                                <span>{{ trans_db('show.preview') }}</span>
                             </button>
                         </div>
                     @else
@@ -224,7 +235,7 @@
                     @if($enable_attendance)
                         <!-- ======================= السويتش الجديد ======================= -->
                         <div class="flex items-center gap-3" data-user-id="{{ $user->id }}">
-                            <span class="text-sm font-medium text-gray-700">تفعيل الحضور</span>
+                            <span class="text-sm font-medium text-gray-700">{{ trans_db('attendance_enable') }}</span>
                             <label for="toggle-{{ $user->id }}"
                                    class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="toggle-{{ $user->id }}"
@@ -257,13 +268,19 @@
     <div class="max-w-md mx-auto bg-red-50 border-l-4 border-red-500 rounded-lg p-5 shadow-sm">
         <div class="flex items-center gap-4">
             <!-- الأيقونة -->
-            <div>
-                <i class="fa-solid fa-circle-exclamation text-3xl text-red-500"></i>
-            </div>
             <!-- النصوص -->
-            <div>
-                <h3 class="font-bold text-red-800 text-lg">لم يتم العثور على المستخدم</h3>
-                <p class="text-red-700 mt-1">لا يوجد شخص بهذا الاسم. يرجى المحاولة مرة أخرى.</p>
+            @php
+                $isRTL = app()->getLocale() === 'ar';
+                $direction = $isRTL ? 'rtl' : 'ltr';
+                $textAlignment = $isRTL ? 'text-right' : 'text-left';
+            @endphp
+
+            <div dir="{{ $direction }}" class="{{ $textAlignment }} flex items-center {{ $isRTL ? 'flex-row-reverse' : '' }} gap-2">
+                <i class="fas fa-exclamation-triangle text-red-600"></i>
+                <div>
+                    <h3 class="font-bold text-red-800 text-lg">{{ trans_db('message.user.not.found') }}</h3>
+                    <p class="text-red-700 mt-1">{{ trans_db('description.user.not.found') }}</p>
+                </div>
             </div>
         </div>
     </div>
@@ -328,125 +345,138 @@
     @endif
 
     <!-- رأس الكارد -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
-        <h2 class="text-lg sm:text-xl font-semibold">اسم الحدث: {{ $event->title }}</h2>
-        <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
-
-            @if(@auth()->check() && @auth()->user()->hasAnyPermission([
-                'full access to events', 'full access', 'edit events'
-            ]))
-                <a href="{{ route('editEvent', $event->slug) }}">
-                    <button
-                        class="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition">
-                        <i class="fas fa-edit text-sm sm:text-base"></i>
-                        <span class="text-sm sm:text-base">تعديل الحدث</span>
-                    </button>
-                </a>
-            @endif
-
-            @if(@auth()->check() && @auth()->user()->hasAnyPermission([
-                'full access to events', 'full access', 'delete event'
-            ]))
-                <!-- زر حذف الحدث -->
-                <button
-                    onclick="openDeleteModal()"
-                    class="w-full sm:w-auto flex items-center justify-center gap-2 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 transition">
-                    <i class="fas fa-trash text-sm sm:text-base"></i>
-                    <span class="text-sm sm:text-base">حذف الحدث</span>
-                </button>
-            @endif
-
-        </div>
-    </div>
-
-    <!-- البطاقات الإحصائية -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-        <!-- بطاقة تاريخ الحدث -->
-        <div class="bg-blue-100 p-4 rounded-lg shadow hover:shadow-lg transition">
-            <h3 class="font-semibold mb-1 text-sm sm:text-base">تاريخ الحدث</h3>
-            {{--            <p class="text-gray-600 text-xs sm:text-sm mb-2">الوصف هنا</p>--}}
-            <div class="flex items-center justify-between">
-                <span class="text-base sm:text-lg font-bold">{{ $event->start_date }}</span>
-                <i class="fas fa-calendar-alt text-2xl sm:text-3xl text-blue-600"></i>
-            </div>
-        </div>
-        <!-- بطاقة عدد النماذج -->
-        <div class="bg-green-100 p-4 rounded-lg shadow hover:shadow-lg transition">
-            <h3 class="font-semibold mb-1 text-sm sm:text-base">عدد النماذج</h3>
-            {{--            <p class="text-gray-600 text-xs sm:text-sm mb-2">الوصف هنا</p>--}}
-            <div class="flex items-center justify-between">
-                <span class="text-2xl sm:text-3xl font-bold">{{ $templateCount }}</span>
-                <i class="fas fa-file-alt text-2xl sm:text-3xl text-green-600"></i>
-            </div>
-        </div>
-        <!-- بطاقة عدد الأعضاء -->
-        <div class="bg-purple-100 p-4 rounded-lg shadow hover:shadow-lg transition">
-            <h3 class="font-semibold mb-1 text-sm sm:text-base">عدد المشاركين</h3>
-            {{--            <p class="text-gray-600 text-xs sm:text-sm mb-2">الوصف هنا</p>--}}
-            <div class="flex items-center justify-between">
-                <span class="text-2xl sm:text-3xl font-bold">{{ $recipientCount }}</span>
-                <i class="fas fa-users text-2xl sm:text-3xl text-purple-600"></i>
-            </div>
-        </div>
-        <!-- بطاقة الحالة -->
         @php
-            $isExpired = \Carbon\Carbon::parse($event->end_date)->isPast();
+            $isRTL = app()->getLocale() === 'ar';
+            $direction = $isRTL ? 'rtl' : 'ltr';
+            $textAlignment = $isRTL ? 'text-right' : 'text-left';
+            $flexDirection = $isRTL ? 'flex-row-reverse' : 'flex-row';
         @endphp
 
-        <div class="bg-orange-100 p-4 rounded-lg shadow hover:shadow-lg transition">
-            <h3 class="font-semibold mb-1 text-sm sm:text-base">الحالة</h3>
-            <div class="flex items-center justify-between">
-                <span class="text-2xl sm:text-3xl font-bold">
-                    {{ $isExpired ? 'غير نشط' : 'نشط' }}
-                </span>
-                <i class="{{ $isExpired ? 'fas fa-ban text-red-600' : 'fas fa-running text-green-600' }} text-2xl sm:text-3xl"></i>
+        <div class="flex flex-col sm:flex-row {{ $isRTL ? 'sm:justify-between' : 'sm:justify-between' }} items-start sm:items-center mb-4 sm:mb-6 gap-3" dir="{{ $direction }}">
+            <h2 class="text-lg sm:text-xl font-semibold {{ $textAlignment }}">{{ $isRTL ? 'اسم الحدث: ' : 'Event Name: ' }}{{ $event->title }}</h2>
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto {{ $flexDirection }}">
+
+                @if(@auth()->check() && @auth()->user()->hasAnyPermission([
+                    'full access to events', 'full access', 'edit events'
+                ]))
+                    <a href="{{ route('editEvent', $event->slug) }}">
+                        <button
+                            class="w-full hidden sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition {{ $flexDirection }}">
+                            <i class="fas fa-edit text-sm sm:text-base {{ $isRTL ? 'ml-1' : 'mr-1' }}"></i>
+                            <span class="text-sm sm:text-base">{{ $isRTL ? 'تعديل الحدث' : 'Edit Event' }}</span>
+                        </button>
+                    </a>
+                @endif
+
+                @if(@auth()->check() && @auth()->user()->hasAnyPermission([
+                    'full access to events', 'full access', 'delete event'
+                ]))
+                    <button
+                        onclick="openDeleteModal()"
+                        class="w-full sm:w-auto flex items-center justify-center gap-2 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 transition {{ $flexDirection }}">
+                        <i class="fas fa-trash text-sm sm:text-base {{ $isRTL ? 'ml-1' : 'mr-1' }}"></i>
+                        <span class="text-sm sm:text-base">{{ $isRTL ? 'حذف الحدث' : 'Delete Event' }}</span>
+                    </button>
+                @endif
+
             </div>
         </div>
-    </div>
+
+    <!-- البطاقات الإحصائية -->
+        @php
+            $isRTL = app()->getLocale() === 'ar';
+            $direction = $isRTL ? 'rtl' : 'ltr';
+            $textAlignment = $isRTL ? 'text-right' : 'text-left';
+        @endphp
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6" dir="{{ $direction }}">
+            <div class="bg-blue-100 p-4 rounded-lg shadow hover:shadow-lg transition">
+                <h3 class="font-semibold mb-1 text-sm sm:text-base {{ $textAlignment }}">{{ trans_db('event.date') }}</h3>
+                <div class="flex items-center justify-between {{ $isRTL ? 'flex-row-reverse' : '' }}">
+                    <span class="text-base sm:text-lg font-bold">{{ $event->start_date }}</span>
+                    <i class="fas fa-calendar-alt text-2xl sm:text-3xl text-blue-600"></i>
+                </div>
+            </div>
+            <div class="bg-green-100 p-4 rounded-lg shadow hover:shadow-lg transition">
+                <h3 class="font-semibold mb-1 text-sm sm:text-base {{ $textAlignment }}">{{ trans_db('event.templates') }}</h3>
+                <div class="flex items-center justify-between {{ $isRTL ? 'flex-row-reverse' : '' }}">
+                    <span class="text-2xl sm:text-3xl font-bold">{{ $templateCount }}</span>
+                    <i class="fas fa-file-alt text-2xl sm:text-3xl text-green-600"></i>
+                </div>
+            </div>
+            <div class="bg-purple-100 p-4 rounded-lg shadow hover:shadow-lg transition">
+                <h3 class="font-semibold mb-1 text-sm sm:text-base {{ $textAlignment }}">{{ trans_db('event.participants') }}</h3>
+                <div class="flex items-center justify-between {{ $isRTL ? 'flex-row-reverse' : '' }}">
+                    <span class="text-2xl sm:text-3xl font-bold">{{ $recipientCount }}</span>
+                    <i class="fas fa-users text-2xl sm:text-3xl text-purple-600"></i>
+                </div>
+            </div>
+            @php
+                $isExpired = \Carbon\Carbon::parse($event->end_date)->isPast();
+            @endphp
+
+            <div class="bg-orange-100 p-4 rounded-lg shadow hover:shadow-lg transition">
+                <h3 class="font-semibold mb-1 text-sm sm:text-base {{ $textAlignment }}">{{ trans_db('event.status') }}</h3>
+                <div class="flex items-center justify-between {{ $isRTL ? 'flex-row-reverse' : '' }}">
+            <span class="text-2xl sm:text-3xl font-bold">
+                {{ $isRTL ? ($isExpired ? 'غير نشط' : 'نشط') : ($isExpired ? 'Inactive' : 'Active') }}
+            </span>
+                    <i class="{{ $isExpired ? 'fas fa-ban text-red-600' : 'fas fa-running text-green-600' }} text-2xl sm:text-3xl"></i>
+                </div>
+            </div>
+        </div>
 </section>
 
 <!-- عنوان تحت الكارد الرئيسي -->
-<div class="w-full mx-auto text-right mb-4 sm:mb-6 px-4 sm:px-6">
-    <h2 class="text-lg sm:text-xl font-semibold">النماذج المتاحة لهذا الحدث: </h2>
+@php
+    $isRTL = app()->getLocale() === 'ar';
+    $direction = $isRTL ? 'rtl' : 'ltr';
+    $textAlignment = $isRTL ? 'text-right' : 'text-left';
+@endphp
+
+<div class="w-full mx-auto {{ $textAlignment }} mb-4 sm:mb-6 px-4 sm:px-6" dir="{{ $direction }}">
+    <h2 class="text-lg sm:text-xl font-semibold">{{ $isRTL ? 'النماذج المتاحة لهذا الحدث' : 'Available Templates for This Event' }}</h2>
 </div>
 
+@php
+    $isRTL = app()->getLocale() === 'ar';
+    $direction = $isRTL ? 'rtl' : 'ltr';
+    $textAlignment = $isRTL ? 'text-right' : 'text-left';
+    $flexDirection = $isRTL ? 'flex-row-reverse' : 'flex-row';
+@endphp
+
 @foreach($templates as $template)
-    <!-- الكارد الموحد الجديد -->
-    <div class="w-full mx-auto bg-white rounded-lg p-4 sm:p-6 shadow-md mb-6 hover:shadow-lg transition">
-        <!-- صلاحية & تسجيل الحضور -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-            <h3 class="text-lg font-semibold">اسم النموذج: {{ $template->title }}</h3>
-            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                <div class="inline-flex items-center gap-1 border border-gray-300 rounded-md px-2 py-1">
+    <div class="w-full mx-auto bg-white rounded-lg p-4 sm:p-6 shadow-md mb-6 hover:shadow-lg transition" dir="{{ $direction }}">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3 {{ $isRTL ? 'sm:flex-row-reverse' : '' }}">
+            <h3 class="text-lg font-semibold {{ $textAlignment }}">{{ trans_db('template.name') }}: {{ $template->title }}</h3>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 {{ $isRTL ? 'sm:flex-row-reverse' : '' }}">
+                <div class="inline-flex items-center gap-1 border border-gray-300 rounded-md px-2 py-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
                     <i class="fas fa-key text-base sm:text-lg text-gray-600"></i>
                     <span class="text-sm sm:text-base font-medium">{{ $template->validity }}</span>
                 </div>
                 @if($enable_attendance)
                     <div id="attendance-status"
-                         class="inline-flex items-center gap-1 border border-gray-300 rounded-md px-2 py-1">
+                         class="inline-flex items-center gap-1 border border-gray-300 rounded-md px-2 py-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
                         @if(User::where('is_attendance', 1)->exists())
                             <i class="fas fa-check-circle text-base sm:text-lg text-green-600"></i>
                             <span class="text-sm sm:text-base font-medium text-green-700">
-            تسجيل الحضور: مفعل
-        </span>
+                                {{ trans_db('att.status.on') }}
+                            </span>
                         @else
                             <i class="fas fa-times-circle text-base sm:text-lg text-red-600"></i>
                             <span class="text-sm sm:text-base font-medium text-red-700">
-            تسجيل الحضور: غير مفعل
-        </span>
+                                {{ trans_db('attendance.status.off') }}
+                            </span>
                         @endif
                     </div>
-
                 @endif
-
             </div>
         </div>
-        <!-- تفعيل الكل يدوياً -->
+
         @if($enable_attendance)
             <div class="bg-gray-200 rounded-md p-4 mb-6">
-                <div class="flex justify-between items-center">
-                    <span class="text-sm sm:text-base font-medium">تفعيل حضور الكل يدوياً</span>
-
+                <div class="flex justify-between items-center {{ $isRTL ? 'flex-row-reverse' : '' }}">
+                    <span class="text-sm sm:text-base font-medium">{{ trans_db('attendance.manual_enable') }}</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox"
                                class="sr-only peer"
@@ -456,64 +486,44 @@
                                ->exists() ? 'checked' : '' }}>
                         <div class="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-green-600 transition"></div>
                         <div
-                            class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full peer-checked:translate-x-5 transition"></div>
+                            class="absolute {{ $isRTL ? 'right-1' : 'left-1' }} top-1 bg-white w-4 h-4 rounded-full peer-checked:translate-x-5 transition"></div>
                     </label>
                 </div>
             </div>
-
         @endif
-        <!-- تفاصيل الاتصال -->
+
         <div class="flex flex-col lg:flex-row justify-between items-start gap-6 mb-6">
-            <!-- جهة الاتصال 1 -->
-            <div class="flex items-start gap-3">
+            <div class="flex items-start gap-3 {{ $isRTL ? 'flex-row-reverse' : '' }}">
                 <div class="w-1 bg-blue-600 rounded h-20"></div>
-                <div class="flex flex-col">
-                    <h4 class="font-semibold mb-1 text-sm sm:text-base">المعلومات الخاصة بالوثيقة</h4>
-                    <span
-                        class="text-gray-500 text-xs sm:text-sm mb-2">توقيت إرسال الوثيقة: {{ $template->send_at }}</span>
-                    <div class="flex items-center gap-4">
-                        <div class="text-gray-500 text-xs sm:text-sm mb-2">طريقة إرسال الوثيقة:</div>
+                <div class="flex flex-col {{ $textAlignment }}">
+                    <h4 class="font-semibold mb-1 text-sm sm:text-base">{{ trans_db('template.info') }}</h4>
+                    <span class="text-gray-500 text-xs sm:text-sm mb-2">{{ trans_db('template.sent_at') }}: {{ $template->send_at }}</span>
+                    <div class="flex items-center gap-4 {{ $isRTL ? 'flex-row-reverse' : '' }}">
+                        <div class="text-gray-500 text-xs sm:text-sm mb-2">{{ trans_db('template.send_via') }}:</div>
                         @php
-                            $sendVia = $template->send_via; // هنفك JSON إلى array
+                            $sendVia = json_decode($template->send_via, true) ?? [];
                         @endphp
-
-
-                        <div class="flex flex-wrap items-center gap-4">
-                            {{--                            @php--}}
-                            {{--                                $sendVia = json_decode($template->send_via, true) ?? [];--}}
-                            {{--                            @endphp--}}
-
+                        <div class="flex flex-wrap items-center gap-4 {{ $isRTL ? 'flex-row-reverse' : '' }}">
                             @if(in_array('whatsapp', $sendVia))
-                                <div class="flex items-center gap-1">
+                                <div class="flex items-center gap-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
                                     <i class="fab fa-whatsapp text-2xl text-green-500"></i>
-                                    <span class="text-sm">واتساب</span>
+                                    <span class="text-sm">{{ trans_db('channels.whatsapp') }}</span>
                                 </div>
                             @endif
-
-                            {{--                            @php--}}
-                            {{--                                $sendVia = json_decode($template->send_via, true) ?? [];--}}
-                            {{--                            @endphp--}}
-
                             @if(in_array('email', $sendVia))
-                                <div class="flex items-center gap-1">
+                                <div class="flex items-center gap-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
                                     <i class="fas fa-envelope text-2xl text-red-500"></i>
-                                    <span class="text-sm">إيميل</span>
+                                    <span class="text-sm">{{ trans_db('channels.email') }}</span>
                                 </div>
                             @endif
-
-                            {{--                            @php--}}
-                            {{--                                $sendVia = json_decode($template->send_via, true) ?? [];--}}
-                            {{--                            @endphp--}}
-
                             @if(in_array('sms', $sendVia))
-                                <div class="flex items-center gap-1">
+                                <div class="flex items-center gap-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
                                     <i class="fas fa-sms text-2xl text-blue-500"></i>
-                                    <span class="text-sm">SMS</span>
+                                    <span class="text-sm">{{ trans_db('channels.sms') }}</span>
                                 </div>
                             @endif
-
                             @if(empty($sendVia))
-                                <span class="text-sm text-gray-400">لا توجد وسيلة إرسال مفعّلة</span>
+                                <span class="text-sm text-gray-400">{{ trans_db('send_via.none') }}</span>
                             @endif
                         </div>
                     </div>
@@ -521,31 +531,36 @@
             </div>
 
             @if($attendances)
-                <!-- جهة الاتصال 2 -->
                 @foreach($attendances as $attendance)
                     @php
-                        $sendViaAtt = $attendance->send_via;
+                        $sendViaAtt = json_decode($attendance->send_via, true) ?? [];
                     @endphp
-                    <div class="flex items-start gap-3">
+                    <div class="flex items-start gap-3 {{ $isRTL ? 'flex-row-reverse' : '' }}">
                         <div class="w-1 bg-blue-600 rounded h-20"></div>
-                        <div class="flex flex-col">
-                            <h4 class="font-semibold mb-1 text-sm sm:text-base">المعلومات الخاصة ببادج الحضور</h4>
-                            <span
-                                class="text-gray-500 text-xs sm:text-sm mb-2">توقيت إرسال بادج الحضور: {{ $attendance->send_at }}</span>
-                            <div class="flex items-center gap-4">
+                        <div class="flex flex-col {{ $textAlignment }}">
+                            <h4 class="font-semibold mb-1 text-sm sm:text-base">{{ trans_db('attendance.badge_info') }}</h4>
+                            <span class="text-gray-500 text-xs sm:text-sm mb-2">{{ trans_db('template.send_via') }}: {{ $attendance->send_at }}</span>
+                            <div class="flex items-center gap-4 {{ $isRTL ? 'flex-row-reverse' : '' }}">
                                 @if(in_array('whatsapp', $sendViaAtt))
-                                    <i class="fab fa-whatsapp text-2xl text-green-500"></i><span
-                                        class="text-sm">واتساب</span>
+                                    <div class="flex items-center gap-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
+                                        <i class="fab fa-whatsapp text-2xl text-green-500"></i>
+                                        <span class="text-sm">{{ trans_db('channels.whatsapp') }}</span>
+                                    </div>
                                 @endif
                                 @if(in_array('email', $sendViaAtt))
-                                    <i class="fas fa-envelope text-2xl text-red-500"></i><span
-                                        class="text-sm">ايميل</span>
+                                    <div class="flex items-center gap-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
+                                        <i class="fas fa-envelope text-2xl text-red-500"></i>
+                                        <span class="text-sm">{{ trans_db('channels.email') }}</span>
+                                    </div>
                                 @endif
                                 @if(in_array('sms', $sendViaAtt))
-                                    <i class="fas fa-sms text-2xl text-blue-500"></i><span class="text-sm">SMS</span>
+                                    <div class="flex items-center gap-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
+                                        <i class="fas fa-sms text-2xl text-blue-500"></i>
+                                        <span class="text-sm">{{ trans_db('channels.sms') }}</span>
+                                    </div>
                                 @endif
                                 @if(empty($sendViaAtt))
-                                    <span class="text-sm text-gray-400">لا توجد وسيلة إرسال مفعّلة</span>
+                                    <span class="text-sm text-gray-400">{{ trans_db('send_via.none') }}</span>
                                 @endif
                             </div>
                         </div>
@@ -553,54 +568,31 @@
                 @endforeach
             @endif
         </div>
-        <!-- أزرار أسفل الاتصال -->
+
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
-            {{--            @if($templateDataFile)--}}
-            {{--                <button--}}
-            {{--                    onclick="downloadFile('{{ asset('storage/' . $templateDataFile->file_path) }}')"--}}
-            {{--                    class="w-full flex justify-center items-center gap-2 px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300">--}}
-            {{--                    <i class="fas fa-download text-base sm:text-lg text-gray-700"></i>--}}
-            {{--                    <span class="text-xs sm:text-sm">ملف بيانات المشاركين الخاص بالوثيقة</span>--}}
-            {{--                </button>--}}
-            {{--            @endif--}}
-
-            {{--            <script>--}}
-            {{--                function downloadFile(url) {--}}
-            {{--                    const link = document.createElement('a');--}}
-            {{--                    link.href = url;--}}
-            {{--                    link.setAttribute('download', 'participants.xlsx'); // تقدر تغير الاسم--}}
-            {{--                    document.body.appendChild(link);--}}
-            {{--                    link.click();--}}
-            {{--                    document.body.removeChild(link);--}}
-            {{--                }--}}
-            {{--            </script>--}}
-
-
-            <button
-                class="w-full flex justify-center items-center gap-2 px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300">
-                <i class="fas fa-download text-base sm:text-lg text-gray-700"></i>
-                <span class="text-xs sm:text-sm">ملف بيانات التواصل</span>
-            </button>
-            <a href="{{ route('documents.download', ['template' => $template->id]) }}"
-               class="w-full flex justify-center items-center gap-2 px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300">
+{{--            <button class="w-full flex justify-center items-center gap-2 px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300 {{ $isRTL ? 'flex-row-reverse' : '' }}">--}}
+{{--                <i class="fas fa-download text-base sm:text-lg text-gray-700"></i>--}}
+{{--                <span class="text-xs sm:text-sm">{{ trans_db('buttons.download_contact_file') }}</span>--}}
+{{--            </button>--}}
+            <a href="{{ route('documents.download', ['template' => $template->id]) }}" class="w-full flex justify-center items-center gap-2 px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300 {{ $isRTL ? 'flex-row-reverse' : '' }}">
                 <i class="fas fa-file-alt text-base sm:text-lg text-gray-700"></i>
-                <span class="text-xs sm:text-sm">جميع الوثائق</span>
+                <span class="text-xs sm:text-sm">{{ trans_db('buttons.all_documents') }}</span>
             </a>
         </div>
-        <!-- أزرار المعاينة -->
-        <div class="flex flex-col sm:flex-row justify-start items-center gap-3 sm:gap-4 mt-4">
+
+        <div class="flex flex-col sm:flex-row justify-start items-center gap-3 sm:gap-4 mt-4 {{ $isRTL ? 'sm:flex-row-reverse' : '' }}">
             <button
                 onclick="previewFile('{{ asset('storage/' . optional($template->templateFiles->first())->file_path) }}')"
-                class="w-full sm:w-auto flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+                class="w-full sm:w-auto flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition {{ $isRTL ? 'flex-row-reverse' : '' }}">
                 <i class="fas fa-eye text-base sm:text-lg"></i>
-                <span class="text-sm sm:text-base">معاينة قالب الوثيقة</span>
+                <span class="text-sm sm:text-base">{{ trans_db('buttons.preview_document_template') }}</span>
             </button>
 
             <div id="image-popup" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50">
                 <div class="relative max-w-3xl max-h-screen">
                     <img id="popup-image" src="" alt="Popup Image" class="max-w-full max-h-full rounded-md shadow-lg">
                     <button onclick="closePopup()"
-                            class="absolute top-2 right-2 text-white text-3xl font-bold bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center transition hover:bg-gray-700">
+                            class="absolute top-2 {{ $isRTL ? 'left-2' : 'right-2' }} text-white text-3xl font-bold bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center transition hover:bg-gray-700">
                         &times;
                     </button>
                 </div>
@@ -608,9 +600,9 @@
 
             @if($event->is_attendance_enabled)
                 <button
-                    class="w-full sm:w-auto flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition">
+                    class="w-full sm:w-auto flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition {{ $isRTL ? 'flex-row-reverse' : '' }}">
                     <i class="fas fa-eye text-base sm:text-lg"></i>
-                    <span class="text-sm sm:text-base">معاينة قالب البادج</span>
+                    <span class="text-sm sm:text-base">{{ trans_db('buttons.preview_badge_template') }}</span>
                 </button>
             @endif
         </div>
@@ -957,6 +949,31 @@
             });
         }
     });
+</script>
+
+
+<script>
+
+    function openDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+    }
+
+    function confirmAndDelete() {
+        closeDeleteModal();
+        openPasswordModal();
+    }
+
+    function openPasswordModal() {
+        document.getElementById('passwordModal').classList.remove('hidden');
+    }
+
+    function closePasswordModal() {
+        document.getElementById('passwordModal').classList.add('hidden');
+    }
 </script>
 
 

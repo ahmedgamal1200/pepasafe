@@ -122,10 +122,11 @@ class DocumentController extends Controller
 
     public function calculateDocumentPrice(Request $request)
     {
+
+        $attendanceCharCount = (int) $request->input('attendance_char_count', 0);
+        $documentCharCount = (int) $request->input('document_char_count', 0);
+
         $count = (int) $request->count;
-        if ($count <= 0) {
-            return response()->json(['status' => 'error', 'message' => 'الرجاء تقديم عدد وثائق صالح.']);
-        }
 
         $user = Auth::user();
         $subscription = $user->subscription;
@@ -144,8 +145,35 @@ class DocumentController extends Controller
         $priceOutsidePlan = (float) $plan->document_price_outside_plan ?? 0;
         $planBalance = (float) $subscription->remaining; // الرصيد المالي في الباقة
         $walletBalance = (float) $subscription->balance; // رصيد المحفظة
+        $smsPriceInPlan = (float) $plan->sms_price_in_plan ?? 0;
 
-        \Log::info('Wallet balance is: '.$walletBalance);
+        // --- إضافة الجزء الجديد هنا لخصم عدد الأحرف ---
+        $totalCharCost = 0;
+        $charCostFromPlan = 0;
+        $charCostFromWallet = 0;
+
+        if ($attendanceCharCount > 0) {
+            $totalCharCost += $attendanceCharCount * $smsPriceInPlan;
+        }
+        if ($documentCharCount > 0) {
+            $totalCharCost += $documentCharCount * $priceInPlan;
+        }
+
+        if ($totalCharCost > 0) {
+            // خصم تكلفة الأحرف من رصيد الباقة أولاً
+            if ($planBalance >= $totalCharCost) {
+                $planBalance -= $totalCharCost;
+                $charCostFromPlan = $totalCharCost;
+            } else {
+                $remainingCharCost = $totalCharCost - $planBalance;
+                $charCostFromPlan = $planBalance;
+                $planBalance = 0;
+                // خصم الباقي من رصيد المحفظة
+                $walletBalance -= $remainingCharCost;
+                $charCostFromWallet = $remainingCharCost;
+            }
+        }
+        // --- نهاية الجزء الجديد ---
 
         // --- حساب التكلفة الإجمالية داخل الباقة ---
         $totalCost = $count * $priceInPlan;
@@ -159,6 +187,8 @@ class DocumentController extends Controller
                 'docs_count' => $count,
                 'total_cost' => $totalCost,
                 'plan_balance_after' => $remainingPlanBalance,
+                'char_cost_from_plan' => $charCostFromPlan, // تمت الإضافة
+                'char_cost_from_wallet' => $charCostFromWallet,
             ]);
         }
 
@@ -183,6 +213,8 @@ class DocumentController extends Controller
                 'extra_cost' => $extraCost,
                 'current_wallet_balance' => $walletBalance,
                 'wallet_balance_after' => $remainingWalletBalance,
+                'char_cost_from_plan' => $charCostFromPlan, // تمت الإضافة
+                'char_cost_from_wallet' => $charCostFromWallet,
             ]);
         }
 
@@ -190,7 +222,9 @@ class DocumentController extends Controller
         return response()->json([
             'status' => 'insufficient_funds',
             'message' => "رصيدك غير كافٍ. باقتك تغطي {$docsCoveredByPlan} وثيقة فقط. أنت بحاجة إلى {$extraCost} جنيه في محفظتك لتغطية الباقي، ورصيدك الحالي هو {$walletBalance} جنيه فقط.",
-        ]);
+            'char_cost_from_plan' => $charCostFromPlan, // تمت الإضافة
+            'char_cost_from_wallet' => $charCostFromWallet, // تمت الإضافة
+            ]);
     }
 
     public function downloadAll(DocumentTemplate $template)

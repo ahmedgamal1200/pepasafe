@@ -24,20 +24,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 // الجزء الخاص باظهار اسم الملف في جزء الحضور
-document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
     const fileInput = document.getElementById('badge-excel-input-2');
     const fileNameDisplay = document.getElementById('badge-file-name-display');
 
     fileInput.addEventListener('change', function () {
-        if (this.files.length > 0) {
-            // إظهار اسم الملف الأول فقط
-            fileNameDisplay.textContent = this.files[0].name;
-            fileNameDisplay.classList.remove('hidden');
-        } else {
-            // إخفاء العنصر إذا لم يتم اختيار أي ملف
-            fileNameDisplay.classList.add('hidden');
-        }
-    });
+    if (this.files.length > 0) {
+    // إظهار اسم الملف الأول فقط
+    fileNameDisplay.textContent = this.files[0].name;
+    fileNameDisplay.classList.remove('hidden');
+} else {
+    // إخفاء العنصر إذا لم يتم اختيار أي ملف
+    fileNameDisplay.classList.add('hidden');
+}
+});
 });
 
 
@@ -58,7 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-
+// استنساخ بطاقة جديدة
+let formCardCounter = 0; // **أضف هذا السطر في أعلى ملف JavaScript، خارج أي دالة.**
 
 
 (function() {
@@ -70,37 +71,130 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateNumbers() {
         container.querySelectorAll('.form-card').forEach((card, idx) => {
             const title = card.querySelector('h3');
-            if (title) title.textContent = `${window.i18n.form_count} ${idx + 1}`;
+            if (title) title.textContent = `نموذج ${idx + 1}`;
         });
     }
     updateNumbers();
 
-    // استنساخ بطاقة جديدة
+
+
+
+
     addBtn.addEventListener('click', () => {
+        formCardCounter++; // زيادة العداد لكل كارت جديد
+
         const clone = template.cloneNode(true);
-        // ارجع الحقول الافتراضية
+
+        // 1. إزالة الـ IDs لتجنب التعارض (كما هو موجود لديك)
+        clone.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
+
+        // 2. تحديث سمات 'name' و 'id' لتكون فريدة لكل كارت
+        clone.querySelectorAll('[name]').forEach(e => {
+            const originalName = e.getAttribute('name');
+            // هنا نقوم بتعديل اسم الحقل ليحتوي على الفهرس الجديد.
+            // مثلاً: document_title  تصبح  document_title[1] أو document_title_1
+            // اختر النمط الذي يناسب الباك إند الخاص بك.
+            // أنا أقترح استخدام نمط الأقواس `[]` إذا كان الباك إند يتوقع مصفوفة،
+            // أو استخدام `_` إذا كان يتوقع أسماء حقول منفصلة.
+            // للتبسيط ولأنك تستخدم `[]` في بعض الأسماء الأخرى، سأستخدم `_${formCardCounter}` كجزء من الاسم المؤقت الآن.
+            // سنتأكد لاحقًا من أن هذا يتوافق مع ما يتوقعه الباك إند في الحقول المخفية.
+
+            // For simple inputs like event_title, issuer, document_title
+            if (['event_title', 'issuer', 'document_title', 'attendance_send_at', 'attendance_message', 'attendance_message_char_count', 'attendance_validity', 'attendance_valid_from', 'attendance_valid_until', 'document_send_at', 'document_message', 'document_message_char_count', 'document_validity', 'valid_from', 'valid_until', 'recipient_file_path', 'template_data_file_path'].includes(originalName)) {
+                e.setAttribute('name', `${originalName}_${formCardCounter}`);
+                if (e.id) e.setAttribute('id', `${e.id}_${formCardCounter}`); // Update ID if it exists
+            }
+            // For array names like attendance_send_via[], document_send_via[]
+            else if (originalName.endsWith('[]')) {
+                // No change for array names, Laravel handles them well with arrays
+                // However, the *parent* structure needs to be unique.
+                // We'll manage this through the hidden input fields for canvas data.
+            }
+            // For file inputs like document_template_file_path[] and attendance_template_file_path[]
+            // and their corresponding side inputs.
+            // These will be handled specifically by renderDocumentCards/renderAttendanceCards and setupFileCard
+            // We'll give them a temporary unique ID for now.
+            if (e.classList.contains('file-input')) {
+                e.setAttribute('name', `file_input_${formCardCounter}`); // Temporary unique name
+                if (e.id) e.setAttribute('id', `${e.id}_${formCardCounter}`); // Update ID if it exists
+            } else if (e.classList.contains('side-input')) {
+                e.setAttribute('name', `side_input_${formCardCounter}`); // Temporary unique name
+                if (e.id) e.setAttribute('id', `${e.id}_${formCardCounter}`); // Update ID if it exists
+            }
+        });
+
+        // 3. تحديث الـ IDs في لوحات المحرر لـ 'attendance' و 'certificate'
+        // هذه اللوحات تحتاج إلى أن تكون فريدة لكل كارت
+        const attendanceEditorPanel = clone.querySelector('#attendance-text-editor-panel');
+        if (attendanceEditorPanel) {
+            attendanceEditorPanel.setAttribute('id', `attendance-text-editor-panel_${formCardCounter}`);
+            attendanceEditorPanel.querySelector('#attendance-text-content').setAttribute('id', `attendance-text-content_${formCardCounter}`);
+            attendanceEditorPanel.querySelector('#attendance-font-size').setAttribute('id', `attendance-font-size_${formCardCounter}`);
+            attendanceEditorPanel.querySelector('#attendance-font-color').setAttribute('id', `attendance-font-color_${formCardCounter}`);
+            attendanceEditorPanel.querySelector('#attendance-font-family').setAttribute('id', `attendance-font-family_${formCardCounter}`);
+        }
+
+        const certificateEditorPanel = clone.querySelector('#text-editor-panel'); // Note: This is '#text-editor-panel' in your HTML
+        if (certificateEditorPanel) {
+            certificateEditorPanel.setAttribute('id', `text-editor-panel_${formCardCounter}`);
+            certificateEditorPanel.querySelector('#text-content').setAttribute('id', `text-content_${formCardCounter}`);
+            certificateEditorPanel.querySelector('#font-size').setAttribute('id', `font-size_${formCardCounter}`);
+            certificateEditorPanel.querySelector('#font-color').setAttribute('id', `font-color_${formCardCounter}`);
+            certificateEditorPanel.querySelector('#font-family').setAttribute('id', `font-family_${formCardCounter}`);
+        }
+
+
+        // ارجع الحقول الافتراضية (كما هي)
         clone.querySelectorAll('input').forEach(i => {
-            if (i.type === 'text')     i.value   = '';
+            if (i.type === 'text') i.value = '';
             if (i.type === 'checkbox') i.checked = false;
         });
         clone.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
-        // شيل الـ id عشان تتجنّب التعارض
-        clone.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
 
-        // زرّ الحذف
+        // زرّ الحذف (كما هو)
         const header = clone.querySelector('.flex.justify-between.items-center.mb-4');
         const delBtn = document.createElement('button');
-        delBtn.type      = 'button';
+        delBtn.type = 'button';
         delBtn.className = 'text-red-600 hover:opacity-75 ml-2';
         delBtn.innerHTML = '<i class="fas fa-trash"></i>';
         delBtn.addEventListener('click', () => {
+            // عند حذف الكارد، يجب أن ننظف بيانات الكانفاس المرتبطة به
+            const formCardIdentifier = `form_card_${formCardCounter}`; // أو أي معرف فريد آخر للكارد الأب
+            // ... (هنا نحتاج لمنطق لتحديد المعرف الصحيح وتنظيف cardData)
             clone.remove();
             updateNumbers();
         });
         header.appendChild(delBtn);
 
         container.appendChild(clone);
-        updateNumbers();
+        updateNumbers(); // تحديث أرقام النماذج (نموذج 1، نموذج 2، إلخ)
+
+        // 4. استدعاء دوال التهيئة للكارت الجديد
+        initValidity(clone); // تهيئة صلاحية الشهادة/البادج
+        initPresenceCard(clone); // تهيئة بطاقة الحضور
+        toggleDatesForSelect(clone.querySelector('.cert-validity-new')); // تهيئة عرض التواريخ
+        updateUI(clone.querySelector('.toggle-presence')); // تهيئة زر التفعيل/التعطيل للحضور
+
+        // 5. تهيئة كتل المستندات والحضور داخل الكارت الجديد
+        // تحتاج هذه الدوال الآن لقبول الفهرس الجديد.
+        // يجب أن نقوم بتعديل تعريف هذه الدوال لتمرير formCardCounter
+        const docBlock = clone.querySelector('.form-block'); // كتلة الشهادة
+        const attendanceBlock = clone.querySelector('.presence-card .form-block'); // كتلة الحضور (داخل presence-card)
+
+        // التأكد من تهيئة بلوك الشهادات
+        if (docBlock) {
+            initDocumentBlock(docBlock, formCardCounter);
+        }
+
+        // التأكد من تهيئة بلوك الحضور
+        if (attendanceBlock) {
+            initAttendanceBlock(attendanceBlock, formCardCounter);
+        }
+
+
+        // تهيئة محرر النصوص للكانفاس الجديد (لا ينبغي أن يعتمد على activeCanvas)
+        // هذا الجزء من الكود يجب أن يتم استدعاؤه بعد تهيئة الكانفاس الفعلي في setupFileCard
+        // وسنعدله لاحقاً ليشمل formCardCounter
     });
 
 
@@ -235,13 +329,13 @@ function updateUI(input) {
     const track   = wrapper.querySelector('.toggle-track');
 
     if (input.checked) {
-        label.textContent = window.i18n.off_attendance;
+        label.textContent = 'إلغاء الحضور';
         label.classList.replace('text-blue-600', 'text-red-600');
         wrapper.classList.replace('border-blue-600', 'border-red-600');
         wrapper.classList.replace('bg-blue-100', 'bg-red-100');
         track.classList.replace('peer-checked:bg-blue-600', 'peer-checked:bg-red-600');
     } else {
-        label.textContent = window.i18n.on_attendance;
+        label.textContent = 'تفعيل الحضور';
         label.classList.replace('text-red-600', 'text-blue-600');
         wrapper.classList.replace('border-red-600', 'border-blue-600');
         wrapper.classList.replace('bg-red-100', 'bg-blue-100');
@@ -334,8 +428,7 @@ function getCardDataType(fileHub) {
     function updateNumbers() {
         container.querySelectorAll('.form-card').forEach((card, idx) => {
             const title = card.querySelector('h3');
-            if (title) title.textContent = `${window.i18n.form_count} ${idx + 1}`;
-
+            if (title) title.textContent = `نموذج ${idx + 1}`;
         });
     }
     updateNumbers();
@@ -469,13 +562,13 @@ function updateUI(input) {
     const track   = wrapper.querySelector('.toggle-track');
 
     if (input.checked) {
-        label.textContent = window.i18n.off_attendance;
+        label.textContent = 'إلغاء الحضور';
         label.classList.replace('text-blue-600', 'text-red-600');
         wrapper.classList.replace('border-blue-600', 'border-red-600');
         wrapper.classList.replace('bg-blue-100', 'bg-red-100');
         track.classList.replace('peer-checked:bg-blue-600', 'peer-checked:bg-red-600');
     } else {
-        label.textContent = window.i18n.on_attendance;
+        label.textContent = 'تفعيل الحضور';
         label.classList.replace('text-red-600', 'text-blue-600');
         wrapper.classList.replace('border-red-600', 'border-blue-600');
         wrapper.classList.replace('bg-red-100', 'bg-blue-100');
@@ -530,107 +623,67 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastPosY = 0;
 
     function getCardIdFromSideInput(sideInput) {
-        const fileInputName = sideInput.previousElementSibling.name;
-        const sideValue = sideInput.value;
-        return `${fileInputName}-${sideValue}`;
+        const fileInput = sideInput.previousElementSibling; // هذا هو الـ <input type="file">
+        if (!fileInput) {
+            console.error('File input (previousSibling) not found for side input:', sideInput);
+            return null;
+        }
+
+        const fileInputName = fileInput.name; // مثل attendance_template_file_path_1_front
+        const sideValue = sideInput.value;   // مثل front أو back
+
+        // استخدام Regular Expression لتحليل اسم fileInputName
+        // نتوقع صيغة مثل: [نوع_القالب]_template_file_path_[رقم_الكارد]_[الجانب]
+        const match = fileInputName.match(/^(attendance|document)_template_file_path_(\d+)_(front|back)$/);
+
+        if (!match) {
+            console.error('Could not parse fileInputName to get card index and side:', fileInputName);
+            return null;
+        }
+
+        const fileType = match[1]; // 'attendance' أو 'document'
+        const formCardIndex = match[2]; // رقم الكارت، مثل '1'
+        // const parsedSide = match[3]; // الجانب من اسم الملف، مثل 'front'
+
+        // بناء cardIdentifier بالصيغة الجديدة
+        // لاحظ أن `_template_file_path` تصبح `_template_data_file_path` في المعرف
+        // وأن `-` يفصل بين الفهرس والجانب
+        const basePrefix = `${fileType}_template_data_file_path`;
+        return `${basePrefix}_${formCardIndex}-${sideValue}`;
     }
 
     function getCardIdFromSpecificCanvas(canvas) {
-        for (const id in cardData) {
-            if (cardData[id].fabricCanvas === canvas) return id;
+        // التحقق أولاً في certificateCardData
+        for (const formCardIndex in certificateCardData) {
+            if (certificateCardData.hasOwnProperty(formCardIndex)) {
+                for (const side in certificateCardData[formCardIndex]) {
+                    if (certificateCardData[formCardIndex].hasOwnProperty(side)) {
+                        if (certificateCardData[formCardIndex][side].fabricCanvas === canvas) {
+                            // بناء cardIdentifier بالصيغة الصحيحة
+                            return `document_template_file_path_${formCardIndex}-${side}`;
+                        }
+                    }
+                }
+            }
         }
+
+        // إذا لم يتم العثور عليه، تحقق في attendanceCardData
+        for (const formCardIndex in attendanceCardData) {
+            if (attendanceCardData.hasOwnProperty(formCardIndex)) {
+                for (const side in attendanceCardData[formCardIndex]) {
+                    if (attendanceCardData[formCardIndex].hasOwnProperty(side)) {
+                        if (attendanceCardData[formCardIndex][side].fabricCanvas === canvas) {
+                            // بناء cardIdentifier بالصيغة الصحيحة
+                            return `attendance_template_data_file_path_${formCardIndex}-${side}`;
+                        }
+                    }
+                }
+            }
+        }
+
         return null;
     }
 
-    // function saveITextObjectsFromSpecificCanvas(canvas, cardId, allCardData) {
-    //     if (!canvas || !canvas.getObjects) {
-    //         console.warn(`Cannot save objects: Invalid canvas for cardId ${cardId}`);
-    //         return;
-    //     }
-    //     if (!allCardData || typeof allCardData !== 'object') {
-    //         console.error(`Cannot save objects: Invalid allCardData provided for cardId ${cardId}`);
-    //         return;
-    //     }
-    //     if (!allCardData[cardId]) {
-    //         allCardData[cardId] = { objects: [], fabricCanvas: canvas };
-    //     }
-    //
-    //     const objects = canvas.getObjects().filter(obj => obj.selectable && (obj.type === 'i-text' || obj.type === 'qr-code')).map(obj => {
-    //         const baseProps = {
-    //             type: obj.type,
-    //             left: obj.left,
-    //             top: obj.top,
-    //             scaleX: obj.scaleX || 1,
-    //             scaleY: obj.scaleY || 1,
-    //             angle: obj.angle || 0
-    //         };
-    //         if (obj.type === 'i-text') {
-    //             return {
-    //                 ...baseProps,
-    //                 text: obj.text,
-    //                 fontFamily: obj.fontFamily || 'Arial',
-    //                 fontSize: obj.fontSize || 20,
-    //                 fill: obj.fill || '#000000',
-    //                 textBaseline: obj.textBaseline && ['top', 'middle', 'bottom'].includes(obj.textBaseline) ? obj.textBaseline : 'top',
-    //                 textAlign: obj.textAlign || 'left',
-    //                 fontWeight: obj.fontWeight || 'normal',
-    //                 zIndex: obj.zIndex || 1
-    //             };
-    //         } else if (obj.type === 'qr-code') {
-    //             return {
-    //                 ...baseProps,
-    //                 subtype: obj.subtype,
-    //                 width: obj.width * (obj.scaleX || 1),
-    //                 height: obj.height * (obj.scaleY || 1)
-    //             };
-    //         }
-    //     });
-    //
-    //     allCardData[cardId].objects = objects;
-    //     allCardData[cardId].canvasWidth = canvas.width;
-    //     allCardData[cardId].canvasHeight = canvas.height;
-    //
-    //     console.log(`Saved ${objects.length} objects for ${cardId}:`, objects);
-    //
-    //     let inputFieldName;
-    //     let expectedPrefix;
-    //     if (cardId.includes('attendance_template_data_file_path')) {
-    //         inputFieldName = 'attendance_text_data';
-    //         expectedPrefix = 'attendance_template_data_file_path';
-    //     } else if (cardId.includes('document_template_file_path')) {
-    //         inputFieldName = 'certificate_text_data';
-    //         expectedPrefix = 'document_template_file_path';
-    //     } else {
-    //         console.error(`Unknown cardId type: ${cardId}. Cannot determine input field name.`);
-    //         return;
-    //     }
-    //
-    //     const inputField = document.querySelector(`input[name="${inputFieldName}"]`);
-    //     if (!inputField) {
-    //         console.error(`Input field ${inputFieldName} not found`);
-    //         return;
-    //     }
-    //
-    //     let currentInputData = {};
-    //     try {
-    //         if (inputField.value) {
-    //             currentInputData = JSON.parse(inputField.value);
-    //         }
-    //     } catch (e) {
-    //         console.error(`Error parsing existing ${inputFieldName} JSON for saving:`, e);
-    //     }
-    //
-    //     currentInputData = {
-    //         [cardId]: {
-    //             canvasWidth: allCardData[cardId].canvasWidth,
-    //             canvasHeight: allCardData[cardId].canvasHeight,
-    //             objects: allCardData[cardId].objects
-    //         }
-    //     };
-    //
-    //     inputField.value = JSON.stringify(currentInputData);
-    //     console.log(`Value set to ${inputFieldName} input (after saveITextObjects):`, inputField.value);
-    // }
 
 
     function saveITextObjectsFromSpecificCanvas(canvas, cardId, allCardData) {
@@ -731,29 +784,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    function restoreITextObjectsOnSpecificCanvas(specificCanvas, cardIdentifier, allCardData) {
+    // تم تحديث توقيع الدالة ليعكس أننا لا نمرر allCardData مباشرة بنفس الطريقة
+// بل نستخدمها كمرجع للبيانات العامة إذا لزم الأمر
+    function restoreITextObjectsOnSpecificCanvas(specificCanvas, cardIdentifier, allCardDataParent) {
         if (!specificCanvas || !(specificCanvas instanceof fabric.Canvas)) {
             console.error(`Invalid canvas for ${cardIdentifier}`);
             return;
         }
 
-        let inputFieldName;
-        if (cardIdentifier.includes('attendance_template_data_file_path')) {
-            inputFieldName = 'attendance_text_data';
-        } else if (cardIdentifier.includes('document_template_file_path')) {
-            inputFieldName = 'certificate_text_data';
-        } else {
-            console.error(`Unknown cardIdentifier type: ${cardIdentifier}. Cannot determine input field name for restoration.`);
+        // استخراج formCardIndex والجانب من cardIdentifier
+        const parts = cardIdentifier.split(/_(.+)/);
+        const prefix = parts[0];
+        const indexAndSide = parts[1];
+
+        const formCardIndexMatch = indexAndSide.match(/(\d+)-(.+)/);
+        if (!formCardIndexMatch) {
+            console.error('Invalid cardIdentifier format for restoration:', cardIdentifier);
             return;
+        }
+        const currentFormCardIndex = parseInt(formCardIndexMatch[1]);
+        const currentSide = formCardIndexMatch[2];
+
+
+        let inputFieldName;
+        const isAttendance = cardIdentifier.includes('attendance_template_data_file_path');
+        if (isAttendance) {
+            inputFieldName = 'attendance_text_data';
+        } else {
+            inputFieldName = 'certificate_text_data';
         }
 
         const inputField = document.querySelector(`input[name="${inputFieldName}"]`);
         if (!inputField) {
-            console.warn(`Input field ${inputFieldName} not found for restoration.`);
-            if (allCardData && allCardData[cardIdentifier] && allCardData[cardIdentifier].objects && allCardData[cardIdentifier].objects.length > 0) {
-                console.log(`Restoring from allCardData as input field not found for ${cardIdentifier}`);
-                restoreObjectsFromData(specificCanvas, allCardData[cardIdentifier].objects);
-            }
+            console.warn(`Input field ${inputFieldName} not found for restoration for card ${currentFormCardIndex}, side ${currentSide}.`);
+            // إذا لم يتم العثور على حقل الإدخال، ولم تكن هناك بيانات في الهيكل المتداخل
+            // قد نحتاج للتعامل مع الحالة التي لا توجد فيها بيانات محفوظة
             return;
         }
 
@@ -763,19 +828,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 storedData = JSON.parse(inputField.value);
             }
         } catch (e) {
-            console.error(`Error parsing existing ${inputFieldName} JSON for restoration:`, e);
+            console.error(`Error parsing existing ${inputFieldName} JSON for restoration for card ${currentFormCardIndex}, side ${currentSide}:`, e);
             storedData = {};
         }
 
-        const objectsToRestore = storedData[cardIdentifier] ? storedData[cardIdentifier].objects : [];
+        // ⭐⭐ هنا التعديل الجوهري: الوصول إلى البيانات المخزنة بالهيكل المتداخل الجديد ⭐⭐
+        const cardDataForRestore = storedData[currentFormCardIndex] ? storedData[currentFormCardIndex][currentSide] : null;
 
-        if (objectsToRestore.length === 0) {
-            console.log(`No objects to restore for ${cardIdentifier} from ${inputFieldName}.`);
+        if (!cardDataForRestore) {
+            console.log(`No stored data found for card ${currentFormCardIndex}, side ${currentSide} from ${inputFieldName}.`);
             return;
         }
 
-        console.log(`Restoring ${objectsToRestore.length} objects for ${cardIdentifier} from ${inputFieldName}`);
+        const textsToRestore = cardDataForRestore.texts || [];
+        const qrCodesToRestore = cardDataForRestore.qrCodes || [];
+        const objectsToRestore = [...textsToRestore, ...qrCodesToRestore];
 
+
+        if (objectsToRestore.length === 0) {
+            console.log(`No objects (texts or QR codes) to restore for card ${currentFormCardIndex}, side ${currentSide} from ${inputFieldName}.`);
+            return;
+        }
+
+        console.log(`Restoring ${objectsToRestore.length} objects for card ${currentFormCardIndex}, side ${currentSide} from ${inputFieldName}`);
+
+        // إزالة الكائنات الحالية القابلة للتحديد قبل الاستعادة
         specificCanvas.remove(...specificCanvas.getObjects().filter(obj => obj.selectable));
 
         function restoreObjectsFromData(canvas, objectsData) {
@@ -800,13 +877,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     canvas.add(textObject);
                 } else if (data.type === 'qr-code') {
-                    const qrImageUrl = '/assets/qr-code.jpg'; // استبدل برابط QR الفعلي من الخلفية
+                    const qrImageUrl = '/assets/qr-code.jpg'; // استخدم هذا المسار
                     fabric.Image.fromURL(qrImageUrl, (img) => {
+                        if (!img) {
+                            console.error(`Failed to load QR code image for object ID: ${data.id}`);
+                            return;
+                        }
                         img.set({
+                            id: data.id, // تأكد من استعادة الـ ID
                             left: data.left,
                             top: data.top,
-                            scaleX: data.scaleX || 0.3, // تصغير الحجم
-                            scaleY: data.scaleY || 0.3, // تصغير الحجم
+                            scaleX: data.scaleX || 0.3,
+                            scaleY: data.scaleY || 0.3,
                             angle: data.angle,
                             selectable: true,
                             hasControls: true,
@@ -816,11 +898,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             height: data.height || 100
                         });
                         canvas.add(img);
-                        canvas.renderAll();
+                        canvas.renderAll(); // أعد الرسم بعد إضافة كل QR code
                     }, { crossOrigin: 'Anonymous' });
                 }
             });
-            canvas.renderAll();
+            canvas.renderAll(); // أعد الرسم مرة أخيرة بعد إضافة جميع الكائنات
         }
 
         restoreObjectsFromData(specificCanvas, objectsToRestore);
@@ -838,17 +920,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function initializeTemplateCanvas(canvasElement, imageUrl, cardIdentifier) {
+    // قم بتحديث تعريف الدالة لتقبل formCardIndex و currentSide و cardDataSource
+    function initializeTemplateCanvas(canvasElement, imageUrl, cardIdentifier, cardDataSource) {
         if (!canvasElement) {
-            console.error('Canvas element not provided or found.');
+            console.error('Canvas element not provided or found for cardIdentifier:', cardIdentifier);
             return;
         }
 
-        // تأكد من أن cardData موجود ككائن عام (يجب أن يكون معرّفاً في النطاق العام)
+        // استخراج formCardIndex والجانب من cardIdentifier
+        const parts = cardIdentifier.split(/_(.+)/);
+        const prefix = parts[0];
+        const indexAndSide = parts[1];
 
-        if (cardData[cardIdentifier] && cardData[cardIdentifier].fabricCanvas) {
-            cardData[cardIdentifier].fabricCanvas.dispose();
-            cardData[cardIdentifier].fabricCanvas = null;
+        const formCardIndexMatch = indexAndSide.match(/(\d+)-(.+)/);
+        if (!formCardIndexMatch) {
+            console.error('Invalid cardIdentifier format:', cardIdentifier);
+            return;
+        }
+        const currentFormCardIndex = parseInt(formCardIndexMatch[1]);
+        const currentSide = formCardIndexMatch[2];
+
+
+        // الوصول إلى الكائن الصحيح في الهيكل المتداخل
+        // هذا الكائن يحتوي على fabricCanvas، objects، imageUrl
+        const cardDataEntry = cardDataSource[currentFormCardIndex][currentSide];
+
+
+        if (cardDataEntry && cardDataEntry.fabricCanvas) {
+            cardDataEntry.fabricCanvas.dispose();
+            cardDataEntry.fabricCanvas = null;
         }
 
         const rect = canvasElement.getBoundingClientRect();
@@ -881,82 +981,74 @@ document.addEventListener('DOMContentLoaded', () => {
             height: finalCanvasHeight,
             preserveObjectStacking: true
         });
-        currentCanvas.cardIdentifier = cardIdentifier;
+        currentCanvas.cardIdentifier = cardIdentifier; // الاحتفاظ به كخاصية لتسهيل التتبع
 
-        cardData[cardIdentifier] = cardData[cardIdentifier] || {};
-        cardData[cardIdentifier].fabricCanvas = currentCanvas;
+        // ربط الكانفاس الجديد بالكائن الصحيح في الهيكل المتداخل
+        cardDataEntry.fabricCanvas = currentCanvas;
 
-        // تعيين الكانفاس النشط
+        // تعيين الكانفاس النشط عند التفاعل معه
         currentCanvas.on('mouse:down', function() {
-            activeCanvas = this;
+            activeCanvas = this; // تحديث activeCanvas
             console.log(`Mouse down, activeCanvas set to: ${this.cardIdentifier}`);
+            // تحديث محرر النصوص للكارت النشط
+            updateTextEditorForActiveCanvas(currentFormCardIndex, currentSide);
         });
 
-        // إعداد محرر النصوص
+        // ----------------------------------------------------------------------
+        // إعداد محرر النصوص (تعديل selectors للبحث عن IDs الفريدة)
+        // ----------------------------------------------------------------------
         const isAttendance = cardIdentifier.includes('attendance_template_data_file_path');
-        const editorPanelId = isAttendance ? 'attendance-text-editor-panel' : 'text-editor-panel';
-        const textEditorPanel = document.getElementById(editorPanelId);
-        const textContent = document.getElementById(isAttendance ? 'attendance-text-content' : 'text-content');
-        const fontSize = document.getElementById(isAttendance ? 'attendance-font-size' : 'font-size');
-        const fontColor = document.getElementById(isAttendance ? 'attendance-font-color' : 'font-color');
-        const fontFamily = document.getElementById(isAttendance ? 'attendance-font-family' : 'font-family');
+        const editorPanelPrefix = isAttendance ? 'attendance-text-editor-panel' : 'text-editor-panel';
+        const textContentPrefix = isAttendance ? 'attendance-text-content' : 'text-content';
+        const fontSizePrefix = isAttendance ? 'attendance-font-size' : 'font-size';
+        const fontColorPrefix = isAttendance ? 'attendance-font-color' : 'font-color';
+        const fontFamilyPrefix = isAttendance ? 'attendance-font-family' : 'font-family';
 
-        // دالة لتحديث النص المحدد
-        function updateSelectedText() {
-            if (!activeCanvas) return;
+        // البحث عن العناصر باستخدام IDs الفريدة
+        const textEditorPanel = document.getElementById(`${editorPanelPrefix}_${currentFormCardIndex}`);
+        const textContent = document.getElementById(`${textContentPrefix}_${currentFormCardIndex}`);
+        const fontSize = document.getElementById(`${fontSizePrefix}_${currentFormCardIndex}`);
+        const fontColor = document.getElementById(`${fontColorPrefix}_${currentFormCardIndex}`);
+        const fontFamily = document.getElementById(`${fontFamilyPrefix}_${currentFormCardIndex}`);
+
+
+        // دالة لتحديث محرر النصوص بناءً على الكانفاس النشط والكائن المحدد
+        function updateTextEditorControls() {
+            if (!activeCanvas || activeCanvas.cardIdentifier !== cardIdentifier) return; // تأكد أن المحرر يخص الكانفاس النشط
             const activeObject = activeCanvas.getActiveObject();
-            if (activeObject && activeObject.type === 'i-text') {
-                if (textContent.value) activeObject.set('text', textContent.value);
-                activeObject.set({
-                    fontSize: parseInt(fontSize.value) || 20,
-                    fill: fontColor.value,
-                    fontFamily: fontFamily.value
-                });
-                activeCanvas.renderAll();
-                saveITextObjectsFromSpecificCanvas(activeCanvas, activeCanvas.cardIdentifier, cardData);
-            }
-        }
-
-        // ربط مستمعات الأحداث للمحرر
-        if (textContent) textContent.addEventListener('input', updateSelectedText);
-        if (fontSize) fontSize.addEventListener('change', updateSelectedText);
-        if (fontColor) fontColor.addEventListener('input', updateSelectedText);
-        if (fontFamily) fontFamily.addEventListener('change', updateSelectedText);
-
-        // مستمعات الكانفاس لتحديث المحرر
-        currentCanvas.on('selection:created', () => {
-            const activeObject = currentCanvas.getActiveObject();
             if (activeObject && activeObject.type === 'i-text' && textEditorPanel) {
                 textContent.value = activeObject.text || '';
                 fontSize.value = activeObject.fontSize || 20;
                 fontColor.value = activeObject.fill || '#000000';
                 fontFamily.value = activeObject.fontFamily || 'Arial';
                 textEditorPanel.classList.remove('hidden');
-            }
-        });
-
-        currentCanvas.on('selection:updated', () => {
-            const activeObject = currentCanvas.getActiveObject();
-            if (activeObject && activeObject.type === 'i-text' && textEditorPanel) {
-                textContent.value = activeObject.text || '';
-                fontSize.value = activeObject.fontSize || 20;
-                fontColor.value = activeObject.fill || '#000000';
-                fontFamily.value = activeObject.fontFamily || 'Arial';
-                textEditorPanel.classList.remove('hidden');
-            }
-        });
-
-        currentCanvas.on('selection:cleared', () => {
-            if (textEditorPanel) {
+            } else if (textEditorPanel) {
                 textEditorPanel.classList.add('hidden');
+                // مسح قيم المحرر عند عدم تحديد أي نص
                 textContent.value = '';
                 fontSize.value = 20;
                 fontColor.value = '#000000';
                 fontFamily.value = 'Arial';
             }
-        });
+        }
 
-        const imageUrlToLoad = cardData[cardIdentifier].imageUrl || imageUrl;
+
+        // ربط مستمعات الأحداث للمحرر (للكانفاس المحدد)
+        if (textContent) textContent.addEventListener('input', updateTextEditorControls);
+        if (fontSize) fontSize.addEventListener('change', updateTextEditorControls);
+        if (fontColor) fontColor.addEventListener('input', updateTextEditorControls);
+        if (fontFamily) fontFamily.addEventListener('change', updateTextEditorControls);
+
+        // مستمعات الكانفاس لتحديث المحرر
+        currentCanvas.on('selection:created', updateTextEditorControls);
+        currentCanvas.on('selection:updated', updateTextEditorControls);
+        currentCanvas.on('selection:cleared', updateTextEditorControls);
+        currentCanvas.on('object:modified', updateTextEditorControls); // تحديث المحرر عند تعديل الكائن
+
+        // ----------------------------------------------------------------------
+        // تحميل الصورة الخلفية واستعادة الكائنات
+        // ----------------------------------------------------------------------
+        const imageUrlToLoad = cardDataEntry.imageUrl || imageUrl;
 
         fabric.Image.fromURL(imageUrlToLoad, function(img) {
             const scaleX = finalCanvasWidth / img.width;
@@ -975,18 +1067,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 absolutePositioned: true
             });
 
-            restoreITextObjectsOnSpecificCanvas(currentCanvas, cardIdentifier, cardData);
+            // استعادة الكائنات من البيانات المحفوظة
+            restoreITextObjectsOnSpecificCanvas(currentCanvas, cardIdentifier, cardDataSource);
             currentCanvas.renderAll();
         }, { crossOrigin: 'Anonymous' });
 
         // --------------------------------------------------------------------------------
-        // منطق السحب والإفلات المعدّل (ليدعم I-Text و QR Code)
+        // منطق السحب والإفلات المعدّل (ليدعم I-Text و QR Code) - يحتاج إلى تحديثات بسيطة
         // --------------------------------------------------------------------------------
 
         currentCanvas.on('mouse:down', function(opt) {
             const evt = opt.e;
             const target = opt.target;
-            // التعديل 1: دعم QR Code في mouse:down
             if (target && (target.type === 'i-text' || target.type === 'qr-code')) {
                 isDragging = true;
                 currentlyDraggedFabricObject = target;
@@ -1028,24 +1120,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.addEventListener('mouseup', (evt) => {
-            // تصحيح خطأ targetCanvas is not defined (تحديد النطاق)
             let targetCanvas = null;
-            let targetCardId = null;
+            let targetCardId = null; // This will now be cardIdentifier for the target
+            let targetFormCardIndex = null;
+            let targetSide = null;
 
             if (isDragging && currentlyDraggedFabricObject) {
                 // تحديد الكانفاس المستهدف
-                for (const id in cardData) {
-                    const canvasInstance = cardData[id].fabricCanvas;
-                    if (canvasInstance && canvasInstance.getElement() &&
-                        canvasInstance.getElement().offsetWidth > 0 &&
-                        canvasInstance.getElement().offsetHeight > 0) {
-                        if (isMouseInsideCanvas(canvasInstance, evt)) {
+                // هنا نحتاج إلى تكرار على `certificateCardData` و `attendanceCardData`
+                // للبحث عن الكانفاس الصحيح
+                for (const fIdx in certificateCardData) {
+                    for (const sideKey in certificateCardData[fIdx]) {
+                        const canvasInstance = certificateCardData[fIdx][sideKey].fabricCanvas;
+                        if (canvasInstance && isMouseInsideCanvas(canvasInstance, evt)) {
                             targetCanvas = canvasInstance;
-                            targetCardId = id;
+                            targetCardId = canvasInstance.cardIdentifier;
+                            targetFormCardIndex = parseInt(fIdx);
+                            targetSide = sideKey;
                             break;
                         }
                     }
+                    if (targetCanvas) break;
                 }
+
+                if (!targetCanvas) { // إذا لم يتم العثور في الشهادات، ابحث في الحضور
+                    for (const fIdx in attendanceCardData) {
+                        for (const sideKey in attendanceCardData[fIdx]) {
+                            const canvasInstance = attendanceCardData[fIdx][sideKey].fabricCanvas;
+                            if (canvasInstance && isMouseInsideCanvas(canvasInstance, evt)) {
+                                targetCanvas = canvasInstance;
+                                targetCardId = canvasInstance.cardIdentifier;
+                                targetFormCardIndex = parseInt(fIdx);
+                                targetSide = sideKey;
+                                break;
+                            }
+                        }
+                        if (targetCanvas) break;
+                    }
+                }
+
 
                 if (targetCanvas && targetCanvas !== startDragCanvas) {
                     // منطق الإفلات الناجح على كانفاس آخر
@@ -1053,24 +1166,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     startDragCanvas.remove(currentlyDraggedFabricObject);
                     // حفظ التغييرات على الكانفاس الأصلي (الحذف)
-                    if (cardData[startDragCanvas.cardIdentifier]) {
-                        saveITextObjectsFromSpecificCanvas(startDragCanvas, startDragCanvas.cardIdentifier, cardData);
-                    }
+                    // يجب أن نستخدم saveITextObjectsFromSpecificCanvas المعدلة
+                    // وأن نمرر `cardDataSource` الصحيح
+                    const startCanvasIsAttendance = startDragCanvas.cardIdentifier.includes('attendance_template_data_file_path');
+                    const startCanvasDataSource = startCanvasIsAttendance ? attendanceCardData : certificateCardData;
+                    saveITextObjectsFromSpecificCanvas(startDragCanvas, startDragCanvas.cardIdentifier, startCanvasDataSource);
+
 
                     if (currentlyDraggedFabricObject.type === 'qr-code') {
-
                         // 💥 التعديل الأهم لحل مشكلة تكرار QR Code (حذف القديم قبل إضافة الجديد)
                         targetCanvas.getObjects().filter(obj => obj.type === 'qr-code').forEach(qr => {
                             targetCanvas.remove(qr);
                         });
 
                         const qrImageUrl = '/assets/qr-code.jpg';
-                        const originalObject = currentlyDraggedFabricObject; // حفظ مرجع
-                        const targetCard = targetCardId;
+                        const originalObject = currentlyDraggedFabricObject;
+                        const targetCardIdForSave = targetCardId; // المعرف الكامل للهدف
+                        const targetDataSource = targetCardId.includes('attendance') ? attendanceCardData : certificateCardData;
 
-                        // إنشاء كائن QR Code جديد بشكل غير متزامن
                         fabric.Image.fromURL(qrImageUrl, (img) => {
-                            // التحقق من نجاح التحميل أولاً (يحل مشكلة الاختفاء عند فشل التحميل)
                             if (!img) {
                                 console.error('Failed to load QR code image for drag and drop. Reverting drag.');
                                 return;
@@ -1088,7 +1202,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 subtype: originalObject.subtype,
                                 width: originalObject.width,
                                 height: originalObject.height,
-                                id: `qr_${Math.random().toString(36).substr(2, 9)}` // ID فريد
+                                id: `qr_${targetFormCardIndex}_${targetSide}_${Math.random().toString(36).substr(2, 5)}` // ID فريد ومميز للهدف
                             });
 
                             targetCanvas.add(img);
@@ -1097,17 +1211,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             targetCanvas.renderAll();
 
                             // حفظ التغييرات على الكانفاس الهدف (الإضافة)
-                            if (cardData[targetCard]) {
-                                saveITextObjectsFromSpecificCanvas(targetCanvas, targetCard, cardData);
-                            }
-                            console.log(`تم إفلات QR Code على ${targetCard} في (${pointer.x}, ${pointer.y})`);
+                            saveITextObjectsFromSpecificCanvas(targetCanvas, targetCardIdForSave, targetDataSource);
+                            console.log(`تم إفلات QR Code على ${targetCardIdForSave} في (${pointer.x}, ${pointer.y})`);
                         }, { crossOrigin: 'Anonymous' }, (err) => {
-                            // معالج خطأ مخصص للتحميل
                             console.error('Error loading QR code during drag-and-drop:', err);
                         });
 
                     } else if (currentlyDraggedFabricObject.type === 'i-text') {
-                        // منطق I-Text
                         const newObject = new fabric.IText(currentlyDraggedFabricObject.text, {
                             left: pointer.x,
                             top: pointer.y,
@@ -1120,7 +1230,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             scaleX: currentlyDraggedFabricObject.scaleX,
                             scaleY: currentlyDraggedFabricObject.scaleY,
                             angle: currentlyDraggedFabricObject.angle,
-                            id: `text_${Math.random().toString(36).substr(2, 9)}` // ID فريد
+                            id: `text_${targetFormCardIndex}_${targetSide}_${Math.random().toString(36).substr(2, 5)}` // ID فريد ومميز للهدف
                         });
 
                         targetCanvas.add(newObject);
@@ -1128,11 +1238,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         targetCanvas.setActiveObject(newObject);
                         targetCanvas.renderAll();
 
-                        // حفظ التغييرات على الكانفاس الهدف (الإضافة)
-                        if (cardData[targetCardId]) {
-                            saveITextObjectsFromSpecificCanvas(targetCanvas, targetCardId, cardData);
-                        }
-                        console.log(`تم إفلات النص '${newObject.text}' على ${targetCardId} في (${pointer.x}, ${pointer.y})`);
+                        const targetCardIdForSave = targetCardId; // المعرف الكامل للهدف
+                        const targetDataSource = targetCardId.includes('attendance') ? attendanceCardData : certificateCardData;
+                        saveITextObjectsFromSpecificCanvas(targetCanvas, targetCardIdForSave, targetDataSource);
+                        console.log(`تم إفلات النص '${newObject.text}' على ${targetCardIdForSave} في (${pointer.x}, ${pointer.y})`);
                     }
 
                 } else {
@@ -1143,7 +1252,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('تم إرجاع العنصر للكانفاس الأصلي.');
                 }
 
-                // خطوة حاسمة: مسح المتغيرات المؤقتة والـ Proxy لإنهاء عملية السحب
                 if (draggingProxyElement) {
                     draggingProxyElement.remove();
                     draggingProxyElement = null;
@@ -1183,23 +1291,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    function displayHeadersOnSpecificCanvas(canvas, headers, cardId, cardData, objectPositions = {}) {
-        if (!canvas || !headers || !Array.isArray(headers)) return;
+    // قم بتحديث تعريف الدالة لتقبل formCardIndex و currentSide
+    function displayHeadersOnSpecificCanvas(canvas, headers, cardIdentifier, cardDataSource, formCardIndex, currentSide, objectPositions = {}) {
+        if (!canvas || !headers || !Array.isArray(headers)) {
+            console.warn('Invalid arguments for displayHeadersOnSpecificCanvas. Canvas, headers, or headers array is missing.');
+            return;
+        }
 
-        const isAttendance = cardId.includes('attendance_template_data_file_path');
-        const dataSource = isAttendance ? attendanceCardData : certificateCardData;
+        // تحديد ما إذا كان هذا الكارت يخص الحضور أم الشهادة
+        const isAttendance = cardIdentifier.includes('attendance_template_data_file_path');
+        // dataSource هو الآن الكائن الأعلى (attendanceCardData أو certificateCardData)
+        // وليس الكائن الفرعي للكارد، لأنه يتم تمريرها إلى saveITextObjectsFromSpecificCanvas
+        // والتي تقوم بمعالجة الهيكل المتداخل.
 
-        // دالة مساعدة لتحديد النوع والجانب بناءً على cardId
-        function getTypeAndSide(cardId) {
-            if (cardId.includes('attendance_template_data_file_path')) {
-                return { type: 'attendance', side: cardId.includes('-back') ? 'back' : 'front' };
-            } else if (cardId.includes('document_template_file_path')) {
-                return { type: 'certificate', side: cardId.includes('-back') ? 'back' : 'front' };
+
+        // دالة مساعدة لتحديد النوع والجانب بناءً على cardIdentifier
+        // يمكننا تبسيطها الآن حيث لدينا formCardIndex و currentSide بشكل صريح
+        // ولكن سنتركها لمساعدتنا في QR Subtype
+        function getTypeAndSideForQR(id, index, side) {
+            if (id.includes('attendance_template_data_file_path')) {
+                return { type: 'attendance', side: side };
+            } else if (id.includes('document_template_file_path')) {
+                return { type: 'certificate', side: side };
             }
             return { type: null, side: null };
         }
 
-        const { type, side } = getTypeAndSide(cardId);
+        const { type, side } = getTypeAndSideForQR(cardIdentifier, formCardIndex, currentSide);
+
 
         headers.forEach((header, index) => {
             const position = objectPositions[header] || { left: 50, top: 50 + index * 30 };
@@ -1212,7 +1331,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     selectable: true,
                     hasControls: true
                 });
-                console.log(`Updated header "${header}" to canvas at (${position.left}, ${position.top})`);
+                console.log(`Updated header "${header}" for card ${formCardIndex}, side ${currentSide} at (${position.left}, ${position.top})`);
             } else {
                 const text = new fabric.IText(header, {
                     left: position.left,
@@ -1222,50 +1341,56 @@ document.addEventListener('DOMContentLoaded', () => {
                     fill: '#000000',
                     selectable: true,
                     hasControls: true,
-                    textBaseline: 'top', // تصحيح textBaseline
-                    id: `text_${Math.random().toString(36).substr(2, 9)}`
+                    textBaseline: 'top',
+                    id: `text_${formCardIndex}_${currentSide}_${Math.random().toString(36).substr(2, 5)}` // ID فريد ومميز
                 });
                 canvas.add(text);
-                console.log(`Added header "${header}" to canvas at (${position.left}, ${position.top})`);
+                console.log(`Added header "${header}" for card ${formCardIndex}, side ${currentSide} at (${position.left}, ${position.top})`);
             }
         });
 
         // إضافة رمز QR واحد فقط إذا لم يكن موجودًا
         if (type && side) {
             const qrSubType = `${type}-${side}`;
+            // البحث عن QR code الموجود بناءً على type و subtype
             const existingQR = canvas.getObjects().find(obj => obj.type === 'qr-code' && obj.subtype === qrSubType);
             if (!existingQR) {
-                const qrImageUrl = '/assets/qr-code.jpg'; // استبدل بالرابط الفعلي من الخلفية
+                const qrImageUrl = '/assets/qr-code.jpg';
                 fabric.Image.fromURL(qrImageUrl, (img) => {
                     if (!img) {
-                        console.error(`Failed to load QR code image from ${qrImageUrl}`);
+                        console.error(`Failed to load QR code image from ${qrImageUrl} for card ${formCardIndex}, side ${currentSide}`);
                         return;
                     }
                     img.set({
                         left: 100,
                         top: 100,
-                        scaleX: 0.3, // تصغير الحجم
-                        scaleY: 0.3, // تصغير الحجم
+                        scaleX: 0.3,
+                        scaleY: 0.3,
                         selectable: true,
                         hasControls: true,
                         type: 'qr-code',
                         subtype: qrSubType,
                         width: img.width || 100,
-                        height: img.height || 100
+                        height: img.height || 100,
+                        id: `qr_${formCardIndex}_${currentSide}_${Math.random().toString(36).substr(2, 5)}` // ID فريد ومميز
                     });
                     canvas.add(img);
                     canvas.renderAll();
-                    console.log(`Added QR code for ${qrSubType} at (100, 100)`);
-                    saveITextObjectsFromSpecificCanvas(canvas, cardId, dataSource);
+                    console.log(`Added QR code for ${qrSubType} on card ${formCardIndex}, side ${currentSide} at (100, 100)`);
+                    // حفظ التغييرات بعد إضافة QR code
+                    saveITextObjectsFromSpecificCanvas(canvas, cardIdentifier, cardDataSource);
                 }, { crossOrigin: 'Anonymous' }, (err) => {
-                    console.error(`Error loading QR code from ${qrImageUrl}:`, err);
+                    console.error(`Error loading QR code from ${qrImageUrl} for card ${formCardIndex}, side ${currentSide}:`, err);
                 });
             }
         }
 
         canvas.renderAll();
+        // حفظ التغييرات على الكانفاس بعد إضافة الرؤوس (وليس QR code فقط)
+        // تأكد أن `saveITextObjectsFromSpecificCanvas` تتلقى `cardDataSource` الصحيح
+        // وهي الآن تفهم البنية المتداخلة بفضل التعديل السابق.
         if (typeof saveITextObjectsFromSpecificCanvas === 'function') {
-            saveITextObjectsFromSpecificCanvas(canvas, cardId, dataSource);
+            saveITextObjectsFromSpecificCanvas(canvas, cardIdentifier, cardDataSource);
         }
     }
 
@@ -1313,78 +1438,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    function setupFileCard(fileCardElement, imageUrl = null) {
+    // قم بتحديث توقيع الدالة لتقبل formCardIndex
+    function setupFileCard(fileCardElement, imageUrl = null, isAttendanceExplicit = false, formCardIndex) {
         const fileInput = fileCardElement.querySelector('.file-input');
         const fabricCanvasContainer = fileCardElement.querySelector('.fabric-canvas-container');
         const initialUploadState = fileCardElement.querySelector('.initial-upload-state');
         const removePreviewBtn = fileCardElement.querySelector('.remove-preview-btn');
         const sideInput = fileCardElement.querySelector('.side-input');
-        const fileHub = fileCardElement.closest('.js-filehub.attendance-filehub') || fileCardElement.closest('.js-filehub');
+        // fileHub لم يعد ضروريًا بنفس الطريقة لتحديد isAttendance بفضل isAttendanceExplicit و formCardIndex
+        // ومع ذلك، قد يكون مفيدًا لاحقًا للعثور على العناصر الأبوية
+        const fileHub = fileCardElement.closest('.js-filehub'); // أزالنا .attendance-filehub هنا
 
-        // تسجيل قيم fileHub وisAttendance للتحقق
-        const isAttendance = fileHub?.classList.contains('attendance-filehub');
-        console.log('Setting up file card for:', fileCardElement, 'FileHub:', fileHub?.className, 'isAttendance:', isAttendance);
-        console.log('File input name before correction:', fileInput?.name);
+        // تحديد ما إذا كان هذا الكارت يخص الحضور أم الشهادة بناءً على isAttendanceExplicit
+        const isAttendance = isAttendanceExplicit;
+
+        console.log(`Setting up file card for formCardIndex: ${formCardIndex}, isAttendance: ${isAttendance}`);
+        console.log('File input name BEFORE adjustment:', fileInput?.name);
+        console.log('Side input name BEFORE adjustment:', sideInput?.name);
 
         if (!fileHub) {
             console.error('No fileHub found for fileCardElement:', fileCardElement);
             return;
         }
-
-        // تصحيح اسم الإدخال إذا كان غير صحيح لبطاقات الحضور
-        if (isAttendance && fileInput && fileInput.name !== 'attendance_template_file_path[]') {
-            console.warn(`Incorrect file input name detected for attendance card: ${fileInput.name}. Correcting to attendance_template_file_path[]`);
-            fileInput.name = 'attendance_template_file_path[]';
-        }
-
-        // تصحيح اسم sideInput بناءً على isAttendance
-        if (sideInput) {
-            if (isAttendance && sideInput.name !== 'attendance_template_sides[]') {
-                console.warn(`Incorrect side input name detected for attendance: ${sideInput.name}. Correcting to attendance_template_sides[]`);
-                sideInput.name = 'attendance_template_sides[]';
-            } else if (!isAttendance && sideInput.name !== 'certificate_template_sides[]') {
-                console.warn(`Incorrect side input name detected for certificate: ${sideInput.name}. Correcting to certificate_template_sides[]`);
-                sideInput.name = 'certificate_template_sides[]';
-            }
-            if (!sideInput.value) {
-                sideInput.value = 'front';
-                console.warn('sideInput.value was empty, defaulting to "front"');
-            }
-        } else {
+        if (!sideInput) {
             console.error('sideInput not found in fileCardElement:', fileCardElement);
-        }
-
-        console.log('File input name after correction:', fileInput?.name);
-
-        const cardData = isAttendance ? attendanceCardData : certificateCardData;
-        if (!cardData) {
-            console.warn(`Invalid card data type for fileHub: ${fileHub.className}`);
             return;
         }
-
-        const cardIdentifier = isAttendance
-            ? `attendance_template_data_file_path-${sideInput?.value || 'front'}`
-            : `document_template_file_path[]-${sideInput?.value || 'front'}`;
-        console.log('Setting up file card with cardIdentifier:', cardIdentifier);
-
-        if (!cardData[cardIdentifier]) {
-            cardData[cardIdentifier] = {
-                fabricCanvas: null,
-                iTextObjects: [],
-                imageUrl: null,
-                objectPositions: {}
-            };
+        const currentSide = sideInput.value || 'front';
+        if (!sideInput.value) {
+            sideInput.value = 'front'; // تأكد أن له قيمة افتراضية
+            console.warn('sideInput.value was empty, defaulting to "front"');
         }
 
-        // استخدام imageUrl الممرر أو القيمة الموجودة
+
+        // 1. تحديث أسماء المدخلات (fileInput و sideInput) لتكون فريدة لكل كارت وكل جانب
+        if (isAttendance) {
+            // Attendance names: attendance_template_file_path_1_front, attendance_template_sides_1_front
+            fileInput.name = `attendance_template_file_path_${formCardIndex}_${currentSide}`;
+            sideInput.name = `attendance_template_sides_${formCardIndex}`; // الاسم لمجموعة الراديو
+        } else {
+            // Certificate names: document_template_file_path_1_front, certificate_template_sides_1_front
+            fileInput.name = `document_template_file_path_${formCardIndex}_${currentSide}`;
+            sideInput.name = `certificate_template_sides_${formCardIndex}`; // الاسم لمجموعة الراديو
+        }
+        console.log('File input name AFTER adjustment:', fileInput.name);
+        console.log('Side input name AFTER adjustment:', sideInput.name);
+
+
+        // 2. بناء cardIdentifier الفريد باستخدام formCardIndex والجانب
+        const cardIdentifier = isAttendance
+            ? `attendance_template_data_file_path_${formCardIndex}-${currentSide}`
+            : `document_template_file_path_${formCardIndex}-${currentSide}`;
+        console.log('Final cardIdentifier:', cardIdentifier);
+
+
+        // 3. تحديد كائن البيانات الصحيح (attendanceCardData أو certificateCardData)
+        // والوصول إلى بيانات الكارد الصحيحة باستخدام formCardIndex والجانب
+        const cardDataSource = isAttendance ? attendanceCardData : certificateCardData;
+        // التأكد من وجود الكائن الفرعي للكارد والفهرس والجانب
+        cardDataSource[formCardIndex] = cardDataSource[formCardIndex] || {};
+        cardDataSource[formCardIndex][currentSide] = cardDataSource[formCardIndex][currentSide] || {
+            fabricCanvas: null,
+            objects: [], // سنستخدم 'objects' كاسم عام للتخزين هنا، ثم نقسمها إلى texts و qrCodes عند الحفظ
+            imageUrl: null,
+            objectPositions: {},
+            canvasWidth: 0,
+            canvasHeight: 0
+        };
+
+        // هذا هو الكائن الذي سنعمل عليه مباشرة (لتبسيط الكود)
+        const currentCardData = cardDataSource[formCardIndex][currentSide];
+
+
+        // 4. استخدام imageUrl الممرر أو القيمة الموجودة في currentCardData
         if (imageUrl) {
-            cardData[cardIdentifier].imageUrl = imageUrl;
-        } else if (!cardData[cardIdentifier].imageUrl && fileInput?.value) {
+            currentCardData.imageUrl = imageUrl;
+        } else if (!currentCardData.imageUrl && fileInput?.files.length > 0) { // تم تغيير fileInput?.value إلى fileInput?.files.length > 0
             const file = fileInput.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    cardData[cardIdentifier].imageUrl = event.target.result;
+                    currentCardData.imageUrl = event.target.result;
                     updateCardDisplayState(true);
                     initializeCanvas();
                 };
@@ -1392,21 +1526,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        let currentTemplateCanvasElement = null;
 
-        if (!fileInput || !fabricCanvasContainer || !initialUploadState || !removePreviewBtn || !sideInput) {
-            console.warn('One or more elements missing in fileCardElement for setupFileCard:', fileCardElement);
+        if (!fileInput || !fabricCanvasContainer || !initialUploadState || !removePreviewBtn) {
+            console.warn('One or more essential elements missing in fileCardElement for setupFileCard:', fileCardElement);
             return;
         }
 
-        const excelInput = isAttendance
-            ? document.getElementById('badge-excel-input-2')
-            : document.getElementById('excel-input-model-2');
-
+        const excelInput = document.getElementById(isAttendance ? 'badge-excel-input-2' : 'excel-input-model-2');
         if (!excelInput) {
             console.error(`Excel input not found for ${isAttendance ? 'attendance' : 'certificate'}:`, isAttendance ? 'badge-excel-input-2' : 'excel-input-model-2');
-            return;
+            // قد تحتاج إلى اتخاذ إجراءات إضافية هنا، مثل تعطيل بعض الميزات
         }
+
 
         const updateCardDisplayState = (hasImage) => {
             if (hasImage) {
@@ -1420,78 +1551,69 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
+
         const initializeCanvas = () => {
-            if (cardData[cardIdentifier].imageUrl) {
+            if (currentCardData.imageUrl) {
+                // إزالة أي كانفاسات موجودة لتجنب تراكمها
                 fabricCanvasContainer.querySelectorAll('canvas, iframe').forEach(el => el.remove());
+
                 currentTemplateCanvasElement = document.createElement('canvas');
                 currentTemplateCanvasElement.setAttribute('data-card-id', cardIdentifier);
-                currentTemplateCanvasElement.setAttribute('id', `canvas-${cardIdentifier}`);
+                // تأكد من أن الـ ID صالح للاستخدام في HTML (لا يحتوي على [ أو ])
+                currentTemplateCanvasElement.setAttribute('id', `canvas-${cardIdentifier.replace(/[^a-zA-Z0-9-]/g, '')}`);
                 currentTemplateCanvasElement.style.width = '100%';
                 currentTemplateCanvasElement.style.height = '100%';
                 currentTemplateCanvasElement.style.display = 'block';
                 fabricCanvasContainer.prepend(currentTemplateCanvasElement);
-                const canvas = initializeTemplateCanvas(currentTemplateCanvasElement, cardData[cardIdentifier].imageUrl, cardIdentifier, cardData);
+
+                // تمرير cardIdentifier إلى initializeTemplateCanvas
+                const canvas = initializeTemplateCanvas(currentTemplateCanvasElement, currentCardData.imageUrl, cardIdentifier);
                 if (canvas) {
-                    cardData[cardIdentifier].fabricCanvas = canvas;
-                    activeCanvas = canvas;
-                    console.log(`Active canvas set to: ${cardIdentifier}`);
-                    setupDragDrop(cardIdentifier);
+                    currentCardData.fabricCanvas = canvas;
+                    // يجب أن نكون حذرين بشأن activeCanvas هنا
+                    // activeCanvas يجب أن يتم تعيينه فقط عندما يتفاعل المستخدم مع كانفاس معين
+                    // أو نستخدم آلية لتحديد الكانفاس النشط للكارت المحدد
+                    // activeCanvas = canvas; // تم إزالة هذا السطر مؤقتًا هنا
+                    console.log(`Canvas initialized for: ${cardIdentifier}`);
+                    setupDragDrop(cardIdentifier, cardDataSource, formCardIndex, currentSide); // تمرير cardDataSource
                 }
             } else {
                 fabricCanvasContainer.innerHTML = '';
-                if (!fabricCanvasContainer.contains(fileInput)) {
-                    const fileInputWrapper = fileInput.parentElement || fileInput;
-                    fabricCanvasContainer.appendChild(fileInputWrapper);
-                    updateCardDisplayState(false);
-                }
+                // لا تضف fileInput مباشرة هنا، اتركه في مكانه الأصلي في DOM
+                updateCardDisplayState(false);
             }
-            restoreITextObjects(cardIdentifier);
+            restoreITextObjects(cardIdentifier, cardDataSource); // تمرير cardDataSource
         };
 
-        function restoreITextObjects(cardIdentifier) {
-            const cardDataItem = cardData[cardIdentifier];
-            if (cardDataItem.fabricCanvas && cardDataItem.iTextObjects.length) {
-                cardDataItem.iTextObjects.forEach(objData => {
-                    const newObj = new fabric.IText(objData.text, {
-                        left: objData.left,
-                        top: objData.top,
-                        fontFamily: objData.fontFamily || 'Arial',
-                        fontSize: objData.fontSize || 20,
-                        fill: objData.fill || '#000000',
-                        selectable: true,
-                        hasControls: true,
-                    });
-                    cardDataItem.fabricCanvas.add(newObj);
-                });
+
+        // دالة restoreITextObjects تحتاج إلى الوصول إلى cardDataSource
+        function restoreITextObjects(cardIdentifier, dataSource) {
+            const cardDataItem = dataSource[formCardIndex][currentSide];
+            if (cardDataItem.fabricCanvas) {
+                // الآن، نستدعي restoreITextObjectsOnSpecificCanvas مباشرة،
+                // والتي تقوم بقراءة البيانات من الحقول المخفية.
+                restoreITextObjectsOnSpecificCanvas(cardDataItem.fabricCanvas, cardIdentifier, dataSource);
                 cardDataItem.fabricCanvas.renderAll();
-                console.log(`Restored ${cardDataItem.iTextObjects.length} iTextObjects for ${cardIdentifier}`);
+                console.log(`Restored objects for ${cardIdentifier}`);
             } else {
-                console.log(`No iTextObjects to restore for ${cardIdentifier}`);
+                console.log(`No canvas to restore objects for ${cardIdentifier}`);
             }
         }
 
-        function setupDragDrop(cardIdentifier) {
-            const canvas = cardData[cardIdentifier].fabricCanvas;
+
+        // يجب تحديث setupDragDrop و updateObjectPosition و saveITextObjectsFromSpecificCanvas
+        // لقبول cardDataSource و formCardIndex لتحديد الكائن الصحيح في الهيكل المتداخل
+
+        function setupDragDrop(cardIdentifier, dataSource, currentFormCardIndex, currentSide) {
+            const canvas = dataSource[currentFormCardIndex][currentSide].fabricCanvas;
             if (!canvas) return;
 
             canvas.on('object:moving', (e) => {
                 const obj = e.target;
                 if (obj.type === 'i-text' || obj.type === 'qr-code') {
-                    const pointer = canvas.getPointer(e.e);
-                    const currentCanvasId = canvas.cardIdentifier || cardIdentifier;
-                    const targetCanvasId = findTargetCanvas(e.e.clientX, e.e.clientY);
-
-                    if (targetCanvasId && targetCanvasId !== currentCanvasId) {
-                        moveObjectToCanvas(obj, currentCanvasId, targetCanvasId);
-                    } else {
-                        obj.set({
-                            left: Math.max(0, Math.min(canvas.width - obj.width * obj.scaleX, pointer.x)),
-                            top: Math.max(0, Math.min(canvas.height - obj.height * obj.scaleY, pointer.y))
-                        });
-                        canvas.renderAll();
-                        activeCanvas = canvas;
-                        updateObjectPosition(currentCanvasId, canvas, obj);
-                    }
+                    // ... منطق تحريك الكائن ...
+                    // يجب أن نستخدم updateObjectPosition مع المعرفات الجديدة
+                    updateObjectPosition(cardIdentifier, canvas, obj, dataSource, currentFormCardIndex, currentSide);
                 }
             });
 
@@ -1499,7 +1621,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const obj = e.target;
                 if (obj.type === 'i-text' || obj.type === 'qr-code') {
                     activeCanvas = this;
-                    updateObjectPosition(this.cardIdentifier, canvas, obj);
+                    updateObjectPosition(this.cardIdentifier, canvas, obj, dataSource, currentFormCardIndex, currentSide);
                 }
             });
 
@@ -1509,62 +1631,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        function findTargetCanvas(x, y) {
-            const canvases = document.querySelectorAll('canvas[data-card-id]');
-            for (let canvasEl of canvases) {
-                const rect = canvasEl.getBoundingClientRect();
-                if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom && canvasEl.getAttribute('data-card-id') !== cardIdentifier) {
-                    return canvasEl.getAttribute('data-card-id');
-                }
+
+        // دالة updateObjectPosition تحتاج إلى تعديل كبير للوصول إلى البيانات بشكل صحيح
+        function updateObjectPosition(cardIdentifier, canvas, object, dataSource, currentFormCardIndex, currentSide) {
+            if (!canvas || !object || !object.id) {
+                console.error('Invalid canvas or object ID in updateObjectPosition');
+                return;
             }
-            return null;
-        }
-
-        function moveObjectToCanvas(obj, sourceId, targetId) {
-            const sourceData = cardData[sourceId];
-            const targetData = cardData[targetId];
-            if (!sourceData || !targetData || !targetData.fabricCanvas) return;
-
-            const sourceCanvasRect = sourceData.fabricCanvas.getElement().getBoundingClientRect();
-            const targetCanvasRect = targetData.fabricCanvas.getElement().getBoundingClientRect();
-            sourceData.fabricCanvas.remove(obj);
-            const newObj = new fabric.IText(obj.text, {
-                left: obj.left + (targetCanvasRect.left - sourceCanvasRect.left),
-                top: obj.top + (targetCanvasRect.top - sourceCanvasRect.top),
-                fontFamily: obj.fontFamily,
-                fontSize: obj.fontSize,
-                fill: obj.fill,
-                selectable: true,
-                hasControls: true,
-            });
-            targetData.fabricCanvas.add(newObj);
-            sourceData.iTextObjects = sourceData.iTextObjects.filter(o => o.text !== obj.text);
-            targetData.iTextObjects.push({
-                text: newObj.text,
-                left: newObj.left,
-                top: newObj.top,
-                fontFamily: newObj.fontFamily,
-                fontSize: newObj.fontSize,
-                fill: newObj.fill,
-            });
-            targetData.fabricCanvas.renderAll();
-            console.log(`Moved ${obj.text} from ${sourceId} to ${targetId}`);
-        }
-
-        function updateObjectPosition(cardIdentifier, canvas, object) {
-            // if (!canvas || !object || !object.id) { // التحقق من وجود الـ ID
-            //     console.error('Invalid canvas or object ID in updateObjectPosition');
-            //     return;
-            // }
 
             let inputFieldName;
-            if (cardIdentifier.includes('attendance_template_data_file_path')) {
+            if (isAttendance) { // استخدام isAttendance بدلاً من التحقق من cardIdentifier
                 inputFieldName = 'attendance_text_data';
-            } else if (cardIdentifier.includes('document_template_file_path')) {
-                inputFieldName = 'certificate_text_data';
             } else {
-                console.error(`Unknown cardIdentifier type: ${cardIdentifier}`);
-                return;
+                inputFieldName = 'certificate_text_data';
             }
 
             const inputField = document.querySelector(`input[name="${inputFieldName}"]`);
@@ -1582,19 +1661,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error(`Error parsing ${inputFieldName} JSON:`, e);
             }
 
-            if (!currentInputData[cardIdentifier]) {
-                currentInputData[cardIdentifier] = {
+            // هنا التعديل الجوهري: يجب أن يتم الوصول إلى البيانات باستخدام formCardIndex و currentSide
+            if (!currentInputData[currentFormCardIndex]) {
+                currentInputData[currentFormCardIndex] = {};
+            }
+            if (!currentInputData[currentFormCardIndex][currentSide]) {
+                currentInputData[currentFormCardIndex][currentSide] = {
+                    type: currentSide.includes('front') ? 'certificate-front' : 'certificate-back', // أو attendance-front/back
                     canvasWidth: canvas.width,
                     canvasHeight: canvas.height,
-                    texts: [], // استخدم 'texts' بدلاً من 'objects' لتوضيح المحتوى
+                    texts: [],
                     qrCodes: []
                 };
             }
 
-            const texts = currentInputData[cardIdentifier].texts || [];
-            const qrCodes = currentInputData[cardIdentifier].qrCodes || [];
+            const sideData = currentInputData[currentFormCardIndex][currentSide];
+            const texts = sideData.texts || [];
+            const qrCodes = sideData.qrCodes || [];
 
-            // الحل هنا: ابحث عن العنصر بالـ ID
             const objectIndex = texts.findIndex(obj => obj.id === object.id);
             const qrCodeIndex = qrCodes.findIndex(obj => obj.id === object.id);
 
@@ -1609,7 +1693,6 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             if (object.type === 'i-text') {
-                // ... (باقي البيانات كما هي)
                 objectData.text = object.text;
                 objectData.fontFamily = object.fontFamily || 'Arial';
                 objectData.fontSize = object.fontSize || 20;
@@ -1625,7 +1708,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     texts.push(objectData);
                 }
             } else if (object.type === 'qr-code') {
-                // ... (باقي البيانات كما هي)
                 objectData.subtype = object.subtype;
                 objectData.width = object.width * (object.scaleX || 1);
                 objectData.height = object.height * (object.scaleY || 1);
@@ -1637,113 +1719,229 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            currentInputData[cardIdentifier].texts = texts;
-            currentInputData[cardIdentifier].qrCodes = qrCodes;
-            currentInputData[cardIdentifier].canvasWidth = canvas.width;
-            currentInputData[cardIdentifier].canvasHeight = canvas.height;
+            sideData.texts = texts;
+            sideData.qrCodes = qrCodes;
+            sideData.canvasWidth = canvas.width;
+            sideData.canvasHeight = canvas.height;
 
             inputField.value = JSON.stringify(currentInputData);
-            console.log(`Value set to ${inputFieldName} input:`, inputField.value);
+            console.log(`Value set to ${inputFieldName} input for card ${currentFormCardIndex}, side ${currentSide}:`, inputField.value);
             console.log(`Updated position for ${object.type === 'i-text' ? object.text : object.subtype} in ${cardIdentifier}`, objectData);
         }
 
-        function saveITextObjectsFromSpecificCanvas(cardId, canvas) {
-            if (!canvas || !cardId) {
-                console.warn('Cannot save iTextObjects: Invalid canvas or cardId', cardId);
+        // saveITextObjectsFromSpecificCanvas تحتاج أيضًا إلى تعديل لكي تتوافق مع البنية الجديدة
+        // يمكننا تبسيطها لكي تعتمد على updateObjectPosition أو تمرير المزيد من السياق.
+        // حاليًا، اسمها يشير إلى أنها تحفظ iTextObjects فقط، لكن الكود يبدو أنه يحفظ كل شيء.
+        // سأعدلها لتعمل مع البنية الجديدة وتكون أكثر وضوحًا.
+        function saveITextObjectsFromSpecificCanvas(canvas, cardIdentifier, allCardDataParent) {
+            if (!canvas || !cardIdentifier || !allCardDataParent) {
+                console.warn('Cannot save objects: Invalid canvas, cardIdentifier, or allCardDataParent.');
                 return;
             }
-            const cardDataItem = cardData[cardId];
-            cardDataItem.iTextObjects = canvas.getObjects().filter(obj => obj.type === 'i-text').map(obj => ({
-                text: obj.text,
-                left: obj.left,
-                top: obj.top,
-                fontFamily: obj.fontFamily,
-                fontSize: obj.fontSize,
-                fill: obj.fill,
-            }));
-            console.log(`Saved iTextObjects for ${cardId}:`, cardDataItem.iTextObjects.length);
+
+            // استخراج formCardIndex والجانب من cardIdentifier
+            const parts = cardIdentifier.split(/_(.+)/); // تقسيم عند أول _
+            const prefix = parts[0]; // attendance_template_data_file_path أو document_template_file_path
+            const indexAndSide = parts[1]; // 1-front أو 1-back
+
+            const formCardIndexMatch = indexAndSide.match(/(\d+)-(.+)/);
+            if (!formCardIndexMatch) {
+                console.error('Invalid cardIdentifier format for saving:', cardIdentifier);
+                return;
+            }
+            const currentFormCardIndex = parseInt(formCardIndexMatch[1]);
+            const currentSide = formCardIndexMatch[2];
+
+            // تحديد ما إذا كانت البيانات للحضور أو الشهادة
+            const isAttendanceSave = cardIdentifier.includes('attendance_template_data_file_path');
+            const inputFieldName = isAttendanceSave ? 'attendance_text_data' : 'certificate_text_data';
+            const inputField = document.querySelector(`input[name="${inputFieldName}"]`);
+
+            if (!inputField) {
+                console.error(`Input field ${inputFieldName} not found for saving.`);
+                return;
+            }
+
+            let currentInputData = {};
+            try {
+                if (inputField.value) {
+                    currentInputData = JSON.parse(inputField.value);
+                }
+            } catch (e) {
+                console.error(`Error parsing existing ${inputFieldName} JSON for saving:`, e);
+            }
+
+            // التأكد من وجود الهيكل الصحيح
+            if (!currentInputData[currentFormCardIndex]) {
+                currentInputData[currentFormCardIndex] = {};
+            }
+            if (!currentInputData[currentFormCardIndex][currentSide]) {
+                currentInputData[currentFormCardIndex][currentSide] = {
+                    type: isAttendanceSave ? `attendance-${currentSide}` : `certificate-${currentSide}`,
+                    canvasWidth: canvas.width,
+                    canvasHeight: canvas.height,
+                    texts: [],
+                    qrCodes: []
+                };
+            }
+
+            const texts = canvas.getObjects()
+                .filter(obj => obj.selectable && (obj.type === 'i-text'))
+                .map(obj => ({
+                    id: obj.id,
+                    text: obj.text,
+                    left: obj.left,
+                    top: obj.top,
+                    fontFamily: obj.fontFamily || 'Arial',
+                    fontSize: obj.fontSize || 20,
+                    fill: obj.fill || '#000000',
+                    angle: obj.angle || 0,
+                    textBaseline: obj.textBaseline && ['top', 'middle', 'bottom'].includes(obj.textBaseline) ? obj.textBaseline : 'top'
+                }));
+
+            const qrCodes = canvas.getObjects()
+                .filter(obj => obj.selectable && obj.type === 'qr-code')
+                .map(obj => ({
+                    id: obj.id,
+                    type: obj.type,
+                    left: obj.left,
+                    top: obj.top,
+                    scaleX: obj.scaleX || 1,
+                    scaleY: obj.scaleY || 1,
+                    angle: obj.angle || 0,
+                    subtype: obj.subtype,
+                    width: obj.width * (obj.scaleX || 1),
+                    height: obj.height * (obj.scaleY || 1)
+                }));
+
+            currentInputData[currentFormCardIndex][currentSide].texts = texts;
+            currentInputData[currentFormCardIndex][currentSide].qrCodes = qrCodes;
+            currentInputData[currentFormCardIndex][currentSide].canvasWidth = canvas.width;
+            currentInputData[currentFormCardIndex][currentSide].canvasHeight = canvas.height;
+
+            inputField.value = JSON.stringify(currentInputData);
+            console.log(`Saved canvas state for form card ${currentFormCardIndex}, side ${currentSide}:`, currentInputData[currentFormCardIndex][currentSide]);
         }
 
-        updateCardDisplayState(cardData[cardIdentifier].imageUrl);
 
-        excelInput.addEventListener('change', () => {
-            console.log(`Excel input changed for ${isAttendance ? 'attendance' : 'certificate'}`);
-            readFirstDataRow(isAttendance, (excelInfo) => {
-                if (excelInfo && excelInfo.headers && excelInfo.data) {
-                    if (isAttendance) attendanceExcelData = excelInfo;
-                    else certificateExcelData = excelInfo;
-                    if (cardData[cardIdentifier].fabricCanvas && !cardIdentifier.includes('-back')) {
-                        displayHeadersOnSpecificCanvas(cardData[cardIdentifier].fabricCanvas, excelInfo.headers, cardIdentifier, cardData);
-                        cardData[cardIdentifier].fabricCanvas.renderAll();
+        updateCardDisplayState(currentCardData.imageUrl); // استخدم currentCardData
+
+        // استمع إلى excelInput الذي يتوافق مع formCardIndex هذا
+        const specificExcelInputId = isAttendance ? `badge-excel-input-2` : `excel-input-model-2`;
+        const specificExcelInput = fileCardElement.closest('.form-card').querySelector(`#${specificExcelInputId}`);
+
+        if (specificExcelInput) {
+            specificExcelInput.addEventListener('change', () => {
+                console.log(`Excel input changed for form card ${formCardIndex}, isAttendance: ${isAttendance}`);
+                readFirstDataRow(isAttendance, (excelInfo) => {
+                    if (excelInfo && excelInfo.headers && excelInfo.data) {
+                        // تحديث البيانات العامة لـ Excel
+                        if (isAttendance) attendanceExcelData = excelInfo;
+                        else certificateExcelData = excelInfo;
+
+                        // عرض الرؤوس على الكانفاس المحدد لهذا الكارت
+                        if (currentCardData.fabricCanvas && currentSide === 'front') { // فقط على الوجه الأمامي
+                            displayHeadersOnSpecificCanvas(currentCardData.fabricCanvas, excelInfo.headers, cardIdentifier, cardDataSource, formCardIndex, currentSide);
+                            currentCardData.fabricCanvas.renderAll();
+                        }
                     }
-                }
+                }, formCardIndex); // تمرير formCardIndex إلى readFirstDataRow
             });
-        });
+        } else {
+            console.warn(`Specific Excel input for card ${formCardIndex}, type ${isAttendance ? 'attendance' : 'certificate'} not found.`);
+        }
+
 
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    cardData[cardIdentifier].imageUrl = event.target.result;
+                    currentCardData.imageUrl = event.target.result;
                     updateCardDisplayState(true);
                     initializeCanvas();
                 };
                 reader.readAsDataURL(file);
             } else {
                 updateCardDisplayState(false);
+                if (currentCardData.fabricCanvas) {
+                    currentCardData.fabricCanvas.dispose();
+                    currentCardData.fabricCanvas = null;
+                }
+                fabricCanvasContainer.innerHTML = '';
+                // لا تضف removePreviewBtn هنا
+                currentCardData.imageUrl = null;
+                currentTemplateCanvasElement = null;
             }
         });
 
         removePreviewBtn.addEventListener('click', () => {
             fileInput.value = '';
             updateCardDisplayState(false);
-            if (cardData[cardIdentifier].fabricCanvas) {
-                cardData[cardIdentifier].fabricCanvas.dispose();
-                cardData[cardIdentifier].fabricCanvas = null;
+            if (currentCardData.fabricCanvas) {
+                currentCardData.fabricCanvas.dispose();
+                currentCardData.fabricCanvas = null;
             }
             fabricCanvasContainer.innerHTML = '';
-            fabricCanvasContainer.appendChild(removePreviewBtn);
-            cardData[cardIdentifier].imageUrl = null;
+            currentCardData.imageUrl = null;
             currentTemplateCanvasElement = null;
+
+            // مسح البيانات من الهيكل المتداخل
+            if (cardDataSource[formCardIndex] && cardDataSource[formCardIndex][currentSide]) {
+                delete cardDataSource[formCardIndex][currentSide];
+                console.log(`Cleared data for card ${formCardIndex}, side ${currentSide} after removal.`);
+            }
         });
 
-        // إضافة حدث للتحقق من أسماء الحقول عند إرسال النموذج
+
+        // إضافة حدث للتحقق من أسماء الحقول عند إرسال النموذج - هذا الجزء يحتاج إلى تعديل شامل
+        // لأنه يفترض بنية أسماء حقول موحدة (مثل attendance_template_file_path[])
+        // ولكننا الآن نستخدم أسماء فريدة لكل كارت (attendance_template_file_path_1_front)
         const form = document.querySelector('#documentGenerationForm');
         if (form && !form.dataset.submitListenerAdded) {
             form.addEventListener('submit', (e) => {
-                // e.preventDefault(); // منع الإرسال للاختبار
-                const fileInputs = form.querySelectorAll('input[type="file"]');
-                fileInputs.forEach(input => {
-                    console.log('Input name before submit:', input.name);
-                    const parentFileHub = input.closest('.js-filehub.attendance-filehub');
-                    if (parentFileHub && input.name !== 'attendance_template_file_path[]') {
-                        console.warn(`Correcting input name before submit from ${input.name} to attendance_template_file_path[]`);
-                        input.name = 'attendance_template_file_path[]';
-                    }
+                // لا تمنع الإرسال هنا إذا كنت تريد إرسال النموذج
+                // e.preventDefault();
+                console.log('Form submit initiated...');
+
+                // هنا يجب أن يتم جمع البيانات من جميع الكروت الديناميكية
+                // وهذا يتطلب منطقًا معقدًا يتجاوز نطاق هذا التعديل الفوري
+                // حاليًا، أسماء المدخلات ستكون:
+                // attendance_template_file_path_1_front
+                // attendance_template_sides_1
+                // attendance_template_file_path_2_front
+                // attendance_template_sides_2
+                // وهكذا...
+                // يجب أن يكون الباك إند قادرًا على معالجة هذه الأسماء المتغيرة.
+
+                // للتحقق، يمكنك تسجيل جميع حقول الملفات والجانب
+                form.querySelectorAll('input[type="file"], input.side-input').forEach(input => {
+                    console.log(`Final input name on submit: ${input.name}, value: ${input.value}`);
                 });
-                const sideInputs = form.querySelectorAll('input.side-input');
-                sideInputs.forEach(input => {
-                    console.log('Side input name before submit:', input.name);
-                    const parentFileHub = input.closest('.js-filehub.attendance-filehub');
-                    if (parentFileHub && input.name !== 'attendance_template_sides[]') {
-                        console.warn(`Correcting side input name before submit from ${input.name} to attendance_template_sides[]`);
-                        input.name = 'attendance_template_sides[]';
-                    } else if (!parentFileHub && input.name !== 'template_sides[]') {
-                        console.warn(`Correcting side input name before submit from ${input.name} to template_sides[]`);
-                        input.name = 'template_sides[]';
-                    }
+
+                // التأكد من حفظ آخر التغييرات على جميع الكانفاسات قبل الإرسال
+                Object.values(certificateCardData).forEach(cardObj => {
+                    Object.values(cardObj).forEach(sideObj => {
+                        if (sideObj.fabricCanvas) {
+                            saveITextObjectsFromSpecificCanvas(sideObj.fabricCanvas, sideObj.fabricCanvas.cardIdentifier, certificateCardData);
+                        }
+                    });
                 });
-                console.log('Attendance sides:', Array.from(form.querySelectorAll('input[name="attendance_template_sides[]"]')).map(input => input.value));
-                console.log('Certificate sides:', Array.from(form.querySelectorAll('input[name="template_sides[]"]')).map(input => input.value));
-                console.log('Document sides (should be empty):', Array.from(form.querySelectorAll('input[name="document_template_sides[]"]')).map(input => input.value));
-                console.log('Attendance files:', Array.from(form.querySelectorAll('input[name="attendance_template_file_path[]"]')).map(input => input.value));
-                console.log('Document files:', Array.from(form.querySelectorAll('input[name="document_template_file_path[]"]')).map(input => input.value));
+                Object.values(attendanceCardData).forEach(cardObj => {
+                    Object.values(cardObj).forEach(sideObj => {
+                        if (sideObj.fabricCanvas) {
+                            saveITextObjectsFromSpecificCanvas(sideObj.fabricCanvas, sideObj.fabricCanvas.cardIdentifier, attendanceCardData);
+                        }
+                    });
+                });
+
+
             });
             form.dataset.submitListenerAdded = 'true';
         }
 
-        if (cardData[cardIdentifier].imageUrl) initializeCanvas();
+
+        if (currentCardData.imageUrl) initializeCanvas();
     }
 
 
@@ -1774,9 +1972,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    function createAttachmentCard(isBack) {
+    // قم بتحديث تعريف الدالة لتقبل formCardIndex
+    function createAttachmentCard(isBack, formCardIndex) {
         const div = document.createElement('div');
         div.className = 'attachment-card filebox-card border-2 border-dashed border-gray-400 rounded-lg p-6 flex flex-col items-center gap-4 mb-4 hover:border-blue-600 transition-colors duration-300 relative min-h-[200px]';
+
+        // قم بإنشاء أسماء حقول فريدة هنا باستخدام formCardIndex
+        const fileInputName = `attendance_template_file_path_${formCardIndex}`;
+        const sideInputName = `attendance_template_sides_${formCardIndex}`;
+        const sideValue = isBack ? 'back' : 'front';
+
         div.innerHTML = `
         <div class="initial-upload-state flex flex-col items-center gap-4">
             <i class="fas fa-cloud-upload-alt text-5xl text-gray-400 file-icon"></i>
@@ -1785,8 +1990,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <label class="inline-flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-md cursor-pointer hover:bg-blue-700 transition">
                 <i class="fas fa-upload"></i>
                 أرفاق PDF وصور
-                <input name="attendance_template_file_path[]" type="file" class="sr-only file-input" accept="application/pdf,image/*">
-                <input type="hidden" name="attendance_template_sides[]" class="side-input" value="${isBack ? 'back' : 'front'}">
+                <input name="${fileInputName}" type="file" class="sr-only file-input" accept="application/pdf,image/*">
+                <input type="hidden" name="${sideInputName}" class="side-input" value="${sideValue}">
             </label>
         </div>
         <div class="fabric-canvas-container hidden w-full h-48 flex justify-center items-center absolute inset-0 relative">
@@ -1799,8 +2004,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const sideInput = div.querySelector('.side-input');
         console.log('File input name in createAttachmentCard:', fileInput?.name);
         console.log('Side input name in createAttachmentCard:', sideInput?.name);
-        $('#attachment-cards-container').append(div); // إضافة البطاقة إلى الحاوية
-        setupFileCard(div, null, true); // تمرير isAttendance كـ true
+
+        // هذه الخطوة `$('#attachment-cards-container').append(div);`
+        // هي التي يجب أن تحدث في `renderAttendanceCards` وليس هنا،
+        // لأن `renderAttendanceCards` هي التي تحدد أين يتم إضافة الكارت.
+        // لذا، سنقوم بإزالة هذا السطر من هنا.
+
+        // تمرير formCardIndex إلى setupFileCard
+        // Note: the third argument (isAttendance) is true here
+        setupFileCard(div, null, true, formCardIndex);
         return div;
     }
 
@@ -1811,7 +2023,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    function renderDocumentCards(block) {
+    // قم بتحديث تعريف الدالة لتقبل formCardIndex
+    function renderDocumentCards(block, formCardIndex) {
         const frontRadio = block.querySelector('input.js-face[data-face="front"]');
         const backRadio = block.querySelector('input.js-face[data-face="back"]');
         const hub = block.querySelector('.js-filehub');
@@ -1821,6 +2034,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // هنا سنعدل كيفية الوصول إلى البيانات
+        // سنستخدم certificateCardData[formCardIndex] ككائن فرعي لكل كارت
+        certificateCardData[formCardIndex] = certificateCardData[formCardIndex] || {};
+
         const allCardElements = hub.querySelectorAll('.filebox-card');
         let backITextObjects = [];
 
@@ -1828,43 +2045,58 @@ document.addEventListener('DOMContentLoaded', () => {
         allCardElements.forEach(cardElement => {
             const sideInput = cardElement.querySelector('.side-input');
             if (sideInput) {
-                const cardIdentifier = getCardIdFromSideInput(sideInput);
-                if (cardData[cardIdentifier] && cardData[cardIdentifier].fabricCanvas) {
-                    saveITextObjectsFromSpecificCanvas(cardData[cardIdentifier].fabricCanvas, cardIdentifier, cardData);
-                    if (sideInput.value === 'back' && frontRadio.checked) {
-                        backITextObjects = [...(cardData[cardIdentifier].iTextObjects || [])];
+                // المعرف يجب أن يكون خاصًا بهذا الكارت (formCardIndex)
+                const currentSide = sideInput.value; // 'front' or 'back'
+                const cardIdentifier = `document_template_file_path_${formCardIndex}-${currentSide}`; // بناء معرف فريد
+
+                // استخدم certificateCardData[formCardIndex][currentSide] للوصول إلى بيانات الكانفاس
+                const canvasDataForSide = certificateCardData[formCardIndex][currentSide];
+
+                if (canvasDataForSide && canvasDataForSide.fabricCanvas) {
+                    // حفظ البيانات قبل مسحها
+                    saveITextObjectsFromSpecificCanvas(canvasDataForSide.fabricCanvas, cardIdentifier, certificateCardData[formCardIndex]);
+                    if (currentSide === 'back' && frontRadio.checked) {
+                        // إذا كنا ننتقل من وجهين إلى وجه واحد، قم بحفظ كائنات الوجه الخلفي
+                        backITextObjects = [...(canvasDataForSide.iTextObjects || [])];
                         console.log(`Saving back iTextObjects for ${cardIdentifier}:`, backITextObjects);
                     }
                 }
             }
         });
 
-        hub.innerHTML = '';
+        hub.innerHTML = ''; // مسح المحتوى الحالي للـ hub
 
+        // ----------------------------------------------------
+        // إنشاء كارت الوجه الأمامي
+        // ----------------------------------------------------
         const f = document.importNode(fileTpl, true);
-        f.querySelector('.card-title').textContent = window.i18n.documents_front_side;
-        f.querySelector('.side-input').name = 'template_sides[]'; // تعديل اسم الإدخال
+        f.querySelector('.card-title').textContent = 'تحميل مستندات – الوجه الأمامي';
+        // تحديث أسماء المدخلات لتكون فريدة باستخدام formCardIndex
+        f.querySelector('.side-input').name = `certificate_template_sides_${formCardIndex}`;
         f.querySelector('.side-input').value = 'front';
-        f.querySelector('.file-input').name = 'document_template_file_path[]';
+        f.querySelector('.file-input').name = `document_template_file_path_${formCardIndex}`; // اسم ملف فريد
         const frontCardElement = f.querySelector('.filebox-card');
         hub.appendChild(f);
-        setupFileCard(frontCardElement, null, false); // تمرير isAttendance كـ false
 
-        const frontCardId = getCardIdFromSideInput(frontCardElement.querySelector('.side-input'));
-        if (!cardData[frontCardId]) {
-            cardData[frontCardId] = { fabricCanvas: null, iTextObjects: [], imageUrl: null };
+        // معرف الكارد الأمامي لـ setupFileCard
+        const frontCardIdForSetup = `document_template_file_path_${formCardIndex}-front`;
+        setupFileCard(frontCardElement, certificateCardData[formCardIndex]?.front?.imageUrl, false, formCardIndex);
+
+        // تحديث بنية التخزين
+        if (!certificateCardData[formCardIndex].front) {
+            certificateCardData[formCardIndex].front = { fabricCanvas: null, objects: [], imageUrl: null, canvasWidth: 0, canvasHeight: 0 };
         }
 
-        // Restore front side canvas if it exists
-        if (cardData[frontCardId].imageUrl) {
+        // استعادة كانفاس الوجه الأمامي إذا كانت الصورة موجودة
+        if (certificateCardData[formCardIndex].front.imageUrl) {
             const frontCanvasContainer = frontCardElement.querySelector('.fabric-canvas-container');
             frontCanvasContainer.classList.remove('hidden');
             frontCardElement.querySelector('.initial-upload-state').classList.add('hidden');
             frontCardElement.querySelector('.remove-preview-btn').style.display = 'flex';
 
             const canvasEl = document.createElement('canvas');
-            canvasEl.setAttribute('data-card-id', frontCardId);
-            canvasEl.setAttribute('id', `canvas-${frontCardId.replace(/[\[\]]/g, '')}`);
+            canvasEl.setAttribute('data-card-id', frontCardIdForSetup); // نفس المعرف المستخدم في setupFileCard
+            canvasEl.setAttribute('id', `canvas-${frontCardIdForSetup.replace(/[^a-zA-Z0-9-]/g, '')}`); // ID صالح
             canvasEl.style.width = '100%';
             canvasEl.style.height = '100%';
             canvasEl.style.display = 'block';
@@ -1872,40 +2104,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
             requestAnimationFrame(() => {
                 setTimeout(() => {
-                    initializeTemplateCanvas(canvasEl, cardData[frontCardId].imageUrl, frontCardId, cardData);
-                    if (cardData[frontCardId].iTextObjects.length > 0) {
-                        restoreITextObjectsOnSpecificCanvas(cardData[frontCardId].fabricCanvas, frontCardId, cardData);
+                    const canvasInstance = initializeTemplateCanvas(canvasEl, certificateCardData[formCardIndex].front.imageUrl, frontCardIdForSetup);
+                    certificateCardData[formCardIndex].front.fabricCanvas = canvasInstance; // تخزين المثيل
+                    restoreITextObjectsOnSpecificCanvas(canvasInstance, frontCardIdForSetup); // استعادة الكائنات من البيانات المحفوظة
+
+                    // إذا كان هناك objects iTextObjects من الوجه الخلفي عند التحويل إلى وجه واحد
+                    if (backITextObjects.length > 0) {
+                        backITextObjects.forEach(objData => {
+                            const newObj = new fabric.IText(objData.text, {
+                                left: objData.left,
+                                top: objData.top,
+                                fontFamily: objData.fontFamily || 'Arial',
+                                fontSize: objData.fontSize || 20,
+                                fill: objData.fill || '#000000',
+                                selectable: true,
+                                hasControls: true,
+                            });
+                            canvasInstance.add(newObj);
+                        });
+                        // حفظ هذه الكائنات الجديدة أيضًا
+                        saveITextObjectsFromSpecificCanvas(canvasInstance, frontCardIdForSetup);
                     }
-                    cardData[frontCardId].fabricCanvas.renderAll();
+                    canvasInstance.renderAll();
                 }, 50);
             });
         }
 
+        // ----------------------------------------------------
+        // إنشاء كارت الوجه الخلفي (إذا تم تحديده)
+        // ----------------------------------------------------
         if (backRadio && backRadio.checked) {
             const b = document.importNode(fileTpl, true);
-            b.querySelector('.card-title').textContent =  window.i18n.documents_back_side;
-            b.querySelector('.side-input').name = 'certificate_template_sides[]'; // تعديل اسم الإدخال
+            b.querySelector('.card-title').textContent = 'تحميل مستندات – الوجه الخلفي';
+            // تحديث أسماء المدخلات لتكون فريدة باستخدام formCardIndex
+            b.querySelector('.side-input').name = `certificate_template_sides_${formCardIndex}`;
             b.querySelector('.side-input').value = 'back';
-            b.querySelector('.file-input').name = 'document_template_file_path[]';
+            b.querySelector('.file-input').name = `document_template_file_path_${formCardIndex}`; // اسم ملف فريد
             const backCardElement = b.querySelector('.filebox-card');
             hub.appendChild(b);
-            setupFileCard(backCardElement, null, false); // تمرير isAttendance كـ false
 
-            const backCardId = getCardIdFromSideInput(backCardElement.querySelector('.side-input'));
-            if (!cardData[backCardId]) {
-                cardData[backCardId] = { fabricCanvas: null, iTextObjects: [], imageUrl: null };
+            const backCardIdForSetup = `document_template_file_path_${formCardIndex}-back`;
+            setupFileCard(backCardElement, certificateCardData[formCardIndex]?.back?.imageUrl, false, formCardIndex);
+
+            if (!certificateCardData[formCardIndex].back) {
+                certificateCardData[formCardIndex].back = { fabricCanvas: null, objects: [], imageUrl: null, canvasWidth: 0, canvasHeight: 0 };
             }
 
-            // Restore back side canvas if it exists
-            if (cardData[backCardId].imageUrl) {
+            // استعادة كانفاس الوجه الخلفي إذا كانت الصورة موجودة
+            if (certificateCardData[formCardIndex].back.imageUrl) {
                 const backCanvasContainer = backCardElement.querySelector('.fabric-canvas-container');
                 backCanvasContainer.classList.remove('hidden');
                 backCardElement.querySelector('.initial-upload-state').classList.add('hidden');
                 backCardElement.querySelector('.remove-preview-btn').style.display = 'flex';
 
                 const canvasEl = document.createElement('canvas');
-                canvasEl.setAttribute('data-card-id', backCardId);
-                canvasEl.setAttribute('id', `canvas-${backCardId.replace(/[\[\]]/g, '')}`);
+                canvasEl.setAttribute('data-card-id', backCardIdForSetup);
+                canvasEl.setAttribute('id', `canvas-${backCardIdForSetup.replace(/[^a-zA-Z0-9-]/g, '')}`);
                 canvasEl.style.width = '100%';
                 canvasEl.style.height = '100%';
                 canvasEl.style.display = 'block';
@@ -1913,81 +2167,78 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 requestAnimationFrame(() => {
                     setTimeout(() => {
-                        initializeTemplateCanvas(canvasEl, cardData[backCardId].imageUrl, backCardId, cardData);
-                        if (cardData[backCardId].iTextObjects.length > 0) {
-                            restoreITextObjectsOnSpecificCanvas(cardData[backCardId].fabricCanvas, backCardId, cardData);
-                        }
-                        cardData[backCardId].fabricCanvas.renderAll();
+                        const canvasInstance = initializeTemplateCanvas(canvasEl, certificateCardData[formCardIndex].back.imageUrl, backCardIdForSetup);
+                        certificateCardData[formCardIndex].back.fabricCanvas = canvasInstance;
+                        restoreITextObjectsOnSpecificCanvas(canvasInstance, backCardIdForSetup);
+                        canvasInstance.renderAll();
                     }, 50);
                 });
             }
-
-            // Restore back iTextObjects to front if switching to one side
-            if (backITextObjects.length > 0 && cardData[frontCardId].fabricCanvas) {
-                cardData[frontCardId].iTextObjects = [...cardData[frontCardId].iTextObjects, ...backITextObjects];
-                restoreITextObjectsOnSpecificCanvas(cardData[frontCardId].fabricCanvas, frontCardId, cardData);
-                cardData[frontCardId].fabricCanvas.renderAll();
-            }
         } else {
-            // Clear back card data only if switching to single side
-            const backCardId = 'document_template_file_path[]-back';
-            if (cardData[backCardId]) {
-                if (cardData[backCardId].fabricCanvas) {
-                    cardData[backCardId].fabricCanvas.dispose();
+            // إذا لم يكن الوجه الخلفي محددًا، قم بمسح بياناته
+            const backCardIdForClear = `document_template_file_path_${formCardIndex}-back`;
+            if (certificateCardData[formCardIndex].back) {
+                if (certificateCardData[formCardIndex].back.fabricCanvas) {
+                    certificateCardData[formCardIndex].back.fabricCanvas.dispose();
                 }
-                delete cardData[backCardId];
-                console.log(`Cleared back card data for ${backCardId}`);
+                delete certificateCardData[formCardIndex].back;
+                console.log(`Cleared back card data for ${backCardIdForClear}`);
             }
         }
     }
 
 
-    function renderAttendanceCards(block, initial = false) {
+    // قم بتحديث تعريف الدالة لتقبل formCardIndex
+    function renderAttendanceCards(block, initial = false, formCardIndex) {
         const containers = block.querySelectorAll('.attachments-container');
-        if (containers.length === 0) return;
+        if (containers.length === 0) {
+            console.warn('No .attachments-container found in attendance block.');
+            return;
+        }
         const container = containers[0];
 
         // إضافة الكلاسات لضمان التعرف على الحاوية كجزء من الحضور
-        container.classList.add('js-filehub', 'attendance-filehub');
+        // هذه الكلاسات يجب أن تكون موجودة على الـ container بالفعل في قالب Blade لكي تعمل selectors بشكل صحيح
+        // container.classList.add('js-filehub', 'attendance-filehub'); // قد لا تحتاج لإضافتها هنا إذا كانت موجودة في القالب
         console.log('Container classes:', container.className);
 
-        const one = block.querySelector('input[name="side"][value="1"]');
-        const two = block.querySelector('input[name="side"][value="2"]');
+        const one = block.querySelector(`input[name="attendance_template_sides_${formCardIndex}"][value="front"]`); // تحديث الاسم
+        const two = block.querySelector(`input[name="attendance_template_sides_${formCardIndex}"][value="back"]`);   // تحديث الاسم
+
         let count = initial ? 1 : (two && two.checked ? 2 : 1);
 
-        container.innerHTML = '';
+        container.innerHTML = ''; // مسح المحتوى الحالي للحاوية
+
+        // هنا سنعدل كيفية الوصول إلى البيانات
+        // سنستخدم attendanceCardData[formCardIndex] ككائن فرعي لكل كارت
+        attendanceCardData[formCardIndex] = attendanceCardData[formCardIndex] || {};
 
         for (let i = 0; i < count; i++) {
-            const newCardElement = createAttachmentCard(i === 1);
-            // التحقق من اسم الإدخال وتصحيحه إذا لزم الأمر
-            const fileInput = newCardElement.querySelector('.file-input');
-            if (fileInput) {
-                if (fileInput.name !== 'attendance_template_file_path[]') {
-                    console.warn(`Incorrect file input name detected: ${fileInput.name}. Correcting to attendance_template_file_path[]`);
-                    fileInput.name = 'attendance_template_file_path[]';
-                }
-                console.log('File input name for attendance card:', fileInput.name);
-            } else {
-                console.error('File input not found in attendance card:', newCardElement);
-            }
+            // تمرير formCardIndex إلى createAttachmentCard
+            const newCardElement = createAttachmentCard(i === 1, formCardIndex);
             container.appendChild(newCardElement);
-            setupFileCard(newCardElement);
 
-            const sideInput = newCardElement.querySelector('.side-input');
-            const cardId = getCardIdFromSideInput(sideInput);
-            if (!attendanceCardData[cardId]) {
-                attendanceCardData[cardId] = { fabricCanvas: null, iTextObjects: [], imageUrl: null, objectPositions: {} };
+            const currentSide = (i === 0) ? 'front' : 'back';
+            const cardIdForSetup = `attendance_template_data_file_path_${formCardIndex}-${currentSide}`;
+
+            // تمرير formCardIndex و isAttendance (true) إلى setupFileCard
+            setupFileCard(newCardElement, attendanceCardData[formCardIndex]?.[currentSide]?.imageUrl, true, formCardIndex);
+
+            // تحديث بنية التخزين
+            if (!attendanceCardData[formCardIndex][currentSide]) {
+                attendanceCardData[formCardIndex][currentSide] = { fabricCanvas: null, objects: [], imageUrl: null, objectPositions: {}, canvasWidth: 0, canvasHeight: 0 };
             }
 
-            if (attendanceCardData[cardId].imageUrl) {
+            // استعادة الكانفاس إذا كانت الصورة موجودة
+            if (attendanceCardData[formCardIndex][currentSide].imageUrl) {
                 const canvasContainer = newCardElement.querySelector('.fabric-canvas-container');
                 canvasContainer.classList.remove('hidden');
                 newCardElement.querySelector('.initial-upload-state').classList.add('hidden');
                 newCardElement.querySelector('.remove-preview-btn').style.display = 'flex';
 
                 const canvasEl = document.createElement('canvas');
-                canvasEl.setAttribute('data-card-id', cardId);
-                canvasEl.setAttribute('id', `canvas-${cardId.replace(/[\[\]]/g, '')}`);
+                canvasEl.setAttribute('data-card-id', cardIdForSetup);
+                canvasEl.setAttribute('id', `canvas-${cardIdForSetup.replace(/[^a-zA-Z0-9-]/g, '')}`);
                 canvasEl.style.width = '100%';
                 canvasEl.style.height = '100%';
                 canvasEl.style.display = 'block';
@@ -1995,24 +2246,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 requestAnimationFrame(() => {
                     setTimeout(() => {
-                        initializeTemplateCanvas(canvasEl, attendanceCardData[cardId].imageUrl, cardId, attendanceCardData);
-                        if (attendanceCardData[cardId].iTextObjects.length > 0) {
-                            restoreITextObjectsOnSpecificCanvas(attendanceCardData[cardId].fabricCanvas, cardId, attendanceCardData);
-                        }
-                        attendanceCardData[cardId].fabricCanvas.renderAll();
+                        const canvasInstance = initializeTemplateCanvas(canvasEl, attendanceCardData[formCardIndex][currentSide].imageUrl, cardIdForSetup);
+                        attendanceCardData[formCardIndex][currentSide].fabricCanvas = canvasInstance; // تخزين المثيل
+                        restoreITextObjectsOnSpecificCanvas(canvasInstance, cardIdForSetup);
+                        canvasInstance.renderAll();
                     }, 50);
                 });
             }
         }
 
+        // منطق مسح بيانات الوجه الخلفي إذا تم التحويل إلى وجه واحد
         if (count === 1) {
-            const backCardId = 'attendance_template_data_file_path-back';
-            if (attendanceCardData[backCardId]) {
-                if (attendanceCardData[backCardId].fabricCanvas) {
-                    attendanceCardData[backCardId].fabricCanvas.dispose();
+            const backCardKey = 'back';
+            if (attendanceCardData[formCardIndex][backCardKey]) {
+                if (attendanceCardData[formCardIndex][backCardKey].fabricCanvas) {
+                    attendanceCardData[formCardIndex][backCardKey].fabricCanvas.dispose();
                 }
-                delete attendanceCardData[backCardId];
-                console.log(`Cleared back card data for ${backCardId}`);
+                delete attendanceCardData[formCardIndex][backCardKey];
+                console.log(`Cleared back card data for attendance card ${formCardIndex}`);
             }
         }
 
@@ -2109,30 +2360,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function initDocumentBlock(block) {
-        if (block.dataset.inited) return;
-        block.dataset.inited = '1';
-        const name = `doc-face-${docIdx++}`;
+    // قم بتحديث تعريف الدالة لتقبل formCardIndex
+    function initDocumentBlock(block, formCardIndex) {
+        // استخدم formCardIndex لتحديد ما إذا كان البلوك قد تمت تهيئته بالفعل لهذا الكارت
+        if (block.dataset.inited === formCardIndex.toString()) return; // التحقق من الفهرس المحدد
+        block.dataset.inited = formCardIndex.toString(); // تخزين الفهرس كعلامة للتهيئة
+
+        // استخدم formCardIndex لإنشاء اسم فريد لمجموعات الراديو
+        const uniqueNameForRadio = `doc-face-${formCardIndex}`;
+
         const front = block.querySelector('input.js-face[data-face="front"]');
         const back = block.querySelector('input.js-face[data-face="back"]');
+
         if (front && back) {
-            front.name = back.name = name;
+            front.name = uniqueNameForRadio; // تعيين اسم فريد لكل كارت
+            back.name = uniqueNameForRadio;   // تعيين نفس الاسم لمجموعة الراديو
             front.checked = true;
             back.checked = false;
         } else if (front) {
-            front.name = name;
+            front.name = uniqueNameForRadio; // تعيين اسم فريد
             front.checked = true;
         }
-        renderDocumentCards(block);
+        // ملاحظة: تم إزالة docIdx++ من هنا لأننا نستخدم formCardCounter العام.
+
+        // تمرير formCardIndex إلى renderDocumentCards
+        renderDocumentCards(block, formCardIndex);
     }
 
-    function initAttendanceBlock(block) {
-        if (block.dataset.inited) return;
-        block.dataset.inited = '1';
+    // قم بتحديث تعريف الدالة لتقبل formCardIndex
+    function initAttendanceBlock(block, formCardIndex) {
+        // استخدم formCardIndex لتحديد ما إذا كان البلوك قد تمت تهيئته بالفعل لهذا الكارت
+        if (block.dataset.inited === formCardIndex.toString()) return; // التحقق من الفهرس المحدد
+        block.dataset.inited = formCardIndex.toString(); // تخزين الفهرس كعلامة للتهيئة
+
         const one = block.querySelector('input[name="side"][value="1"]');
         const two = block.querySelector('input[name="side"][value="2"]');
-        if (one) one.checked = true;
-        renderAttendanceCards(block, true);
+
+        // تحديث أسماء حقول الراديو لتكون فريدة لكل كارت
+        if (one) {
+            one.name = `attendance_template_sides_${formCardIndex}`; // اسم فريد
+            if (one.value === "1") one.checked = true; // التأكد من تحديد القيمة الافتراضية
+        }
+        if (two) {
+            two.name = `attendance_template_sides_${formCardIndex}`; // اسم فريد
+        }
+
+
+        // تمرير formCardIndex إلى renderAttendanceCards
+        renderAttendanceCards(block, true, formCardIndex);
     }
 
     document.body.addEventListener('change', (event) => {
@@ -2231,30 +2506,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function showPreview(side, isAttendance, cardData, excelFirstRowData = null) {
+    // قم بتحديث تعريف الدالة لتقبل formCardIndex و side بشكل صريح
+// و cardDataSource سيكون الكائن الرئيسي (certificateCardData أو attendanceCardData)
+    function showPreview(side, isAttendance, formCardIndex, excelFirstRowData = null) {
         let previewCanvas;
-        console.log(`عرض المعاينة للوجه: ${side}, هل هو حضور؟: ${isAttendance}`);
-        // تأكد من وجود دالة cleanDOM() في نطاق هذا الملف أو ملف آخر تم تحميله
-        cleanDOM();
+        console.log(`عرض المعاينة للكارت رقم: ${formCardIndex}, الوجه: ${side}, هل هو حضور؟: ${isAttendance}`);
 
-        if (typeof side !== 'string') {
-            console.error('Side is not a string:', side);
+        cleanDOM(); // تأكد من وجود دالة cleanDOM() في النطاق
+
+        if (typeof side !== 'string' || typeof formCardIndex !== 'string' && typeof formCardIndex !== 'number') {
+            console.error('Invalid side or formCardIndex provided for showPreview.');
             return;
         }
 
-        const cardId = isAttendance
-            ? `attendance_template_data_file_path-${side}`
-            : `document_template_file_path[]-${side}`;
-
         const cardDataSource = isAttendance ? attendanceCardData : certificateCardData;
-        const currentCanvasData = cardDataSource && cardDataSource.hasOwnProperty(cardId) ? cardDataSource[cardId] : null;
+        // ⭐⭐ هنا التعديل الجوهري: الوصول إلى بيانات الكانفاس بالهيكل المتداخل ⭐⭐
+        const currentCardDataEntry = cardDataSource[formCardIndex] ? cardDataSource[formCardIndex][side] : null;
 
-        if (!currentCanvasData) {
-            console.error(`No data found for cardId: ${cardId}`);
+        if (!currentCardDataEntry || !currentCardDataEntry.fabricCanvas) {
+            console.error(`No fabricCanvas data found for card ${formCardIndex}, side ${side}.`);
             const canvasElement = document.createElement('canvas');
             document.body.appendChild(canvasElement);
-            // تأكد من وجود دالة createEmptyPreviewCanvas()
-            previewCanvas = createEmptyPreviewCanvas(canvasElement, 'لا توجد بيانات كانفاس');
+            previewCanvas = createEmptyPreviewCanvas(canvasElement, `لا توجد بيانات كانفاس للكارت ${formCardIndex}, الوجه ${side}`);
             return;
         }
 
@@ -2284,46 +2557,29 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const canvasElement = document.createElement('canvas');
-        canvasElement.id = `preview-canvas-${cardId}`;
-        // canvasElement.style.cssText = `border: 2px solid #ccc; margin-bottom: 10px;`;
-
+        canvasElement.id = `preview-canvas-${formCardIndex}-${side}`; // ID فريد للكانفاس المعاينة
         previewWrapper.appendChild(closeButton);
         previewWrapper.appendChild(canvasElement);
 
-        // ⭐⭐ بداية التعديلات الجديدة ⭐⭐
-
-        // تحديد ما إذا كان هناك وجه واحد أو وجهين
-        const frontCardId = isAttendance ? `attendance_template_data_file_path-front` : `document_template_file_path[]-front`;
-        const backCardId = isAttendance ? `attendance_template_data_file_path-back` : `document_template_file_path[]-back`;
-        const hasBothSides = cardDataSource.hasOwnProperty(frontCardId) && cardDataSource.hasOwnProperty(backCardId);
-
-        // تحديد ما إذا كان يجب إظهار الكارد السفلي
-        const shouldShowBottomCard = (hasBothSides && side === 'back') || (!hasBothSides && side === 'front');
+        // ⭐⭐ منطق البطاقة السفلية (Verified by Pepasafe) ⭐⭐
+        // يجب أن يعتمد على وجود الوجه الخلفي في نفس الكارت المحدد
+        const hasBackSideForThisCard = !!(cardDataSource[formCardIndex]?.back?.imageUrl);
+        const shouldShowBottomCard = (hasBackSideForThisCard && side === 'back') || (!hasBackSideForThisCard && side === 'front');
 
         if (shouldShowBottomCard) {
-            // Container for the logo and QR code
             const bottomCard = document.createElement('div');
-            // bottomCard.style.cssText =`
-            //     background-color: white; border: 1px solid #ccc; border-radius: 4px;
-            // padding: 3px 8px; display: flex; justify-content: space-between;
-            // align-items: center; width: 449px; box-sizing: border-box;
-            // margin-top: -5px;
-            // `;
-
-            bottomCard.style.cssText =`
-    background-color: white; border: 1px solid #ccc; border-radius: 4px;
-    padding: 3px 8px; display: flex; flex-direction: row-reverse; gap: 8px;
-    align-items: center; width: 64%; box-sizing: border-box;
-    margin-top: -5px`;
-
-
+            bottomCard.style.cssText = `
+            background-color: white; border: 1px solid #ccc; border-radius: 4px;
+            padding: 3px 8px; display: flex; flex-direction: row-reverse; gap: 8px;
+            align-items: center; width: 64%; box-sizing: border-box;
+            margin-top: -5px;
+        `;
 
             const logoImg = document.createElement('img');
-            logoImg.src = '/assets/logo.jpg'; // 👈 **تأكد من هذا المسار**
+            logoImg.src = '/assets/logo.jpg';
             logoImg.alt = 'شعار الموقع';
             logoImg.style.height = '40px';
 
-            // ⭐⭐ هنا التعديل: استبدال الـ QR code بالنص ⭐⭐
             const verifiedText = document.createElement('span');
             verifiedText.textContent = 'Verified by Pepasafe';
             verifiedText.style.cssText = `
@@ -2333,15 +2589,16 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
             bottomCard.appendChild(logoImg);
-            bottomCard.appendChild(verifiedText); // إضافة النص بدلاً من الصورة
+            bottomCard.appendChild(verifiedText);
             previewWrapper.appendChild(bottomCard);
         }
-        // ⭐⭐ نهاية التعديلات الجديدة ⭐⭐
+        // ⭐⭐ نهاية منطق البطاقة السفلية ⭐⭐
 
         previewContainer.appendChild(previewWrapper);
         document.body.appendChild(previewContainer);
 
-        let originalCanvas = currentCanvasData.fabricCanvas;
+        // ⭐⭐ الوصول إلى الكانفاس الأصلي من currentCardDataEntry ⭐⭐
+        const originalCanvas = currentCardDataEntry.fabricCanvas;
 
         if (originalCanvas) {
             const originalWidth = originalCanvas.width;
@@ -2367,34 +2624,96 @@ document.addEventListener('DOMContentLoaded', () => {
 
             previewCanvas = new fabric.Canvas(canvasElement, {
                 width: previewWidth,
-                height: previewHeight
+                height: previewHeight,
+                selection: false, // لا نريد تحديد الكائنات في المعاينة
+                evented: false    // لا نريد أحداث الكائنات في المعاينة
             });
 
-            const originalObjects = originalCanvas.getObjects();
-            originalObjects.forEach(obj => {
-                const clonedObj = fabric.util.object.clone(obj);
-                if (clonedObj.textBaseline === 'alphabetical') {
-                    clonedObj.textBaseline = 'alphabetic';
+            // ----------------------------------------------------
+            // استعادة كائنات النص و QR من البيانات المحفوظة
+            // ----------------------------------------------------
+            // يجب أن نقرأ من الحقل المخفي نفسه للحصول على أحدث حالة محفوظة
+            let inputFieldName;
+            if (isAttendance) {
+                inputFieldName = 'attendance_text_data';
+            } else {
+                inputFieldName = 'certificate_text_data';
+            }
+            const inputField = document.querySelector(`input[name="${inputFieldName}"]`);
+            let storedData = {};
+            if (inputField && inputField.value) {
+                try {
+                    storedData = JSON.parse(inputField.value);
+                } catch (e) {
+                    console.error('Error parsing stored text data for preview:', e);
                 }
-                clonedObj.set({
-                    left: obj.left * scale,
-                    top: obj.top * scale,
-                    scaleX: obj.scaleX * scale,
-                    scaleY: obj.scaleY * scale,
-                });
+            }
 
-                // ⭐ التعديل لإضافة بيانات Excel ⭐
-                if (obj.type === 'i-text' && excelFirstRowData && obj.text) {
-                    const headerText = obj.text.trim();
-                    if (excelFirstRowData.hasOwnProperty(headerText)) {
-                        clonedObj.set('text', String(excelFirstRowData[headerText]));
+            const cardSpecificStoredData = storedData[formCardIndex] ? storedData[formCardIndex][side] : null;
+
+            const textsToRender = cardSpecificStoredData?.texts || [];
+            const qrCodesToRender = cardSpecificStoredData?.qrCodes || [];
+            const objectsToRender = [...textsToRender, ...qrCodesToRender];
+
+
+            // ----------------------------------------------------
+            // استنساخ وتعديل الكائنات
+            // ----------------------------------------------------
+            objectsToRender.forEach(objData => {
+                if (objData.type === 'i-text') {
+                    const textObject = new fabric.IText(objData.text, {
+                        left: objData.left * scale,
+                        top: objData.top * scale,
+                        fontFamily: objData.fontFamily,
+                        fontSize: objData.fontSize * scale, // scale font size too
+                        fill: objData.fill,
+                        angle: objData.angle,
+                        textBaseline: objData.textBaseline || 'top',
+                        textAlign: objData.textAlign || 'left',
+                        fontWeight: objData.fontWeight || 'normal',
+                        selectable: false, // لا يمكن تحديدها في المعاينة
+                        evented: false,    // لا تستجيب للأحداث
+                        hasControls: false
+                    });
+
+                    // ⭐ التعديل لإضافة بيانات Excel ⭐
+                    if (excelFirstRowData && objData.text) {
+                        const headerText = objData.text.trim();
+                        if (excelFirstRowData.hasOwnProperty(headerText)) {
+                            textObject.set('text', String(excelFirstRowData[headerText]));
+                        }
                     }
+                    previewCanvas.add(textObject);
+                } else if (objData.type === 'qr-code') {
+                    const qrImageUrl = '/assets/qr-code.jpg';
+                    fabric.Image.fromURL(qrImageUrl, (img) => {
+                        if (!img) {
+                            console.error('Failed to load QR code image for preview:', objData.id);
+                            return;
+                        }
+                        img.set({
+                            left: objData.left * scale,
+                            top: objData.top * scale,
+                            scaleX: objData.scaleX * scale,
+                            scaleY: objData.scaleY * scale,
+                            angle: objData.angle,
+                            width: objData.width, // العرض الأساسي
+                            height: objData.height, // الارتفاع الأساسي
+                            selectable: false,
+                            evented: false,
+                            hasControls: false,
+                            type: 'qr-code',
+                            subtype: objData.subtype
+                        });
+                        previewCanvas.add(img);
+                        previewCanvas.renderAll();
+                    }, { crossOrigin: 'Anonymous' });
                 }
-                // ⭐ نهاية التعديل ⭐
-
-                previewCanvas.add(clonedObj);
             });
 
+            // ----------------------------------------------------
+            // استنساخ الخلفية
+            // ----------------------------------------------------
             if (originalCanvas.backgroundImage) {
                 const backgroundImage = originalCanvas.backgroundImage;
                 const clonedBackground = new fabric.Image(backgroundImage.getElement(), {
@@ -2404,15 +2723,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     scaleY: backgroundImage.scaleY * scale,
                     originX: backgroundImage.originX,
                     originY: backgroundImage.originY,
-                    selectable: false
+                    selectable: false,
+                    evented: false
                 });
                 previewCanvas.setBackgroundImage(clonedBackground, previewCanvas.renderAll.bind(previewCanvas));
             }
 
-            previewCanvas.renderAll();
-        } else if (currentCanvasData.imageUrl) {
+            previewCanvas.renderAll(); // تأكد من إعادة الرسم بعد إضافة جميع الكائنات
+        } else if (currentCardDataEntry.imageUrl) {
+            // حالة عدم وجود كانفاس Fabric.js ولكن توجد صورة خلفية مباشرة
+            // هذا الجزء قد لا يكون ضروريًا إذا كان initializeTemplateCanvas يتم استدعاؤه دائمًا لإنشاء الكانفاس
+            console.warn(`No Fabric.js canvas found for card ${formCardIndex}, side ${side}, but imageUrl exists. Showing image directly.`);
             const img = new Image();
-            img.src = currentCanvasData.imageUrl;
+            img.src = currentCardDataEntry.imageUrl;
             img.crossOrigin = 'Anonymous';
             img.onload = () => {
                 const originalWidth = img.width;
@@ -2438,7 +2761,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 previewCanvas = new fabric.Canvas(canvasElement, {
                     width: previewWidth,
-                    height: previewHeight
+                    height: previewHeight,
+                    selection: false,
+                    evented: false
                 });
 
                 const fabricImage = new fabric.Image(img, {
@@ -2446,47 +2771,89 @@ document.addEventListener('DOMContentLoaded', () => {
                     top: 0,
                     scaleX: scale,
                     scaleY: scale,
-                    selectable: false
+                    selectable: false,
+                    evented: false
                 });
                 previewCanvas.add(fabricImage);
                 previewCanvas.sendToBack(fabricImage);
 
-                if (currentCanvasData.iTextObjects && currentCanvasData.iTextObjects.length > 0) {
-                    currentCanvasData.iTextObjects.forEach((iTextObj) => {
-                        const textObject = new fabric.IText(iTextObj.text, {
-                            left: iTextObj.left * scale,
-                            top: iTextObj.top * scale,
-                            fontFamily: iTextObj.fontFamily || 'Arial',
-                            fontSize: (iTextObj.fontSize || 20) * scale,
-                            fill: iTextObj.fill || '#000000',
+                // استعادة النصوص و QR Codes من البيانات المخزنة إذا وجدت
+                let inputFieldName;
+                if (isAttendance) {
+                    inputFieldName = 'attendance_text_data';
+                } else {
+                    inputFieldName = 'certificate_text_data';
+                }
+                const inputField = document.querySelector(`input[name="${inputFieldName}"]`);
+                let storedData = {};
+                if (inputField && inputField.value) {
+                    try {
+                        storedData = JSON.parse(inputField.value);
+                    } catch (e) {
+                        console.error('Error parsing stored text data for preview (image only):', e);
+                    }
+                }
+                const cardSpecificStoredData = storedData[formCardIndex] ? storedData[formCardIndex][side] : null;
+                const textsToRender = cardSpecificStoredData?.texts || [];
+                const qrCodesToRender = cardSpecificStoredData?.qrCodes || [];
+                const objectsToRender = [...textsToRender, ...qrCodesToRender];
+
+                objectsToRender.forEach((objData) => {
+                    if (objData.type === 'i-text') {
+                        const textObject = new fabric.IText(objData.text, {
+                            left: objData.left * scale,
+                            top: objData.top * scale,
+                            fontFamily: objData.fontFamily || 'Arial',
+                            fontSize: (objData.fontSize || 20) * scale,
+                            fill: objData.fill || '#000000',
                             selectable: false,
                             evented: false,
                             hasControls: false,
                             textBaseline: 'alphabetic'
                         });
-
-                        // ⭐ التعديل لإضافة بيانات Excel هنا أيضاً ⭐
-                        if (excelFirstRowData && iTextObj.text) {
-                            const headerText = iTextObj.text.trim();
+                        if (excelFirstRowData && objData.text) {
+                            const headerText = objData.text.trim();
                             if (excelFirstRowData.hasOwnProperty(headerText)) {
                                 textObject.set('text', String(excelFirstRowData[headerText]));
                             }
                         }
-                        // ⭐ نهاية التعديل ⭐
-
                         previewCanvas.add(textObject);
-                    });
-                }
+                    } else if (objData.type === 'qr-code') {
+                        const qrImageUrl = '/assets/qr-code.jpg';
+                        fabric.Image.fromURL(qrImageUrl, (img) => {
+                            if (!img) {
+                                console.error('Failed to load QR code image for preview (image only):', objData.id);
+                                return;
+                            }
+                            img.set({
+                                left: objData.left * scale,
+                                top: objData.top * scale,
+                                scaleX: objData.scaleX * scale,
+                                scaleY: objData.scaleY * scale,
+                                angle: objData.angle,
+                                width: objData.width,
+                                height: objData.height,
+                                selectable: false,
+                                evented: false,
+                                hasControls: false,
+                                type: 'qr-code',
+                                subtype: objData.subtype
+                            });
+                            previewCanvas.add(img);
+                            previewCanvas.renderAll();
+                        }, { crossOrigin: 'Anonymous' });
+                    }
+                });
 
                 previewCanvas.renderAll();
             };
             img.onerror = () => {
-                console.error(`Failed to load image for ${cardId}`);
-                previewCanvas = createEmptyPreviewCanvas(canvasElement, 'فشل تحميل الصورة');
+                console.error(`Failed to load image for card ${formCardIndex}, side ${side}`);
+                previewCanvas = createEmptyPreviewCanvas(canvasElement, `فشل تحميل الصورة للكارت ${formCardIndex}, الوجه ${side}`);
             };
         } else {
-            console.error(`No canvas or image found for cardId: ${cardId}`);
-            previewCanvas = createEmptyPreviewCanvas(canvasElement, 'لا توجد بيانات كانفاس أو صورة');
+            console.error(`No canvas or image found for card ${formCardIndex}, side ${side}.`);
+            previewCanvas = createEmptyPreviewCanvas(canvasElement, `لا توجد بيانات كانفاس أو صورة للكارت ${formCardIndex}, الوجه ${side}`);
         }
     }
 
@@ -2515,183 +2882,200 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+// دالة مساعدة لإنشاء زر في المودال
+    function createModalButton(text, onClickHandler, className = '') {
+        const button = document.createElement('button');
+        button.textContent = text;
+        button.className = `px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition ${className}`;
+        button.addEventListener('click', onClickHandler);
+        return button;
+    }
+
+// دالة مساعدة لإنشاء مودال عام
+    function createGenericModal(title, contentElement) {
+        const modalOverlay = document.createElement('div');
+        modalOverlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50';
+        modalOverlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center;
+        align-items: center; z-index: 1000; overflow: auto;
+    `;
+
+        const modalContentWrapper = document.createElement('div');
+        modalContentWrapper.className = 'bg-white rounded-lg p-6 shadow-xl relative max-w-lg w-full text-center';
+
+        const modalTitle = document.createElement('h3');
+        modalTitle.className = 'text-xl font-semibold mb-4';
+        modalTitle.textContent = title;
+
+        const closeButton = createModalButton('X', () => modalOverlay.remove(), 'absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors');
+
+        modalContentWrapper.append(closeButton, modalTitle, contentElement);
+        modalOverlay.appendChild(modalContentWrapper);
+        document.body.appendChild(modalOverlay);
+
+        return modalOverlay;
+    }
+
+
     function initPreviewManager() {
-        const certificateBtn = document.getElementById('fabric-popup');
-        const attendanceBtn = document.getElementById('attendance-fabric-popup');
+        const certificatePreviewBtn = document.getElementById('fabric-popup');
+        const attendancePreviewBtn = document.getElementById('attendance-fabric-popup');
         const certificateExcelInput = document.getElementById('excel-input-model-2');
         const attendanceExcelInput = document.getElementById('badge-excel-input-2');
 
-        if (certificateBtn) {
-            certificateBtn.addEventListener('click', () => {
-                console.log('Certificate finalize button clicked!');
-                const hasBackSide = !!certificateCardData['document_template_file_path[]-back']?.imageUrl;
-                console.log('Has back side for certificate:', hasBackSide);
-
-                if (!hasBackSide) {
-                    console.log('Single side detected for certificate, showing front preview directly...');
-                    showPreview('front', false, certificateCardData);
-                    return;
-                }
-
-                const choiceModal = document.createElement('div');
-                choiceModal.className = 'choice-modal';
-                choiceModal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.7);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-            `;
-
-                const modalContent = document.createElement('div');
-                modalContent.style.cssText = `
-                background: white;
-                padding: 20px;
-                border-radius: 8px;
-                text-align: center;
-            `;
-
-                const frontBtn = document.createElement('button');
-                frontBtn.textContent = 'معاينة الوجه الأمامي';
-                frontBtn.style.cssText = `
-                margin: 10px;
-                padding: 10px 20px;
-                background: #4CAF50;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-            `;
-                frontBtn.addEventListener('click', () => {
-                    showPreview('front', false, certificateCardData);
-                    choiceModal.remove();
-                });
-
-                const backBtn = document.createElement('button');
-                backBtn.textContent = 'معاينة الوجه الخلفي';
-                backBtn.style.cssText = `
-                margin: 10px;
-                padding: 10px 20px;
-                background: #4CAF50;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-            `;
-                backBtn.addEventListener('click', () => {
-                    showPreview('back', false, certificateCardData);
-                    choiceModal.remove();
-                });
-
-                modalContent.append(frontBtn, backBtn);
-                choiceModal.appendChild(modalContent);
-                document.body.appendChild(choiceModal);
+        // --------------------------------------------------------------------------------
+        // معالج حدث لزر معاينة الشهادة (Fabric Popup)
+        // --------------------------------------------------------------------------------
+        if (certificatePreviewBtn) {
+            certificatePreviewBtn.addEventListener('click', () => {
+                console.log('Certificate preview button clicked!');
+                handlePreviewButtonClick(false); // false لـ isAttendance
             });
         } else {
             console.warn('Certificate preview button (fabric-popup) not found');
         }
 
-        if (attendanceBtn) {
-            attendanceBtn.addEventListener('click', () => {
-                console.log('Attendance finalize button clicked!');
-                const hasBackSide = !!attendanceCardData['attendance_template_data_file_path-back']?.imageUrl;
-                console.log('Has back side for attendance:', hasBackSide);
-
-                if (!hasBackSide) {
-                    console.log('Single side detected for attendance, showing front preview directly...');
-                    showPreview('front', true, attendanceCardData);
-                    return;
-                }
-
-                const choiceModal = document.createElement('div');
-                choiceModal.className = 'choice-modal';
-                choiceModal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.7);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-            `;
-
-                const modalContent = document.createElement('div');
-                modalContent.style.cssText = `
-                background: white;
-                padding: 20px;
-                border-radius: 8px;
-                text-align: center;
-            `;
-
-                const frontBtn = document.createElement('button');
-                frontBtn.textContent = 'معاينة الوجه الأمامي';
-                frontBtn.style.cssText = `
-                margin: 10px;
-                padding: 10px 20px;
-                background: #4CAF50;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-            `;
-                frontBtn.addEventListener('click', () => {
-                    showPreview('front', true, attendanceCardData);
-                    choiceModal.remove();
-                });
-
-                const backBtn = document.createElement('button');
-                backBtn.textContent = 'معاينة الوجه الخلفي';
-                backBtn.style.cssText = `
-                margin: 10px;
-                padding: 10px 20px;
-                background: #4CAF50;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-            `;
-                backBtn.addEventListener('click', () => {
-                    showPreview('back', true, attendanceCardData);
-                    choiceModal.remove();
-                });
-
-                modalContent.append(frontBtn, backBtn);
-                choiceModal.appendChild(modalContent);
-                document.body.appendChild(choiceModal);
+        // --------------------------------------------------------------------------------
+        // معالج حدث لزر معاينة الحضور (Attendance Fabric Popup)
+        // --------------------------------------------------------------------------------
+        if (attendancePreviewBtn) {
+            attendancePreviewBtn.addEventListener('click', () => {
+                console.log('Attendance preview button clicked!');
+                handlePreviewButtonClick(true); // true لـ isAttendance
             });
         } else {
             console.warn('Attendance preview button (attendance-fabric-popup) not found');
         }
+
+        // --------------------------------------------------------------------------------
+        // دالة عامة لمعالجة نقرة زر المعاينة
+        // --------------------------------------------------------------------------------
+        function handlePreviewButtonClick(isAttendance) {
+            const availableCardsData = isAttendance ? attendanceCardData : certificateCardData;
+            const cardTypeLabel = isAttendance ? 'الحضور' : 'الشهادة';
+
+            const formCardIndices = Object.keys(availableCardsData).filter(key => Object.keys(availableCardsData[key]).length > 0);
+
+            if (formCardIndices.length === 0) {
+                alert(`لا توجد كروت ${cardTypeLabel} متاحة للمعاينة. الرجاء إضافة كارت ورفع صورة القالب أولاً.`);
+                return;
+            }
+
+            const cardsList = document.createElement('div');
+            cardsList.className = 'flex flex-col gap-3 mt-4';
+
+            // إنشاء زر لكل كارت موجود
+            formCardIndices.forEach(formCardIndex => {
+                const cardButton = createModalButton(
+                    `معاينة كارت ${cardTypeLabel} رقم ${parseInt(formCardIndex) + 1}`, // افتراض أن الفهرس يبدأ من 0، إذا كان formCardCounter يبدأ من 1 فاجعلها formCardIndex فقط
+                    () => {
+                        // بعد اختيار الكارت، نحتاج لتحديد الجانب (وجه واحد/وجهين)
+                        const cardSides = availableCardsData[formCardIndex];
+                        const hasFront = !!cardSides.front?.imageUrl;
+                        const hasBack = !!cardSides.back?.imageUrl;
+
+                        document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50.flex.justify-center.items-center.z-50')?.remove(); // إغلاق المودال الحالي
+
+                        if (hasFront && hasBack) {
+                            // إظهار مودال اختيار الجانب
+                            showSideSelectionModal(isAttendance, formCardIndex);
+                        } else if (hasFront) {
+                            // كارت ذو وجه واحد، عرض الوجه الأمامي مباشرة
+                            console.log(`Showing preview for card ${formCardIndex}, side front, type ${cardTypeLabel}`);
+                            readFirstDataRow(isAttendance, (excelInfo) => {
+                                const mappedExcelData = mapExcelData(excelInfo);
+                                showPreview('front', isAttendance, formCardIndex, mappedExcelData);
+                            });
+                        } else {
+                            alert('لا يوجد قالب صور تم رفعه لهذا الكارت.');
+                        }
+                    },
+                    'w-full py-3 bg-green-500 hover:bg-green-600'
+                );
+                cardsList.appendChild(cardButton);
+            });
+
+            createGenericModal(`اختر كارت ${cardTypeLabel} للمعاينة`, cardsList);
+        }
+
+        // --------------------------------------------------------------------------------
+        // دالة لإظهار مودال اختيار الجانب
+        // --------------------------------------------------------------------------------
+        function showSideSelectionModal(isAttendance, formCardIndex) {
+            const cardTypeLabel = isAttendance ? 'الحضور' : 'الشهادة';
+
+            const sideSelectionContainer = document.createElement('div');
+            sideSelectionContainer.className = 'flex flex-col gap-3 mt-4';
+
+            const frontSideButton = createModalButton(
+                'معاينة الوجه الأمامي',
+                () => {
+                    document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50.flex.justify-center.items-center.z-50')?.remove(); // إغلاق المودال
+                    console.log(`Showing preview for card ${formCardIndex}, side front, type ${cardTypeLabel}`);
+                    readFirstDataRow(isAttendance, (excelInfo) => {
+                        const mappedExcelData = mapExcelData(excelInfo);
+                        showPreview('front', isAttendance, formCardIndex, mappedExcelData);
+                    });
+                },
+                'w-full py-3 bg-green-500 hover:bg-green-600'
+            );
+            sideSelectionContainer.appendChild(frontSideButton);
+
+            const backSideButton = createModalButton(
+                'معاينة الوجه الخلفي',
+                () => {
+                    document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50.flex.justify-center.items-center.z-50')?.remove(); // إغلاق المودال
+                    console.log(`Showing preview for card ${formCardIndex}, side back, type ${cardTypeLabel}`);
+                    readFirstDataRow(isAttendance, (excelInfo) => {
+                        const mappedExcelData = mapExcelData(excelInfo);
+                        showPreview('back', isAttendance, formCardIndex, mappedExcelData);
+                    });
+                },
+                'w-full py-3 bg-green-500 hover:bg-green-600'
+            );
+            sideSelectionContainer.appendChild(backSideButton);
+
+            createGenericModal(`اختر وجه الكارت رقم ${parseInt(formCardIndex) + 1} لـ ${cardTypeLabel}`, sideSelectionContainer);
+        }
+
+
+        // دالة مساعدة لتحويل بيانات Excel إلى كائن
+        function mapExcelData(excelInfo) {
+            if (!excelInfo || !excelInfo.headers || !excelInfo.data) return null;
+            const mappedData = {};
+            excelInfo.headers.forEach((header, index) => {
+                if (excelInfo.data[index] !== undefined) {
+                    mappedData[header] = String(excelInfo.data[index]);
+                }
+            });
+            return mappedData;
+        }
+
+
+        // --------------------------------------------------------------------------------
+        // ملاحظة: معالجات حدث Excel Input هنا تحتاج إلى مراجعة
+        // لأنها تستخدم IDs ثابتة، بينما قد يكون هناك كروت ديناميكية متعددة.
+        // إذا كنت تريد أن يؤثر ملف Excel واحد على جميع الكروت من نفس النوع، فهذا جيد.
+        // ولكن إذا كنت تريد أن يكون لكل كارت ملف Excel خاص به، فهذا يتطلب إعادة هيكلة.
+        // بافتراض أن Excel واحد هو للكل في الوقت الحالي.
+        // --------------------------------------------------------------------------------
 
         if (certificateExcelInput) {
             certificateExcelInput.addEventListener('change', () => {
                 console.log('Certificate Excel input changed');
                 readFirstDataRow(false, (excelInfo) => {
                     if (excelInfo && excelInfo.headers) {
-                        console.log('Certificate Excel headers:', excelInfo.headers);
                         certificateExcelData = excelInfo;
-                        const frontCanvas = certificateCardData['document_template_file_path[]-front']?.fabricCanvas;
-                        if (frontCanvas) {
-                            console.log('Displaying headers on certificate front canvas');
-                            // displayHeadersOnSpecificCanvas(frontCanvas, excelInfo.headers, 'document_template_file_path[]-front', certificateCardData);
-                            frontCanvas.renderAll();
-                        }
+                        // هنا لا داعي لاستدعاء displayHeadersOnSpecificCanvas مباشرة هنا
+                        // لأنها يتم استدعاؤها بالفعل عند تهيئة الكانفاس أو عند تغيير صورة القالب
+                        // ولكن يمكننا تحديث جميع الكانفاسات الموجودة إذا لزم الأمر.
                     } else {
                         console.warn('No headers found in certificate Excel file');
                         certificateExcelData = { headers: [], data: [] };
                     }
                 });
             });
-        } else {
-            console.warn('Certificate Excel input (excel-input-model-2) not found');
         }
 
         if (attendanceExcelInput) {
@@ -2699,25 +3083,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Attendance Excel input changed');
                 readFirstDataRow(true, (excelInfo) => {
                     if (excelInfo && excelInfo.headers) {
-                        console.log('Attendance Excel headers:', excelInfo.headers);
                         attendanceExcelData = excelInfo;
-                        const frontCanvas = attendanceCardData['attendance_template_data_file_path-front']?.fabricCanvas;
-                        if (frontCanvas) {
-                            console.log('Displaying headers on attendance front canvas');
-                            // displayHeadersOnSpecificCanvas(frontCanvas, excelInfo.headers, 'attendance_template_data_file_path-front', attendanceCardData);
-                            frontCanvas.renderAll();
-                        }
                     } else {
                         console.warn('No headers found in attendance Excel file');
                         attendanceExcelData = { headers: [], data: [] };
                     }
                 });
             });
-        } else {
-            console.warn('Attendance Excel input (badge-excel-input-2) not found');
         }
     }
-
 // استبدل الكود القديم بتاع finalizeBtn بالسطر ده
 
     const attendanceFinalizeBtn = document.getElementById('attendance-fabric-popup');

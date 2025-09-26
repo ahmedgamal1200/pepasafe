@@ -122,7 +122,7 @@ class DocumentGenerationController extends Controller
 
             DB::commit();
 
-            return back()->with('success', 'تم إنشاء الحدث وتجهيز الشهادات بنجاح.');
+            return back()->with('success', trans_db('event_created_successfully'));
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error generating documents: ' . $e->getMessage());

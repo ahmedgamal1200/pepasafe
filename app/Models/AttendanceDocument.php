@@ -16,6 +16,6 @@ class AttendanceDocument extends Model
 
     public function template(): BelongsTo
     {
-        return $this->belongsTo(AttendanceTemplate::class);
+        return $this->belongsTo(AttendanceTemplate::class, 'attendance_template_id');
     }
 }

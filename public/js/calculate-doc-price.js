@@ -85,22 +85,28 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'in_plan':
                 // رسالة جديدة للسيناريو الأول بناءً على طلبك
                 messageHtml = `
-            سيتم إصدار <strong>${data.docs_count}</strong> وثيقة بتكلفة إجمالية <strong>${data.total_cost} جنيه</strong>.<br>
-            سيتم خصم المبلغ بالكامل من رصيد باقتك، وسيتبقى في الباقة <strong>${data.plan_balance_after} جنيه</strong>.
-        `;
+                            ${window.i18n.issue_docs_message
+                            .replace(':docs_count', `<strong>${data.docs_count}</strong>`)
+                            .replace(':total_cost', `<strong>${data.total_cost}</strong>`)
+                            .replace(':plan_balance_after', `<strong>${data.plan_balance_after}</strong>`)}
+                            `;
+
+
                 cardType = 'success';
                 break;
 
             case 'partial_plan':
                 // تحديث الرسالة لتطابق أسماء الحقول الجديدة
                 messageHtml = `
-            سيتم إصدار <strong>${data.docs_count}</strong> وثيقة. باقتك الحالية تغطي <strong>${data.covered_by_plan_count}</strong> وثيقة منها.<br>
-            سيتم خصم تكلفة <strong>${data.extra_docs_count}</strong> وثيقة إضافية (بقيمة <strong>${data.extra_cost} جنيه</strong>) من رصيد محفظتك (رصيدك الحالي: ${data.current_wallet_balance} جنيه).<br>
-            سيتبقى في رصيد محفظتك <strong>${data.wallet_balance_after} جنيه</strong> بعد الخصم.
-            <div class="mt-2 text-xs text-gray-500">
-                إذا كنت لا ترغب في الخصم من رصيدك، يرجى <a href="/wallet#" class="text-blue-600 hover:underline">ترقية الباقة</a>.
-            </div>
-        `;
+    ${window.i18n.issue_docs_wallet_message
+                    .replace(':docs_count', `<strong>${data.docs_count}</strong>`)
+                    .replace(':covered_by_plan_count', `<strong>${data.covered_by_plan_count}</strong>`)
+                    .replace(':extra_docs_count', `<strong>${data.extra_docs_count}</strong>`)
+                    .replace(':extra_cost', `<strong>${data.extra_cost}</strong>`)
+                    .replace(':current_wallet_balance', `<strong>${data.current_wallet_balance}</strong>`)
+                    .replace(':wallet_balance_after', `<strong>${data.wallet_balance_after}</strong>`)}
+`;
+
                 cardType = 'warning';
                 break;
 

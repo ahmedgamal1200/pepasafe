@@ -195,14 +195,9 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
 
     protected function sendWhatsApp(User $user, ?string $messageContent): void
     {
-        // *** الخطوة 1: Logging لبداية العملية ***
-        Log::info('WhatsApp Job: Attempting to send message.', [
-            'user_id' => $user->id,
-            'user_phone_from_db' => $user->phone,
-            'message_content_excerpt' => substr($messageContent ?? 'N/A', 0, 50),
-        ]);
 
         $targetPhoneNumber = $user->phone;
+//        $targetPhoneNumber = '+201205297854'; // تم التعديل لاستخدام رقم ثابت للاختبار
 
 
 

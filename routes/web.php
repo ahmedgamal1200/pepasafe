@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AboutController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\Eventor\DocumentGenerationController;
 use App\Http\Controllers\Eventor\DocumentVerificationController;
@@ -25,7 +26,7 @@ Route::get('/', function () {
 Route::get('/u/{user:slug}', [ProfileController::class, 'showProfileToGuest'])->name('showProfileToGuest');
 Route::get('/documents/{uuid}', [DocumentController::class, 'show'])->name('documents.show');
 // في routes/web.php مثلاً
-Route::get('/attendance/{uuid}', [DocumentController::class, 'show'])->name('attendance.show');
+Route::get('/attendance/{uuid}', [AttendanceController::class, 'show'])->name('attendance.show');
 
 Route::view('pry', 'pry')->name('pry');
 
