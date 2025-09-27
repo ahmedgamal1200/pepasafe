@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,8 +12,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
+use Filament\Models\Contracts\FilamentUser; // <== إضافة هذه الواجهة
+use Filament\Panel;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasRoles, Notifiable, SoftDeletes;
@@ -111,5 +112,11 @@ class User extends Authenticatable
             // خليه ياخد الاسم + الرقم
             $user->slug = Str::slug($user->name).'-'.$nextNumber;
         });
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+         return $this->hasAnyRole(['super admin', 'admin', 'eventor', 'employee']);
+
     }
 }
