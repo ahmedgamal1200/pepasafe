@@ -4,11 +4,11 @@
     @if($events->isNotEmpty() && $events->where('visible_on_profile', 1)->isNotEmpty())
         <header>
             <h2 class="text-lg font-medium text-gray-900">
-                {{ __('Your Events') }}
+                {{ trans_db('profile.event.title') }}
             </h2>
 
             <p class="mt-1 text-sm text-gray-600">
-                {{ __('These are the events that you have allowed to be visible on your personal profile.') }}
+                {{ trans_db('profile.event.desc') }}
             </p>
         </header>
 
@@ -78,9 +78,9 @@
                 <i class="fas fa-calendar-alt text-4xl text-blue-400 mb-4"></i>
                 <i class="fas fa-times-circle text-red-500 absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 text-xl"></i>
             </div>
-            <h2 class="text-lg font-semibold mb-2">No events available yet</h2>
+            <h2 class="text-lg font-semibold mb-2">{{ trans_db('event.not.found.title') }}</h2>
             <p class="text-sm text-red-600">
-                Please ensure that you have enabled your events to be visible on your profile.
+                {{ trans_db('event.not.found.desc') }}
             </p>
         </div>
 

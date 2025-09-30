@@ -52,7 +52,7 @@
                 <div id="dropdownMenu"
                      class="origin-top-left absolute left-0 right-auto mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-50">
                     <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-                        @if(auth()->check() && auth()->user()->hasAnyRole(['eventor', 'super admin']))
+                        @if(auth()->check() && auth()->user()->hasAnyRole(['eventor', 'super admin', 'user']))
                             @if (Setting::getValue('profile_page_enabled') === '1')
                                 <a href="{{ route('profile.edit') }}"
                                    class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

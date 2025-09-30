@@ -203,20 +203,15 @@
             @php
                 // تحديد ما إذا كان المستند هو Document أو AttendanceDocument
                 $isAttendance = $doc instanceof AttendanceDocument;
-
                 // تحديد مسار العرض بناءً على نوع المستند
                 $route = $isAttendance ? route('attendance.show', $doc->uuid) : route('documents.show', $doc->uuid);
-
                 // تحديد اسم القالب
                 $title = $doc->template->title ?? ($doc->template ? 'وثيقة حضور' : '');
-
                 // تحديد مسار الصورة
                 $filePath = asset('storage/' . $doc->file_path);
 
                 // تحديد تاريخ الإرسال/الإصدار
-//                $sendDate = $doc->template->send_at ? $doc->template->send_at->format('Y-m-d') : 'غير محدد';
-                $sendDate = '10-10-2023'; // مؤقتًا حتى يتم إصلاح مشكلة التاريخ
-
+                $sendDate = $doc->template->send_at ? $doc->template->send_at->format('Y-m-d') : 'غير محدد';
                 // تحديد الحدث
                 $eventTitle = $doc->template->event->title ?? '';
             @endphp
@@ -230,16 +225,22 @@
                          class="w-full h-auto object-contain rounded-lg shadow-md"/>
 
                     <div class="p-3 space-y-2 text-right">
-                        <h2 class="text-lg font-semibold">
-                            @if ($isAttendance)
-                                شهادة حضور: {{ $eventTitle }}
-                            @else
-                                وثيقة: {{ $title }}
-                            @endif
-                        </h2>
 
-                        <h3 class="text-gray-500 text-sm">تاريخ الإصدار: {{ $sendDate }}</h3>
-                        <p class="text-gray-600 text-sm">{{ $eventTitle }}</p>
+                        <div class="p-3 space-y-2 {{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }}">
+                            <h2 class="text-lg font-semibold">
+                                    @if ($isAttendance)
+                                        {{ trans_db('home.attendance') }}: {{ $eventTitle }}
+                                    @else
+                                        {{ trans_db('profile.doc') }}: {{ $title }}
+                                    @endif
+                            </h2>
+                            <h3 class="text-gray-500 text-sm">
+                                {{ trans_db('profile.doc.date') }}: {{ $sendDate }}
+                            </h3>
+                            <p class="text-gray-600 text-sm">
+                                {{ $eventTitle }}
+                            </p>
+                        </div>
 
                         {{-- منطق زر التبديل (يفترض أن visibility logic ينطبق فقط على الوثائق العادية) --}}
                         @if(!$isAttendance && auth()->id() === $doc->recipient->user_id)

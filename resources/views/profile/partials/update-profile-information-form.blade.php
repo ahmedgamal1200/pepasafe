@@ -138,7 +138,7 @@
                           name="bio"
                           rows="4"
                           class="mt-1 block w-full rounded-md shadow-sm border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 {{ $dirClass }}"
-                          placeholder="{{ trans_db('verify.bio_placeholder') }}"
+{{--                          placeholder="{{ trans_db('verify.bio_placeholder') }}"--}}
                 >{{ old('bio', $user->bio) }}</textarea>
 
                 <x-input-error class="mt-2" :messages="$errors->get('bio')"/>
@@ -147,9 +147,8 @@
 
 
         {{-- الأزرار: استخدام justify-end في وضع RTL لترحيلها إلى اليمين --}}
-        <div class="flex items-center gap-4 {{ $direction === 'rtl' ? 'justify-end' : '' }}">
-            <x-primary-button>{{ trans_db('verify.save') }}</x-primary-button>
-
+        <div class="flex items-center gap-4">
+            <x-primary-button>{{ trans_db('verify.saved') }}</x-primary-button>
             @if (session('status') === 'profile-updated')
                 <p
                     x-data="{ show: true }"
