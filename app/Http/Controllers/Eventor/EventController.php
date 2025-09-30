@@ -109,7 +109,8 @@ class EventController extends Controller
 
             $templates = DocumentTemplate::with(['templateFiles', 'documents'])
                 ->where('event_id', $event->id)->get();
-            $attendances = AttendanceTemplate::where('event_id', $event->id)->get();
+            $attendances = AttendanceTemplate::with('templateFiles')
+                ->where('event_id', $event->id)->get();
             $templateCount = $templates->count();
             $recipientCount = Recipient::where('event_id', $event->id)->count();
             $templateDataFile = $event->excelUploads;

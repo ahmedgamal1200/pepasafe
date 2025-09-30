@@ -461,7 +461,7 @@
                         @if(User::where('is_attendance', 1)->exists())
                             <i class="fas fa-check-circle text-base sm:text-lg text-green-600"></i>
                             <span class="text-sm sm:text-base font-medium text-green-700">
-                                {{ trans_db('att.status.on') }}
+                                {{ trans_db('attendance.status.on') }}
                             </span>
                         @else
                             <i class="fas fa-times-circle text-base sm:text-lg text-red-600"></i>
@@ -499,34 +499,38 @@
                 <div class="flex flex-col {{ $textAlignment }}">
                     <h4 class="font-semibold mb-1 text-sm sm:text-base">{{ trans_db('template.info') }}</h4>
                     <span class="text-gray-500 text-xs sm:text-sm mb-2">{{ trans_db('template.sent_at') }}: {{ $template->send_at }}</span>
-                    <div class="flex items-center gap-4 {{ $isRTL ? 'flex-row-reverse' : '' }}">
-                        <div class="text-gray-500 text-xs sm:text-sm mb-2">{{ trans_db('template.send_via') }}:</div>
+                    <span class="text-gray-500 text-xs sm:text-sm mb-2">{{ trans_db('event.issuer.label') }}: {{ $event->issuer }}</span>
+                    <div class="flex items-center gap-4 flex-wrap {{ $isRTL ? 'flex-row-reverse' : '' }}">
+                        <span class="text-gray-500 text-xs sm:text-sm">{{ trans_db('template.send_via') }}:</span>
+
                         @php
                             $sendVia = json_decode($template->send_via, true) ?? [];
                         @endphp
-                        <div class="flex flex-wrap items-center gap-4 {{ $isRTL ? 'flex-row-reverse' : '' }}">
-                            @if(in_array('whatsapp', $sendVia))
-                                <div class="flex items-center gap-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
-                                    <i class="fab fa-whatsapp text-2xl text-green-500"></i>
-                                    <span class="text-sm">{{ trans_db('channels.whatsapp') }}</span>
-                                </div>
-                            @endif
-                            @if(in_array('email', $sendVia))
-                                <div class="flex items-center gap-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
-                                    <i class="fas fa-envelope text-2xl text-red-500"></i>
-                                    <span class="text-sm">{{ trans_db('channels.email') }}</span>
-                                </div>
-                            @endif
-                            @if(in_array('sms', $sendVia))
-                                <div class="flex items-center gap-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
-                                    <i class="fas fa-sms text-2xl text-blue-500"></i>
-                                    <span class="text-sm">{{ trans_db('channels.sms') }}</span>
-                                </div>
-                            @endif
-                            @if(empty($sendVia))
-                                <span class="text-sm text-gray-400">{{ trans_db('send_via.none') }}</span>
-                            @endif
-                        </div>
+
+                        @if(in_array('whatsapp', $sendVia))
+                            <div class="flex items-center gap-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
+                                <i class="fab fa-whatsapp text-2xl text-green-500"></i>
+                                <span class="text-sm">{{ trans_db('channels.whatsapp') }}</span>
+                            </div>
+                        @endif
+
+                        @if(in_array('email', $sendVia))
+                            <div class="flex items-center gap-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
+                                <i class="fas fa-envelope text-2xl text-red-500"></i>
+                                <span class="text-sm">{{ trans_db('channels.email') }}</span>
+                            </div>
+                        @endif
+
+                        @if(in_array('sms', $sendVia))
+                            <div class="flex items-center gap-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
+                                <i class="fas fa-sms text-2xl text-blue-500"></i>
+                                <span class="text-sm">{{ trans_db('channels.sms') }}</span>
+                            </div>
+                        @endif
+
+                        @if(empty($sendVia))
+                            <span class="text-sm text-gray-400">{{ trans_db('send_via.none') }}</span>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -540,26 +544,32 @@
                         <div class="w-1 bg-blue-600 rounded h-20"></div>
                         <div class="flex flex-col {{ $textAlignment }}">
                             <h4 class="font-semibold mb-1 text-sm sm:text-base">{{ trans_db('attendance.badge_info') }}</h4>
-                            <span class="text-gray-500 text-xs sm:text-sm mb-2">{{ trans_db('template.send_via') }}: {{ $attendance->send_at }}</span>
+                            <span class="text-gray-500 text-xs sm:text-sm mb-2">{{ trans_db('template.sent_at') }}: {{ $attendance->send_at }}</span>
+{{--                            <span class="text-gray-500 text-xs sm:text-sm mb-2">{{ trans_db('event.issuer.label') }}: {{ $event->issuer }}</span>--}}
                             <div class="flex items-center gap-4 {{ $isRTL ? 'flex-row-reverse' : '' }}">
+                                <span class="text-gray-500 text-xs sm:text-sm">{{ trans_db('template.send_via') }}:</span>
+
                                 @if(in_array('whatsapp', $sendViaAtt))
                                     <div class="flex items-center gap-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
                                         <i class="fab fa-whatsapp text-2xl text-green-500"></i>
                                         <span class="text-sm">{{ trans_db('channels.whatsapp') }}</span>
                                     </div>
                                 @endif
+
                                 @if(in_array('email', $sendViaAtt))
                                     <div class="flex items-center gap-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
                                         <i class="fas fa-envelope text-2xl text-red-500"></i>
                                         <span class="text-sm">{{ trans_db('channels.email') }}</span>
                                     </div>
                                 @endif
+
                                 @if(in_array('sms', $sendViaAtt))
                                     <div class="flex items-center gap-1 {{ $isRTL ? 'flex-row-reverse' : '' }}">
                                         <i class="fas fa-sms text-2xl text-blue-500"></i>
                                         <span class="text-sm">{{ trans_db('channels.sms') }}</span>
                                     </div>
                                 @endif
+
                                 @if(empty($sendViaAtt))
                                     <span class="text-sm text-gray-400">{{ trans_db('send_via.none') }}</span>
                                 @endif
@@ -571,13 +581,13 @@
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
-{{--            <button class="w-full flex justify-center items-center gap-2 px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300 {{ $isRTL ? 'flex-row-reverse' : '' }}">--}}
-{{--                <i class="fas fa-download text-base sm:text-lg text-gray-700"></i>--}}
-{{--                <span class="text-xs sm:text-sm">{{ trans_db('buttons.download_contact_file') }}</span>--}}
-{{--            </button>--}}
             <a href="{{ route('documents.download', ['template' => $template->id]) }}" class="w-full flex justify-center items-center gap-2 px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300 {{ $isRTL ? 'flex-row-reverse' : '' }}">
                 <i class="fas fa-file-alt text-base sm:text-lg text-gray-700"></i>
                 <span class="text-xs sm:text-sm">{{ trans_db('buttons.all_documents') }}</span>
+            </a>
+            <a href="{{ route('bages.download', ['template' => $attendance->id]) }}" class="w-full flex justify-center items-center gap-2 px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300 {{ $isRTL ? 'flex-row-reverse' : '' }}">
+                <i class="fas fa-file-alt text-base sm:text-lg text-gray-700"></i>
+                <span class="text-xs sm:text-sm">{{ trans_db('buttons.all_bages_attendances') }}</span>
             </a>
         </div>
 
@@ -599,8 +609,9 @@
                 </div>
             </div>
 
-            @if($event->is_attendance_enabled)
+            @if($template->is_attendance_enabled == 1)
                 <button
+                    onclick="previewFile('{{ asset('storage/' . optional($attendance->templateFiles->first())->file_path) }}')"
                     class="w-full sm:w-auto flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition {{ $isRTL ? 'flex-row-reverse' : '' }}">
                     <i class="fas fa-eye text-base sm:text-lg"></i>
                     <span class="text-sm sm:text-base">{{ trans_db('buttons.preview_badge_template') }}</span>

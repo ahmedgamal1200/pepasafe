@@ -7,6 +7,7 @@ use App\Models\Document;
 use App\Models\DocumentTemplate;
 use App\Models\Event;
 use App\Models\Recipient;
+use Barryvdh\DomPDF\Facade\Pdf; // 👈 هذا هو الاستيراد الصحيح
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Application;
@@ -15,7 +16,8 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
-use ZipArchive;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use App\Models\AttendanceDocument; // استيراد نموذج وثيقة الحضور
 use App\Models\AttendanceTemplate; // استيراد نموذج قالب الحضور
 
@@ -227,35 +229,86 @@ class DocumentController extends Controller
             ]);
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function downloadAll(DocumentTemplate $template)
     {
-        // 1. إنشاء ملف Zip
-        $zipFile = storage_path('app/public/documents.zip');
-        $zip = new ZipArchive;
+        // 1. تصفية المستندات بناءً على event_id للقالب المُمرر
+        $eventId = $template->event_id;
 
-        // إذا كان الملف غير موجود، قم بإنشائه
-        if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+        // جلب جميع المستندات التي تنتمي لأي قالب مرتبط بنفس الـ event_id
+        $documents = Document::whereHas('template', function ($query) use ($eventId) {
+            $query->where('event_id', $eventId);
+        })->get();
 
-            // 2. تحديد اسم المجلد الذي تريد إنشاءه داخل ملف Zip
-            $folderName = 'Documents-'.now()->format('Y-m-d'); // مثال: "شهادات-2023-10-27"
-
-            // 3. إضافة الوثائق إلى المجلد داخل ملف Zip
-            foreach ($template->documents as $document) {
-                // الحصول على المسار الكامل للملف في نظام الملفات
-                $filePath = storage_path('app/public/'.$document->file_path);
-
-                // التأكد من وجود الملف
-                if (file_exists($filePath)) {
-                    // إضافة الملف إلى المجلد داخل الـ Zip باستخدام المسار الثاني
-                    $zip->addFile($filePath, $folderName.'/'.basename($filePath));
-                }
-            }
-            $zip->close();
-
-            // 4. إرسال ملف Zip للتنزيل
-            return response()->download($zipFile)->deleteFileAfterSend(true);
+        if ($documents->isEmpty()) {
+            return back()->with('error', 'لا توجد شهادات لهذا الحدث لتنزيلها.');
         }
 
-        return back()->with('error', 'فشل في إنشاء ملف التنزيل.');
+        // 2. تجميع محتوى HTML لجميع الشهادات (صور مشفرة بـ Base64)
+        $combinedHtml = '';
+
+        foreach ($documents as $document) {
+
+            // ⚠️ مهم: تأكد أن 'file_path' هو الحقل الصحيح الذي يحمل اسم ملف الشهادة
+            $certificateFileName = $document->file_path ?? 'placeholder.jpg';
+            $fullCertificatePath = public_path('storage/' . $certificateFileName);
+            $base64Image = '';
+
+            if (file_exists($fullCertificatePath)) {
+                $base64Image = base64_encode(file_get_contents($fullCertificatePath));
+            }
+
+            // تمرير بيانات التشفير إلى الـ View
+            $documentHtml = view('templates.certificate', [
+                'base64Image' => $base64Image,
+                'certificateFileName' => $certificateFileName,
+            ])->render();
+
+            $combinedHtml .= $documentHtml;
+
+            // إضافة فاصل صفحة بعد كل شهادة باستثناء الأخيرة
+            if (!$document->is($documents->last())) {
+                // فاصل صفحة بسيط لضمان بداية كل شهادة في صفحة جديدة
+                $combinedHtml .= '<div style="page-break-after: always; height: 1px;"></div>';
+            }
+        }
+
+        // 3. توليد ملف PDF واحد وإرساله للتنزيل
+        try {
+            ini_set('memory_limit', '512M'); // زيادة الذاكرة للمستندات الكبيرة
+
+            // تعيين خيارات Dompdf الضرورية لمعالجة Base64 والملفات المحلية
+            $pdf = Pdf::setOptions([
+                'isPhpEnabled' => true,
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => true,
+            ])->loadHTML($combinedHtml);
+
+            // يمكنك ضبط حجم الورقة هنا (مثل A4)
+//            $pdf->setPaper('A4', 'portrait');
+
+            $fileName = 'All_Documents_' . now()->format('Y-m-d_H-i-s') . '.pdf';
+            $storagePath = 'public/' . $fileName;
+
+            // الحفظ باستخدام Facade Storage
+            Storage::put($storagePath, $pdf->output());
+
+            // الحصول على المسار الكامل للتنزيل
+            $downloadPath = Storage::path($storagePath);
+
+            // إرسال ملف PDF للتنزيل وحذفه بعد الإرسال
+            return response()->download($downloadPath, $fileName)->deleteFileAfterSend(true);
+
+        } catch (\Exception $e) {
+            Log::error('PDF generation failed: ' . $e->getMessage());
+            return back()->with('error', 'فشل في توليد ملف PDF الموحد: ' . $e->getMessage());
+        }
+    }
+
+        protected function getDocumentHtmlContent($document): string
+    {
+        return view('templates.certificate', ['document' => $document])->render();
     }
 }
