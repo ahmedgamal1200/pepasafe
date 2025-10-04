@@ -429,11 +429,13 @@
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold">سجل المعاملات</h2>
 
-            <button class="flex items-center bg-gray-100 hover:bg-gray-200 hover:shadow-md transition-all rounded-lg px-4 py-2 font-semibold">
-                <span>جميع العمليات</span>
-                <i class="bi bi-arrow-up ms-2"></i>
-                <i class="bi bi-arrow-down ms-1"></i>
+            <button id="sort-transactions"  type="button"  class="flex items-center bg-gray-100 hover:bg-gray-200 hover:shadow-md transition-all rounded-lg px-4 py-2 font-semibold">
+                <span id="sort-text">الأحدث أولاً</span>
+                <i id="sort-icon" class="bi bi-arrow-down ms-2"></i>
             </button>
+        </div>
+
+        <div class="overflow-x-auto">
         </div>
 
         <div class="overflow-x-auto">
@@ -449,8 +451,6 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {{-- التحقق إذا كان هناك اشتراك وسجل تاريخي --}}
-{{--                    @dd($user->subscription->histories)--}}
                     @if($user->subscription && $user->subscription->histories->count() > 0)
                         @foreach($user->subscription->histories as $history)
                             <tr class="border-t hover:bg-gray-50 transition-colors cursor-pointer">
@@ -518,11 +518,6 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold">سجل عمليات الشحن  </h2>
 
-                <button class="flex items-center bg-gray-100 hover:bg-gray-200 hover:shadow-md transition-all rounded-lg px-4 py-2 font-semibold">
-                    <span>جميع العمليات</span>
-                    <i class="bi bi-arrow-up ms-2"></i>
-                    <i class="bi bi-arrow-down ms-1"></i>
-                </button>
             </div>
 
 
@@ -723,6 +718,102 @@
         });
 
     });
+
+
+    // =================================================================================
+    // 4. وظائف ترتيب جدول العمليات (الأحدث للأقدم أولاً)
+    // =================================================================================
+
+    const sortTransactionsBtn = document.getElementById('sort-transactions');
+    const sortTextSpan = document.getElementById('sort-text');
+    const sortIcon = document.getElementById('sort-icon');
+
+    // ⭐ التعديل الأول: نجعل الترتيب الافتراضي تنازلياً (false = الأحدث أولاً)
+    // true = تصاعدي (الأقدم أولاً) / false = تنازلي (الأحدث أولاً)
+    let isAscending = false;
+
+    /**
+     * دالة مساعدة لتحويل تنسيق التاريخ (YYYY-M-D) إلى كائن Date للمقارنة.
+     * @param {string} dateString - سلسلة التاريخ من الخلية (مثل "2023-05-25").
+     * @returns {Date} - كائن Date.
+     */
+    function formatDate(dateString) {
+        // التاريخ في الجدول يأتي بتنسيق 'Y-m-d' من Carbon، يمكن تمريره مباشرة
+        return new Date(dateString.trim());
+    }
+
+    /**
+     * دالة لترتيب الجداول بناءً على التاريخ في العمود الرابع.
+     */
+    function sortTable() {
+        const tables = document.querySelectorAll('table');
+
+        tables.forEach(table => {
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            // تخطي الجدول إذا كان يحتوي على رسالة "لا يوجد سجل معاملات"
+            if (rows.length === 1 && rows[0].querySelector('td[colspan]')) {
+                return;
+            }
+
+            rows.sort((a, b) => {
+                // الحصول على خلية التاريخ (العمود الرابع - الفهرس 3)
+                const dateA = formatDate(a.cells[3].textContent.trim());
+                const dateB = formatDate(b.cells[3].textContent.trim());
+
+                let comparison = 0;
+
+                if (dateA > dateB) {
+                    comparison = 1; // A أحدث من B
+                } else if (dateA < dateB) {
+                    comparison = -1; // A أقدم من B
+                }
+
+                // ⭐ التعديل الثاني في منطق الترتيب
+                // إذا كان تصاعدياً (isAscending = true) قارن طبيعي (الأقدم أولاً).
+                // إذا كان تنازلياً (isAscending = false) اعكس المقارنة (الأحدث أولاً).
+                return isAscending ? comparison : comparison * -1;
+            });
+
+            // إعادة إضافة الصفوف بالترتيب الجديد إلى الـ tbody
+            rows.forEach(row => tbody.appendChild(row));
+        });
+    }
+
+    /**
+     * دالة لتبديل حالة الترتيب وتحديث الجدول والزر.
+     */
+    function toggleSortOrder() {
+        // عكس حالة الترتيب
+        isAscending = !isAscending;
+
+        // تحديث نص وأيقونة الزر ليعكس الترتيب *الجديد*
+        if (isAscending) {
+            // إذا أصبح تصاعدياً (الأقدم أولاً)
+            sortTextSpan.textContent = 'الأقدم أولاً';
+            sortIcon.className = 'bi bi-arrow-up ms-2';
+        } else {
+            // إذا أصبح تنازلياً (الأحدث أولاً)
+            sortTextSpan.textContent = 'الأحدث أولاً';
+            sortIcon.className = 'bi bi-arrow-down ms-2';
+        }
+
+        // استدعاء دالة الترتيب
+        sortTable();
+    }
+
+    // تنفيذ الترتيب الافتراضي (الأحدث أولاً) عند تحميل الصفحة
+    // تأكد من أن الدالة sortTable يتم استدعاؤها بعد تحميل الجدول بالكامل
+    window.onload = function() {
+        if (sortTransactionsBtn) {
+            // ربط الدالة بالزر
+            sortTransactionsBtn.addEventListener('click', toggleSortOrder);
+
+            // تطبيق الترتيب الأولي (الأحدث أولاً)
+            sortTable();
+        }
+    };
 </script>
 
 <script src=" {{ asset('js/cash.js') }}"></script>
