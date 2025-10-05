@@ -175,6 +175,154 @@ class TranslationSeeder extends Seeder
                 'ar' => '#', // استبدل # بالرابط الفعلي
                 'en' => '#', // استبدل # بالرابط الفعلي
             ],
+
+
+            // ----------------------------------------------------------------
+// المفاتيح الجديدة لـ "في انتظار الموافقة"
+// ----------------------------------------------------------------
+            'approval.pending_title' => [
+                'ar' => 'في انتظار الموافقة على طلبك',
+                'en' => 'Your Request is Pending Approval',
+            ],
+            'approval.pending_message' => [
+                'ar' => 'طلبك قيد المراجعة حاليًا من قبل فريقنا. سنقوم بإبلاغك فور الموافقة عليه. نشكرك على صبرك وتفهمك.',
+                'en' => 'Your request is currently under review by our team. We will notify you immediately upon approval. Thank you for your patience and understanding.',
+            ],
+            'approval.reviewing_request' => [
+                'ar' => 'جارٍ مراجعة طلبك...',
+                'en' => 'Reviewing your request...',
+            ],
+
+// ----------------------------------------------------------------
+// مفاتيح التواصل (افتراضية لموديل PhoneNumber)
+// ----------------------------------------------------------------
+            'contact.call_us_prefix' => [
+                'ar' => 'لتواصل معنا، يرجى الاتصال على الأرقام التالية:',
+                'en' => 'To contact us, please call the following numbers:',
+            ],
+            'contact.or' => [
+                'ar' => 'أو',
+                'en' => 'or',
+            ],
+
+            // ----------------------------------------------------------------
+// المفاتيح الجديدة لـ "تم رفض الطلب"
+// ----------------------------------------------------------------
+            'approval.rejected_title' => [
+                'ar' => 'عفواً، تم رفض طلبك',
+                'en' => 'Sorry, Your Request was Rejected',
+            ],
+            'approval.rejected_message' => [
+                'ar' => 'نعتذر لإبلاغك بأنه تم رفض طلبك بعد مراجعته. يُرجى التواصل معنا للمزيد من التفاصيل حول أسباب الرفض وكيفية إعادة التقديم.',
+                'en' => 'We regret to inform you that your request was rejected after review. Please contact us for more details on the reasons for rejection and how to re-apply.',
+            ],
+            'approval.rejection_status' => [
+                'ar' => 'للأسف، لم يتم قبول طلبك.',
+                'en' => 'Unfortunately, your request was not accepted.',
+            ],
+            'contact.inquiry_prefix' => [
+                'ar' => 'إذا كان لديك أي استفسار، يرجى التواصل معنا على الأرقام التالية:',
+                'en' => 'If you have any questions, please contact us at the following numbers:',
+            ],
+
+            // ----------------------------------------------------------------
+// المفاتيح الجديدة لقسم "أنشئ حدثك الأول الآن" (Call to Action)
+// ----------------------------------------------------------------
+            'cta.create_event_title' => [
+                'ar' => 'أنشئ حدثك الأول الآن',
+                'en' => 'Create Your First Event Now',
+            ],
+            'cta.create_event_description' => [
+                'ar' => 'استعد لمشاركة أفكارك وأهدافك مع جمهورك! في هذا القسم، يمكنك بسهولة تحديد عنوان الحدث وإضافة وصف تفصيلي يغطي كافة التفاصيل، مثل الزمان والمكان والموضوع. بمجرد استكمال البيانات، سيظهر الحدث جاهزًا للنشر والمشاركة مع الجميع في دقائق.',
+                'en' => 'Get ready to share your ideas and goals with your audience! In this section, you can easily define the event title and add a detailed description covering all the specifics, such as time, place, and topic. Once the data is complete, the event will be ready to publish and share with everyone in minutes.',
+            ],
+            'cta.create_event_button' => [
+                'ar' => 'إنشاء الحدث الأول الآن',
+                'en' => 'Create First Event Now',
+            ],
+
+            'search.result_title' => [
+                'ar' => 'نتيجة البحث:',
+                'en' => 'Search Result:',
+            ],
+            'document.image_alt' => [
+                'ar' => 'صورة الوثيقة',
+                'en' => 'Document Image',
+            ],
+            'document.title_prefix' => [
+                'ar' => 'وثيقة',
+                'en' => 'Document',
+            ],
+            'document.issue_date' => [
+                'ar' => 'تاريخ الإصدار',
+                'en' => 'Issue Date',
+            ],
+            'document.show_profile' => [
+                'ar' => 'إظهار على الملف الشخصي',
+                'en' => 'Show on Profile',
+            ],
+            'document.hide_profile' => [
+                'ar' => 'إخفاء من الملف الشخصي',
+                'en' => 'Hide from Profile',
+            ],
+
+            // ----------------------------------------------------------------
+// المفاتيح الجديدة لشريط التنقل (Navigation)
+// ----------------------------------------------------------------
+            'nav.home' => [
+                'ar' => 'الرئيسية',
+                'en' => 'Home',
+            ],
+            'nav.wallet' => [
+                'ar' => 'المحفظة',
+                'en' => 'Wallet',
+            ],
+            'nav.about' => [
+                'ar' => 'من نحن',
+                'en' => 'About Us',
+            ],
+            'nav.notifications_title' => [
+                'ar' => 'الإشعارات',
+                'en' => 'Notifications',
+            ],
+            'nav.mark_all_read' => [
+                'ar' => 'وضع علامة "مقروء" على الكل',
+                'en' => 'Mark all as read',
+            ],
+            'nav.no_notifications' => [
+                'ar' => 'لا توجد إشعارات',
+                'en' => 'No notifications',
+            ],
+            'nav.notification_from_prefix' => [
+                'ar' => 'إشعار من',
+                'en' => 'Notification From',
+            ],
+            'nav.profile' => [
+                'ar' => 'الملف الشخصي',
+                'en' => 'Profile',
+            ],
+            'nav.dashboard' => [
+                'ar' => 'لوحة التحكم',
+                'en' => 'Dashboard',
+            ],
+            'nav.logout' => [
+                'ar' => 'تسجيل الخروج',
+                'en' => 'Logout',
+            ],
+            'nav.login' => [
+                'ar' => 'تسجيل الدخول',
+                'en' => 'Login',
+            ],
+            'nav.avatar_alt' => [
+                'ar' => 'صورة الملف الشخصي',
+                'en' => 'Profile Picture',
+            ],
+            'nav.language_switch_alert_prefix' => [
+                'ar' => 'جاري تبديل اللغة إلى',
+                'en' => 'Switching language to',
+            ],
+
+
         ];
 
         foreach ($translations as $key => $values) {

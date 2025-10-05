@@ -91,39 +91,48 @@
 
 {{-- قسم الانتظار--}}
 @if(auth()->check() && auth()->user()->hasRole('eventor') && $user->paymentReceipts->where('status', 'pending')->isNotEmpty())
-    <section class="w-full bg-[#F9FAFB] py-6 sm:py-8">
+    @php
+        // تحديد ما إذا كانت اللغة الحالية هي العربية (RTL)
+        $isRtl = (app()->getLocale() === 'ar');
+        $dirClass = $isRtl ? 'rtl' : 'ltr';
+        // ضبط فئة المحاذاة حسب الاتجاه. text-center يعمل جيدًا هنا.
+        $textAlignClass = $isRtl ? 'text-right' : 'text-left';
+
+        // افتراض أن موديل PhoneNumber موجود
+        $phones = \App\Models\PhoneNumber::pluck('phone_number')->toArray();
+    @endphp
+
+    <section class="w-full bg-[#F9FAFB] py-6 sm:py-8" dir="{{ $dirClass }}">
         <div class="max-w-xl mx-auto text-center px-4 sm:px-6">
             <h2 class="text-3xl sm:text-5xl font-bold text-black">
-                في انتظار الموافقة على طلبك
+                {{ trans_db('approval.pending_title') }}
             </h2>
             <p class="mt-4 text-gray-700 leading-relaxed text-sm sm:text-base">
-                طلبك قيد المراجعة حاليًا من قبل فريقنا. سنقوم بإبلاغك فور الموافقة عليه. نشكرك على صبرك وتفهمك.
+                {{ trans_db('approval.pending_message') }}
             </p>
 
             <div class="mt-8 flex justify-center items-center">
+                {{-- الأيقونة الدوارة (Spinning Icon) --}}
                 <div
                     class="animate-spin ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 border-t-blue-500"></div>
-                <p class="ml-4 text-lg font-medium text-blue-600">جارٍ مراجعة طلبك...</p>
+                {{-- ضبط margin-left/margin-right حسب الاتجاه --}}
+                <p class="{{ $isRtl ? 'me-4' : 'ml-4' }} text-lg font-medium text-blue-600">
+                    {{ trans_db('approval.reviewing_request') }}
+                </p>
             </div>
-
-            @php
-                $phones = PhoneNumber::pluck('phone_number')->toArray();
-            @endphp
 
             @if(count($phones))
                 <p class="mt-6 text-gray-700 leading-relaxed text-sm sm:text-base">
-                    لتواصل معنا، يرجى الاتصال على الأرقام التالية:
+                    {{ trans_db('contact.call_us_prefix') }}
                     <br>
                     @foreach ($phones as $index => $phone)
                         <span class="font-semibold text-blue-600">{{ $phone }}</span>
                         @if ($index < count($phones) - 1)
-                            أو
+                            {{ trans_db('contact.or') }}
                         @endif
                     @endforeach
                 </p>
             @endif
-
-
         </div>
     </section>
 @endif
@@ -132,37 +141,47 @@
 
 {{--قسم الرفض--}}
 @if(auth()->check() && auth()->user()->hasRole('eventor') && $user->paymentReceipts->where('status', 'rejected')->isNotEmpty())
-    <section class="w-full bg-[#F9FAFB] py-6 sm:py-8">
+    @php
+        // تحديد ما إذا كانت اللغة الحالية هي العربية (RTL)
+        $isRtl = (app()->getLocale() === 'ar');
+        $dirClass = $isRtl ? 'rtl' : 'ltr';
+        // لتحديد اتجاه النص داخل عنصر flex
+        $marginClass = $isRtl ? 'me-4' : 'ml-4';
+
+        // افتراض أن موديل PhoneNumber موجود
+        $phones = \App\Models\PhoneNumber::pluck('phone_number')->toArray();
+    @endphp
+
+    <section class="w-full bg-[#F9FAFB] py-6 sm:py-8" dir="{{ $dirClass }}">
         <div class="max-w-xl mx-auto text-center px-4 sm:px-6">
             <h2 class="text-3xl sm:text-5xl font-bold text-black">
-                عفواً، تم رفض طلبك
+                {{ trans_db('approval.rejected_title') }}
             </h2>
             <p class="mt-4 text-gray-700 leading-relaxed text-sm sm:text-base">
-                نعتذر لإبلاغك بأنه تم رفض طلبك بعد مراجعته. يُرجى التواصل معنا للمزيد من التفاصيل
-                حول أسباب الرفض وكيفية إعادة التقديم.
+                {{ trans_db('approval.rejected_message') }}
             </p>
 
             <div class="mt-8 flex justify-center items-center">
+                {{-- أيقونة الرفض (X داخل دائرة) --}}
                 <svg class="h-16 w-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                      xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                <p class="ml-4 text-lg font-medium text-red-600">للأسف، لم يتم قبول طلبك.</p>
+                {{-- ضبط margin-left/margin-right حسب الاتجاه --}}
+                <p class="{{ $marginClass }} text-lg font-medium text-red-600">
+                    {{ trans_db('approval.rejection_status') }}
+                </p>
             </div>
-
-            @php
-                $phones = PhoneNumber::pluck('phone_number')->toArray();
-            @endphp
 
             @if(count($phones))
                 <p class="mt-6 text-gray-700 leading-relaxed text-sm sm:text-base">
-                    إذا كان لديك أي استفسار، يرجى التواصل معنا على الأرقام التالية:
+                    {{ trans_db('contact.inquiry_prefix') }}
                     <br>
                     @foreach ($phones as $index => $phone)
                         <span class="font-semibold text-blue-600">{{ $phone }}</span>
                         @if ($index < count($phones) - 1)
-                            أو
+                            {{ trans_db('contact.or') }}
                         @endif
                     @endforeach
                 </p>
@@ -171,7 +190,6 @@
         </div>
     </section>
 @endif
-
 
 
 <!-- القسم الثاني: إنشاء الحدث  حالة الموافقة -->
@@ -185,16 +203,21 @@
     (auth()->check() && auth()->user()->hasRole('super admin'))
     )
 )
-<section class="w-full bg-[#F9FAFB] py-6 sm:py-8">
+    @php
+        // تحديد ما إذا كانت اللغة الحالية هي العربية (RTL)
+        $isRtl = (app()->getLocale() === 'ar');
+        $dirClass = $isRtl ? 'rtl' : 'ltr';
+        // ضبط الهامش لجانب الأيقونة داخل الزر
+        $iconMarginClass = $isRtl ? 'me-2' : 'ml-2';
+    @endphp
+
+    <section class="w-full bg-[#F9FAFB] py-6 sm:py-8" dir="{{ $dirClass }}">
         <div class="max-w-xl mx-auto text-center px-4 sm:px-6">
             <h2 class="text-3xl sm:text-5xl font-bold text-black">
-                أنشئ حدثك الأول الآن
+                {{ trans_db('cta.create_event_title') }}
             </h2>
             <p class="mt-4 text-gray-700 leading-relaxed text-sm sm:text-base">
-                استعد لمشاركة أفكارك وأهدافك مع جمهورك! في هذا القسم، يمكنك بسهولة
-                تحديد عنوان الحدث وإضافة وصف تفصيلي يغطي كافة التفاصيل، مثل الزمان
-                والمكان والموضوع. بمجرد استكمال البيانات، سيظهر الحدث جاهزًا للنشر
-                والمشاركة مع الجميع في دقائق.
+                {{ trans_db('cta.create_event_description') }}
             </p>
 
             <a
@@ -202,12 +225,14 @@
                 class="mt-6 w-full sm:w-auto bg-blue-600 text-white rounded-lg px-6 py-3 hover:bg-blue-700 flex items-center justify-center mx-auto"
             >
 
-                <i class="bi bi-plus-lg ml-2"></i>
-                إنشاء الحدث الأول الآن
+                <i class="bi bi-plus-lg {{ $iconMarginClass }}"></i>
+                {{ trans_db('cta.create_event_button') }}
             </a>
             @endif
         </div>
 </section>
+
+
 
 
 {{--                                        الاحداث في حالة ان المنظم عنده احداث --}}

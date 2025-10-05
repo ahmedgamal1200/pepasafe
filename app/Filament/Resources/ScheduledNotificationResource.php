@@ -23,6 +23,13 @@ class ScheduledNotificationResource extends Resource
 
     // في App\Filament\Resources\ScheduledNotificationResource.php
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasAnyPermission([
+            'full access',
+        ]);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

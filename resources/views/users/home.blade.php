@@ -126,37 +126,63 @@
 
 <!-- بطاقة النتيجة صغيرة على اليمين -->
 @if(request()->has('query') && $document)
-    <!-- عنوان قائمة الشهادات -->
-    <h2 class="text-xl font-bold text-right mt-4 mb-2 mr-2">نتيجة البحث: </h2><br>
+    @php
+        // تحديد ما إذا كانت اللغة الحالية هي العربية (RTL)
+        $isRtl = (app()->getLocale() === 'ar');
+        $dirClass = $isRtl ? 'rtl' : 'ltr';
+        // فئة المحاذاة للنصوص داخل القسم
+        $textAlignStart = $isRtl ? 'text-right' : 'text-left';
+        // فئة الهامش للعنوان العلوي (Mr/Ml)
+        $marginStart = $isRtl ? 'ml-2' : 'mr-2';
 
-    <a href="{{ route('documents.show', $document->uuid) }}">
-        <section class="max-w-xs bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105
-                    mx-auto lg:ml-auto lg:mr-5">
-            <img src="{{ asset('storage/' . $document->file_path) }}"
-                 alt="صورة الوثيقة"
-                 class="w-full h-auto object-contain rounded-lg shadow-md"/>
+        // **التعديل المطلوب:**
+        // العربية (RTL): mx-auto lg:mr-5 lg:ml-auto (محاذاة لليمين)
+        // الإنجليزية (LTR): mx-auto lg:ml-5 lg:mr-auto (محاذاة لليسار)
+        $cardMargin = $isRtl ? 'mx-auto lg:mr-5 lg:ml-auto' : 'mx-auto lg:ml-5 lg:mr-auto';
+    @endphp
 
-            <div class="p-3 space-y-2 text-right">
-                <h2 class="text-lg font-semibold"> وثيقة: {{ $document->template->title ?? ''}}</h2>
-                <h3 class="text-gray-500 text-sm">تاريخ الإصدار: {{ $document->template->send_at->format('Y-m-d')}}</h3>
-                <p class="text-gray-600 text-sm">{{ $document->template->event->title ?? ''}}</p>
-                @if(auth()->id() === $document->recipient->user_id)
-                    <div
-                        class="inline-block border border-gray-300 p-1 rounded hover:border-blue-600 transition relative">
-                        <form method="POST" action="{{ route('documents.toggleVisibility', $document->id) }}">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit" class="text-gray-500 hover:text-blue-600">
-                                <i class="bi {{ $document->visible_on_profile ? 'bi-eye-fill' : 'bi-eye-slash-fill' }}"></i>
-                            </button>
-                        </form>
-                    </div>
+    <div dir="{{ $dirClass }}">
+        <!-- عنوان قائمة الشهادات -->
+        <h2 class="text-xl font-bold {{ $textAlignStart }} mt-4 mb-2 {{ $marginStart }}">
+            {{ trans_db('search.result_title') }}
+        </h2><br>
+
+        <a href="{{ route('documents.show', $document->uuid) }}">
+            <section class="max-w-xs bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105
+                        {{ $cardMargin }}">
+                <img src="{{ asset('storage/' . $document->file_path) }}"
+                     alt="{{ trans_db('document.image_alt') }}"
+                     class="w-full h-auto object-contain rounded-lg shadow-md"/>
+
+                <div class="p-3 space-y-2 {{ $textAlignStart }}">
+                    <h2 class="text-lg font-semibold">
+                        {{ trans_db('document.title_prefix') }}: {{ $document->template->title ?? ''}}
+                    </h2>
+                    <h3 class="text-gray-500 text-sm">
+                        {{ trans_db('document.issue_date') }}: {{ $document->template->send_at->format('Y-m-d')}}
+                    </h3>
+                    <p class="text-gray-600 text-sm">
+                        {{ $document->template->event->title ?? ''}}
+                    </p>
+
+                    @if(auth()->id() === $document->recipient->user_id)
+                        {{-- زر تبديل الرؤية --}}
+                        <div class="inline-block border border-gray-300 p-1 rounded hover:border-blue-600 transition relative">
+                            <form method="POST" action="{{ route('documents.toggleVisibility', $document->id) }}">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="text-gray-500 hover:text-blue-600" title="{{ trans_db($document->visible_on_profile ? 'document.hide_profile' : 'document.show_profile') }}">
+                                    <i class="bi {{ $document->visible_on_profile ? 'bi-eye-fill' : 'bi-eye-slash-fill' }}"></i>
+                                </button>
+                            </form>
+                        </div>
                     @endif
-                    </span>
-            </div>
-        </section>
-    </a>
+                </div>
+            </section>
+        </a>
+    </div>
 @endif
+
 
 @if(!request()->has('query') && $user->documents->isEmpty())
     <section class="w-full py-10 px-4 sm:px-6">

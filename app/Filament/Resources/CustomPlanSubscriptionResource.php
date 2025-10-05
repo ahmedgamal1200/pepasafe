@@ -28,6 +28,13 @@ class CustomPlanSubscriptionResource extends Resource
 
     protected static ?string $navigationLabel = 'Custom Plans';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasAnyPermission([
+            'full access',
+        ]);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

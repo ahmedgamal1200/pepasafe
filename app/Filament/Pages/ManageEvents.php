@@ -32,6 +32,7 @@ class ManageEvents extends Page implements HasForms
 
     public $permissions = [];
 
+
     public function createUser()
     {
         // الفاليديشن خارج الـ try-catch ليتمكن Filament من عرض الأخطاء تلقائيًا

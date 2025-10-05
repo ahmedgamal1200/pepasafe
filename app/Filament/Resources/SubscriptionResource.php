@@ -18,6 +18,13 @@ class SubscriptionResource extends Resource
 
     protected static ?string $navigationGroup = 'Subscriptions';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasAnyPermission([
+            'full access',
+        ]);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

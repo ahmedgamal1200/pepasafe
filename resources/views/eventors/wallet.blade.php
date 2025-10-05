@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/logo.jpg') }}">
     <title>The Wallet</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -311,9 +312,9 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-screen-xl mx-auto p-4">
             @foreach ($plans as $plan)
                 @if($plan->is_public || ($plan->user_id == auth()->id()))
-                    @php
-                        $isCurrentPlan = (auth()->check() && auth()->user()->subscription->plan_id == $plan->id);
+                    @php $isCurrentPlan = (auth()->check() && auth()->user()->subscription?->plan_id == $plan->id);
                     @endphp
+
 
                     <input type="radio" name="plan" id="plan-{{ $plan->id }}" value="{{ $plan->id }}" class="hidden peer"
                         {{ $isCurrentPlan ? 'checked disabled' : '' }}>
@@ -381,7 +382,7 @@
                                     <form action="{{ route('plan.upgrade.request') }}" method="POST" enctype="multipart/form-data">
                                         @csrf
                                         <input type="hidden" name="plan_id" value="{{ $plan->id }}">
-                                        <input type="hidden" name="subscription_id" value="{{ $user->subscription->id }}">
+                                        <input type="hidden" name="subscription_id" value="{{ $user->subscription?->id }}">
 
                                         <div id="filename-{{ $plan->id }}" class="mt-2 text-sm text-gray-500 text-center mb-2"></div>
 

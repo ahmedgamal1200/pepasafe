@@ -36,6 +36,13 @@ class GeneralSettings extends Page implements Forms\Contracts\HasForms
 
     public $show_events_in_profile;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasAnyPermission([
+            'full access',
+        ]);
+    }
+
     public function mount(): void
     {
         $this->profile_page_enabled = Setting::where('key', 'profile_page_enabled')->value('value') === '1';

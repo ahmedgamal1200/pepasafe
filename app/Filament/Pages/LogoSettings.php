@@ -27,6 +27,13 @@ class LogoSettings extends Page implements Forms\Contracts\HasForms
 
     public array $data = [];
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasAnyPermission([
+            'full access',
+        ]);
+    }
+
     public function form(Form $form): Form
     {
         return $form
