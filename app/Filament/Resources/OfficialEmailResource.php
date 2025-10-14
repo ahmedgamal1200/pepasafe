@@ -14,16 +14,41 @@ class OfficialEmailResource extends Resource
 {
     protected static ?string $model = OfficialEmail::class;
 
-    protected static ?string $navigationGroup = 'Site Content';
-
     protected static ?string $navigationIcon = 'heroicon-o-envelope';
+
+    // استخدام الدوال لاسترداد القيم المترجمة
+    protected static ?string $navigationGroup = 'Site Content'; // Placeholder
+    protected static ?string $navigationLabel = null;
+    protected static ?string $modelLabel = null;
+    protected static ?string $pluralModelLabel = null;
+
+    public static function getNavigationGroup(): ?string
+    {
+        // استخدام المفتاح العام لمحتوى الموقع
+        return trans_db('site_content.navigation_group');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('official_email.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return trans_db('official_email.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db('official_email.plural_model_label');
+    }
 
     public static function canAccess(): bool
     {
         return auth()->user()?->hasAnyPermission([
             'full access',
-            'show official emails',
-            'add official emails',
+            'show official emails', // Permission key
+            'add official emails',  // Permission key
         ]);
     }
 
@@ -33,7 +58,7 @@ class OfficialEmailResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('email')
                     ->required()
-                    ->label('Official Email'),
+                    ->label(trans_db('official_email.email_label')), // استخدام trans_db
             ]);
     }
 
@@ -41,7 +66,8 @@ class OfficialEmailResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('email'),
+                Tables\Columns\TextColumn::make('email')
+                    ->label(trans_db('official_email.email_label')), // استخدام trans_db
             ])
             ->filters([
                 //
@@ -72,3 +98,4 @@ class OfficialEmailResource extends Resource
         ];
     }
 }
+

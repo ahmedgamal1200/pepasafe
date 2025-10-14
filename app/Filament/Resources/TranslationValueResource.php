@@ -12,6 +12,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\App;
 
 class TranslationValueResource extends Resource
 {
@@ -22,6 +23,35 @@ class TranslationValueResource extends Resource
     protected static ?string $navigationGroup = 'Translation settings';
 
     protected static ?string $navigationIcon = 'heroicon-o-language';
+
+    // الدوال الثابتة للترجمة
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('translation.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return trans_db('translation_keys.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return trans_db('translation.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db('translation.model_label');
+    }
+
+
+
+    // إضافة isRtl لدعم اتجاه النص العربي في الجدول
+    public static function isRtl(): bool
+    {
+        return App::isLocale('ar');
+    }
 
     public static function canAccess(): bool
     {
@@ -36,17 +66,17 @@ class TranslationValueResource extends Resource
         return $form
             ->schema([
                 Select::make('translation_key_id')
-                    ->label('Translation Key')
+                    ->label(trans_db('translation_keys.key_column'))
                     ->options(fn () => TranslationKey::all()->pluck('key', 'id'))
                     ->searchable()
                     ->required(),
 
                 TextInput::make('locale')
                     ->required()
-                    ->label('Locale (مثلاً ar أو en)'),
+                    ->label (trans_db('translation.local')),
                 Textarea::make('value')
                     ->required()
-                    ->label('Value'),
+                    ->label(trans_db('translation.content')),
             ]);
     }
 
@@ -55,9 +85,10 @@ class TranslationValueResource extends Resource
         return $table
             ->columns([
 
-                Tables\Columns\TextColumn::make('key.key')->label('Translation Key')->searchable(),
-                Tables\Columns\TextColumn::make('locale')->label('اللغة'),
-                Tables\Columns\TextColumn::make('value')->label('النص')->searchable(),
+                Tables\Columns\TextColumn::make('key.key')->label('Translation Key')->searchable()
+                    ->label(trans_db('translation_keys.key_column')),
+                Tables\Columns\TextColumn::make('locale')->label (trans_db('translation.local')),
+                Tables\Columns\TextColumn::make('value')->label(trans_db('translation.content'))->searchable(),
             ])
             ->filters([
                 //

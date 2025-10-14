@@ -17,15 +17,26 @@ class LogoSettings extends Page implements Forms\Contracts\HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-photo';
 
-    protected static ?string $title = 'Logo & Branding Settings';
-
-    protected static ?string $navigationGroup = 'Site Content';
+    // استخدام مفاتيح الترجمة بدلاً من النصوص الثابتة
+    protected static ?string $title = null;
+    protected static ?string $navigationGroup = null;
 
     protected static ?string $panel = 'admin';
 
     protected static string $view = 'filament.pages.logo-settings';
 
     public array $data = [];
+
+    public static function getNavigationGroup(): ?string
+    {
+        // استخدام المفتاح العام لمحتوى الموقع
+        return trans_db('site_content.navigation_group');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('logo_settings.page_title');
+    }
 
     public static function canAccess(): bool
     {
@@ -38,15 +49,15 @@ class LogoSettings extends Page implements Forms\Contracts\HasForms
     {
         return $form
             ->schema([
-                Section::make('Branding')
+                Section::make(trans_db('logo_settings.branding_section'))
                     ->schema([
                         TextInput::make('site_name')
-                            ->label('Site Name')
+                            ->label(trans_db('logo_settings.site_name_label'))
                             ->required()
                             ->maxLength(255),
 
                         FileUpload::make('path')
-                            ->label('Site Logo')
+                            ->label(trans_db('logo_settings.site_logo_label'))
                             ->image()
                             ->disk('public')
                             ->directory('logos')
@@ -57,18 +68,18 @@ class LogoSettings extends Page implements Forms\Contracts\HasForms
 
                         Forms\Components\Actions::make([
                             Forms\Components\Actions\Action::make('deleteLogo')
-                                ->label('Delete Logo')
+                                ->label(trans_db('logo_settings.delete_logo_action'))
                                 ->color('danger')
                                 ->icon('heroicon-o-trash')
                                 ->requiresConfirmation()
                                 ->action(function () {
-                                    $logo = \App\Models\Logo::first();
+                                    $logo = Logo::first();
                                     if ($logo && $logo->path) {
                                         \Storage::disk('public')->delete($logo->path);
                                         $logo->update(['path' => null]);
                                     }
-                                    \Filament\Notifications\Notification::make()
-                                        ->title('Logo deleted successfully!')
+                                    Notification::make()
+                                        ->title(trans_db('logo_settings.logo_delete_success'))
                                         ->success()
                                         ->send();
                                 }),
@@ -89,7 +100,6 @@ class LogoSettings extends Page implements Forms\Contracts\HasForms
         // التحقق من صحة البيانات
         $validatedData = $this->form->getState();
 
-        // **المنطق الجديد**
         // ابحث عن السجل الأول في الجدول
         $logo = Logo::first();
 
@@ -102,7 +112,7 @@ class LogoSettings extends Page implements Forms\Contracts\HasForms
         }
 
         Notification::make()
-            ->title('Branding settings updated successfully!')
+            ->title(trans_db('logo_settings.update_success'))
             ->success()
             ->send();
     }

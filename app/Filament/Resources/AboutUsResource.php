@@ -14,17 +14,41 @@ class AboutUsResource extends Resource
 {
     protected static ?string $model = AboutUs::class;
 
-    // في FaqResource.php
-    protected static ?string $navigationGroup = 'Site Content';
-
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
+
+    // يتم تعيين العناوين وتجميع التنقل عبر الدوال لضمان استخدام الترجمة
+    protected static ?string $navigationGroup = 'Site Content';
+    protected static ?string $navigationLabel = null;
+    protected static ?string $modelLabel = null;
+    protected static ?string $pluralModelLabel = null;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return trans_db('site_content.navigation_group');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('about_us.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return trans_db('about_us.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db('about_us.plural_model_label');
+    }
+
 
     public static function canAccess(): bool
     {
         return auth()->user()?->hasAnyPermission([
             'full access',
-            'show about us',
-            'add about us',
+            'show about us', // سيتم ترجمة هذا المفتاح في seeder
+            'add about us',  // سيتم ترجمة هذا المفتاح في seeder
         ]);
     }
 
@@ -33,6 +57,7 @@ class AboutUsResource extends Resource
         return $form
             ->schema([
                 Forms\Components\RichEditor::make('description')
+                    ->label(trans_db('about_us.description_label')) // ترجمة تسمية الحقل
                     ->required(),
             ]);
     }
@@ -41,7 +66,8 @@ class AboutUsResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('description'),
+                Tables\Columns\TextColumn::make('description')
+                    ->label(trans_db('about_us.description_label')), // ترجمة رأس العمود
             ])
             ->filters([
                 //

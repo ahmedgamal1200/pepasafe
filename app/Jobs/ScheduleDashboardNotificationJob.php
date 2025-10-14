@@ -203,14 +203,14 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
 
         try {
             $apiPayload = [
-                "name"             => 'gouda',
+                "name"             => 'document_alert',
                 "phoneNumber"      => $targetPhoneNumber, // تم التعديل لاستخدام متغير
                 "template_content" => 'test',
-                "template_id"      => 1492,
+                "template_id"      => 2386,
                 "workflow_id"      => 1,
                 "template" => [
-                    "name"     => "pepasafe_test",
-                    "language" => ["code" => "ar"],
+                    "name"     => "document_alert",
+                    "language" => ["code" => "en"],
                     "components" => [
                         [
                             "type" => "body",

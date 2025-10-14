@@ -9,10 +9,10 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Columns\ImageColumn;
-use Filament\Tables\Columns\ViewColumn;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\ViewColumn;
+use Filament\Tables\Actions\Action;
+use Filament\Support\Enums\Alignment; // لاستخدام Alignment::Right
 
 class PaymentReceiptResource extends Resource
 {
@@ -20,9 +20,27 @@ class PaymentReceiptResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationGroup = 'Requests';
+    // استخدام الدوال الثابتة للترجمة
+    public static function getNavigationGroup(): ?string
+    {
+        return trans_db('payment_receipts.navigation_group');
+    }
 
-    protected static ?string $navigationLabel = 'Payment Receipt Requests';
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('payment_receipts.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return trans_db('payment_receipts.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db('payment_receipts.plural_model_label');
+    }
+    // نهاية الدوال الثابتة للترجمة
 
     public static function canAccess(): bool
     {
@@ -51,29 +69,38 @@ class PaymentReceiptResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
+            // تحديد اتجاه النص (RTL) للغة العربية
+            ->columns(3)
             ->schema([
                 Forms\Components\Select::make('user_id')
-                    ->label('User Name')
-                    ->relationship('user', 'name') // لو في علاقة user
+                    // trans_db
+                    ->label(trans_db('payment_receipts.user_name'))
+                    ->relationship('user', 'name')
                     ->preload()
                     ->required(),
                 Forms\Components\Select::make('plan_id')
-                    ->label('Plan Name')
-                    ->relationship('plan', 'name') // لو في علاقة user
+                    // trans_db
+                    ->label(trans_db('payment_receipts.plan_name'))
+                    ->relationship('plan', 'name')
                     ->preload()
                     ->required(),
                 Forms\Components\FileUpload::make('image_path')
-                    ->label('Receipt')
-                    ->image() // للتأكد إن الملف صورة
-                    ->directory('receipts') // يخزن الصورة داخل storage/app/public/receipts
+                    // trans_db
+                    ->label(trans_db('payment_receipts.image_path'))
+                    ->image()
+                    ->directory('receipts')
                     ->required()
-                    ->visibility('public'), // لو بتستخدم storage:link
+                    ->visibility('public'),
                 Forms\Components\Select::make('status')
-                    ->label('Status')
+                    // trans_db
+                    ->label(trans_db('payment_receipts.status'))
                     ->options([
-                        'pending' => 'Pending',
-                        'approved' => 'Approved',
-                        'rejected' => 'Rejected',
+                        // trans_db
+                        'pending' => trans_db('payment_receipts.status_pending'),
+                        // trans_db
+                        'approved' => trans_db('payment_receipts.status_approved'),
+                        // trans_db
+                        'rejected' => trans_db('payment_receipts.status_rejected'),
                     ])
                     ->required(),
             ]);
@@ -83,25 +110,37 @@ class PaymentReceiptResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name')->searchable(),
-                Tables\Columns\TextColumn::make('plan.name')->searchable(),
-                //                ImageColumn::make('image_path')
-                //                    ->label('Receipt')
-                //                    ->disk('public')
-                //                    ->visibility('public'),// ده يخلي يقرأ من storage/app/public تلقائيًا
+                Tables\Columns\TextColumn::make('user.name')
+                    // trans_db
+                    ->label(trans_db('payment_receipts.user_name'))
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('plan.name')
+                    // trans_db
+                    ->label(trans_db('payment_receipts.plan_name'))
+                    ->searchable(),
                 ViewColumn::make('image_path')
-                    ->label('Receipt')
+                    // trans_db
+                    ->label(trans_db('payment_receipts.image_path'))
                     ->view('filament.components.payment-receipt')
                     ->url(null),
-                Tables\Columns\BadgeColumn::make('status'),
+                Tables\Columns\BadgeColumn::make('status')
+                    // trans_db
+                    ->label(trans_db('payment_receipts.status'))
+                    ->colors([
+                        'warning' => 'pending',
+                        'success' => 'approved',
+                        'danger' => 'rejected',
+                    ])
+                    ->formatStateUsing(fn (string $state): string => trans_db("payment_receipts.status_{$state}")), // ترجمة حالة Badge
             ])
             ->actions([
                 Action::make('approve')
-                    ->label('Approve')
+                    // trans_db
+                    ->label(trans_db('payment_receipts.approve'))
                     ->icon('heroicon-o-check')
                     ->color('success')
                     ->visible(fn ($record) => $record->status === 'pending' &&
-                    static::canApprove()
+                        static::canApprove()
                     )
                     ->action(function ($record) {
                         $record->update(['status' => 'approved']);
@@ -109,19 +148,22 @@ class PaymentReceiptResource extends Resource
                         Subscription::query()->create([
                             'user_id' => $record->user_id,
                             'plan_id' => $record->plan_id,
-                            'balance' => $record->plan->credit_amount,
-                            'remaining' => $record->plan->credit_amount,
+                            // يجب التأكد من وجود حقل credit_amount في نموذج Plan
+                            'balance' => $record->plan->credit_amount ?? 0,
+                            'remaining' => $record->plan->credit_amount ?? 0,
                             'start_date' => now(),
-                            'end_date' => now()->addDays($record->plan->duration_days),
+                            // يجب التأكد من وجود حقل duration_days في نموذج Plan
+                            'end_date' => now()->addDays($record->plan->duration_days ?? 30),
                             'status' => 'active',
                         ]);
                     }),
                 Action::make('reject')
-                    ->label('Reject')
+                    // trans_db
+                    ->label(trans_db('payment_receipts.reject'))
                     ->icon('heroicon-o-x-mark')
                     ->color('danger')
                     ->visible(fn ($record) => $record->status === 'pending' &&
-                    static::canReject()
+                        static::canReject()
                     )
                     ->action(fn ($record) => $record->update(['status' => 'rejected'])),
 
@@ -134,13 +176,26 @@ class PaymentReceiptResource extends Resource
             ])->recordUrl(null)
 
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status')
+                    // trans_db
+                    ->label(trans_db('payment_receipts.status'))
+                    ->options([
+                        // trans_db
+                        'pending' => trans_db('payment_receipts.status_pending'),
+                        // trans_db
+                        'approved' => trans_db('payment_receipts.status_approved'),
+                        // trans_db
+                        'rejected' => trans_db('payment_receipts.status_rejected'),
+                    ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            // تفعيل RTL للعربية
+            ->modifyQueryUsing(fn ($query) => $query)
+            ->defaultSort('id', 'asc');
     }
 
     public static function getRelations(): array

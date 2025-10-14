@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CustomPlanSubscriptionResource\Pages;
@@ -26,7 +27,28 @@ class CustomPlanSubscriptionResource extends Resource
 
     protected static ?string $navigationGroup = 'Subscriptions';
 
-    protected static ?string $navigationLabel = 'Custom Plans';
+    // تم التعديل: استخدام دالة ثابتة بدلاً من خاصية ثابتة لضمان عمل الترجمة
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('custom_plans.navigation_label');
+    }
+
+    // تم التعديل: استخدام دالة ثابتة بدلاً من خاصية ثابتة لضمان عمل الترجمة
+    public static function getModelLabel(): string
+    {
+        return trans_db('custom_plans.model_label');
+    }
+
+    // تم التعديل: استخدام دالة ثابتة بدلاً من خاصية ثابتة لضمان عمل الترجمة
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db('custom_plans.plural_model_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return trans_db('plans.navigation_group');
+    }
 
     public static function canAccess(): bool
     {
@@ -39,140 +61,173 @@ class CustomPlanSubscriptionResource extends Resource
     {
         return $form
             ->schema([
-
                 Grid::make(2)
                     ->schema([
                         Select::make('user_id')
-                            ->label('User')
+                            // trans_db
+                            ->label(trans_db('custom_plans.user'))
                             ->options(User::all()->pluck('name', 'id'))
                             ->required()
                             ->searchable(),
 
                         Forms\Components\Checkbox::make('is_public')
-                            ->label('Custom Private Plan ?')
+                            // trans_db
+                            ->label(trans_db('custom_plans.is_public_label'))
                             ->default(true)
                             ->disabled(),
-
                     ]),
 
                 Forms\Components\TextInput::make('name')
                     ->required()
-                    ->label('Plan Name')
+                    // trans_db
+                    ->label(trans_db('custom_plans.plan_name'))
                     ->maxLength(255),
+
                 Forms\Components\TextInput::make('price')
                     ->required()
-                    ->label('Price after discount')
+                    // trans_db
+                    ->label(trans_db('custom_plans.price_after_discount'))
                     ->maxLength(255)
-                    ->minLength(0),
+                    ->minValue(0),
+
                 Forms\Components\TextInput::make('compare_price')
-                    ->label('Price before discount')
+                    // trans_db
+                    ->label(trans_db('custom_plans.price_before_discount'))
                     ->maxLength(255),
+
                 Forms\Components\TextInput::make('credit_amount')
                     ->required()
-                    ->label('Credit Amount')
+                    // trans_db
+                    ->label(trans_db('custom_plans.credit_amount'))
                     ->numeric()
                     ->minValue(0),
+
                 Forms\Components\TextInput::make('duration_days')
                     ->required()
-                    ->label('Duration Days')
-                    ->placeholder('30 days')
+                    // trans_db
+                    ->label(trans_db('custom_plans.duration_days'))
+                    // trans_db
+                    ->placeholder(trans_db('custom_plans.duration_days_placeholder'))
                     ->maxLength(255)
                     ->minValue(0)
                     ->numeric(),
 
                 TextInput::make('max_users')
                     ->required()
-                    ->label('Maximum Users')
+                    // trans_db
+                    ->label(trans_db('custom_plans.maximum_users'))
                     ->numeric()
                     ->minValue(0),
 
                 TextInput::make('document_price_in_plan')
-                    ->label('In-Plan Document Price (Within Plan)')
+                    // trans_db
+                    ->label(trans_db('custom_plans.document_price_in_plan'))
                     ->required()
                     ->numeric()
                     ->minValue(0),
 
                 TextInput::make('document_price_outside_plan')
-                    ->label('Pay-As-You-Go Document Price (Outside Plan)')
+                    // trans_db
+                    ->label(trans_db('custom_plans.document_price_outside_plan'))
                     ->required()
                     ->numeric()
                     ->minValue(0),
 
                 // SMS Prices
                 TextInput::make('sms_price_outside_plan')
-                    ->label('Pay-As-You-Go SMS Message Price (Outside Plan)')
+                    // trans_db
+                    ->label(trans_db('custom_plans.sms_price_outside_plan'))
                     ->required()
                     ->numeric()
                     ->minValue(0),
+
                 TextInput::make('sms_price_in_plan')
-                    ->label('In-Plan SMS Message Price (Within Plan)')
+                    // trans_db
+                    ->label(trans_db('custom_plans.sms_price_in_plan'))
                     ->required()
                     ->numeric()
                     ->minValue(0),
 
                 // WhatsApp Prices
                 TextInput::make('whatsapp_price_outside_plan')
-                    ->label('Pay-As-You-Go WhatsApp Message Price (Outside Plan)')
+                    // trans_db
+                    ->label(trans_db('custom_plans.whatsapp_price_outside_plan'))
                     ->required()
                     ->numeric()
                     ->minValue(0),
 
                 TextInput::make('whatsapp_price_in_plan')
-                    ->label('In-Plan WhatsApp Message Price (Within Plan)')
+                    // trans_db
+                    ->label(trans_db('custom_plans.whatsapp_price_in_plan'))
                     ->required()
                     ->numeric()
                     ->minValue(0),
 
                 // Email Prices
                 TextInput::make('email_price_outside_plan')
-                    ->label('Pay-As-You-Go Email Message Price (Outside Plan)')
+                    // trans_db
+                    ->label(trans_db('custom_plans.email_price_outside_plan'))
                     ->required()
                     ->numeric()
                     ->minValue(0),
+
                 TextInput::make('email_price_in_plan')
-                    ->label('In-Plan Email Message Price (Within Plan)')
+                    // trans_db
+                    ->label(trans_db('custom_plans.email_price_in_plan'))
                     ->required()
                     ->numeric()
                     ->minValue(0),
 
                 Grid::make(2)
-                    // ✅ خيار ترحيل الرصيد
                     ->schema([
+                        // Checkbox: Carry over credit (ترحيل الرصيد)
                         Checkbox::make('carry_over_credit')
-                            ->label('السماح بترحيل الرصيد المتبقي عند التجديد ؟')
+                            // trans_db
+                            ->label(trans_db('custom_plans.carry_over_credit'))
                             ->default(false),
 
                         Checkbox::make('enable_attendance')
-                            ->label('تفعيل الحضور في هذه الباقة ؟')
+                            // trans_db
+                            ->label(trans_db('custom_plans.enable_attendance'))
                             ->default(false),
 
                         Checkbox::make('enable_multiple_templates')
-                            ->label('تفعيل استخدام أكثر من نموذج في هذه الباقة ؟')
+                            // trans_db
+                            ->label(trans_db('custom_plans.enable_multiple_templates'))
                             ->default(false),
                     ]),
 
                 Select::make('enabled_channels.documents')
-                    ->label('قنوات إرسال الوثائق')
+                    // trans_db
+                    ->label(trans_db('custom_plans.enabled_channels_documents'))
                     ->multiple()
                     ->options([
-                        'email' => 'Email',
-                        'sms' => 'SMS',
-                        'whatsapp' => 'WhatsApp',
+                        // trans_db
+                        'email' => trans_db('custom_plans.channel_email'),
+                        // trans_db
+                        'sms' => trans_db('custom_plans.channel_sms'),
+                        // trans_db
+                        'whatsapp' => trans_db('custom_plans.channel_whatsapp'),
                     ])
                     ->columnSpanFull(),
 
                 Select::make('enabled_channels.attendance')
-                    ->label('قنوات إرسال الحضور')
+                    // trans_db
+                    ->label(trans_db('custom_plans.enabled_channels_attendance'))
                     ->multiple()
                     ->options([
-                        'email' => 'Email',
-                        'sms' => 'SMS',
-                        'whatsapp' => 'WhatsApp',
+                        // trans_db
+                        'email' => trans_db('custom_plans.channel_email'),
+                        // trans_db
+                        'sms' => trans_db('custom_plans.channel_sms'),
+                        // trans_db
+                        'whatsapp' => trans_db('custom_plans.channel_whatsapp'),
                     ])
                     ->columnSpanFull(),
 
                 Forms\Components\RichEditor::make('feature')
-                    ->label('Features')
+                    // trans_db
+                    ->label(trans_db('custom_plans.features'))
                     ->required(),
             ]);
 
@@ -207,26 +262,38 @@ class CustomPlanSubscriptionResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name'),
-                Tables\Columns\TextColumn::make('price')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('compare_price')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('credit_amount')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('duration_days')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('feature')->html(),
-                Tables\Columns\IconColumn::make('carry_over_credit')->searchable()->sortable()->boolean(),
-                Tables\Columns\TextColumn::make('max_users')->searchable()->sortable(),
-                Tables\Columns\IconColumn::make('enable_attendance')->boolean(),
-                TextColumn::make('document_price_in_plan')->sortable(),
-                TextColumn::make('document_price_outside_plan')->sortable(),
-                TextColumn::make('sms_price_in_plan')->sortable(),
-                TextColumn::make('sms_price_outside_plan')->sortable(),
-                TextColumn::make('whatsapp_price_in_plan')->sortable(),
-                TextColumn::make('whatsapp_price_outside_plan')->sortable(),
-                TextColumn::make('email_price_in_plan')->sortable(),
-                TextColumn::make('email_price_outside_plan')->sortable(),
-                Tables\Columns\IconColumn::make('enable_multiple_templates')->boolean(),
-                Tables\Columns\IconColumn::make('is_public')->boolean(),
-
+                // trans_db
+                Tables\Columns\TextColumn::make('name')->label(trans_db('custom_plans.plan_name'))->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('price')->label(trans_db('custom_plans.price'))->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('compare_price')->label(trans_db('custom_plans.compare_price'))->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('credit_amount')->label(trans_db('custom_plans.credit_amount'))->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('duration_days')->label(trans_db('custom_plans.duration_days'))->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('feature')->label(trans_db('custom_plans.features'))->html(),
+                // trans_db
+                Tables\Columns\IconColumn::make('carry_over_credit')->label(trans_db('custom_plans.carry_over_credit_short'))->boolean()->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('max_users')->label(trans_db('custom_plans.maximum_users'))->searchable()->sortable(),
+                // trans_db
+                Tables\Columns\IconColumn::make('enable_attendance')->label(trans_db('custom_plans.enable_attendance_short'))->boolean(),
+                // trans_db
+                TextColumn::make('document_price_in_plan')->label(trans_db('custom_plans.doc_price_in'))->sortable(),
+                // trans_db
+                TextColumn::make('document_price_outside_plan')->label(trans_db('custom_plans.doc_price_out'))->sortable(),
+                // trans_db
+                TextColumn::make('sms_price_in_plan')->label(trans_db('custom_plans.sms_price_in'))->sortable(),
+                // trans_db
+                TextColumn::make('sms_price_outside_plan')->label(trans_db('custom_plans.sms_price_out'))->sortable(),
+                // trans_db
+                TextColumn::make('whatsapp_price_in_plan')->label(trans_db('custom_plans.whatsapp_price_in'))->sortable(),
+                // trans_db
+                TextColumn::make('whatsapp_price_outside_plan')->label(trans_db('custom_plans.whatsapp_price_out'))->sortable(),
+                // trans_db
+                TextColumn::make('email_price_in_plan')->label(trans_db('custom_plans.email_price_in'))->sortable(),
+                // trans_db
+                TextColumn::make('email_price_outside_plan')->label(trans_db('custom_plans.email_price_out'))->sortable(),
+                // trans_db
+                Tables\Columns\IconColumn::make('enable_multiple_templates')->label(trans_db('custom_plans.multiple_templates_short'))->boolean(),
+                // trans_db
+                Tables\Columns\IconColumn::make('is_public')->label(trans_db('custom_plans.is_public_short'))->boolean(),
             ])
             ->filters([
                 //
@@ -257,3 +324,4 @@ class CustomPlanSubscriptionResource extends Resource
         ];
     }
 }
+

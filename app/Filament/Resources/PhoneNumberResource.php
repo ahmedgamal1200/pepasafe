@@ -16,11 +16,41 @@ class PhoneNumberResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-phone';
 
-    protected static ?string $navigationGroup = 'Site Content';
+    // استخدام الدوال لاسترداد القيم المترجمة
+    protected static ?string $navigationGroup = 'Site Content'; // Placeholder
+    protected static ?string $navigationLabel = null;
+    protected static ?string $modelLabel = null;
+    protected static ?string $pluralModelLabel = null;
+
+    public static function getNavigationGroup(): ?string
+    {
+        // استخدام المفتاح العام لمحتوى الموقع
+        return trans_db('site_content.navigation_group');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('phone_number.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return trans_db('phone_number.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db('phone_number.plural_model_label');
+    }
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->can('full access');
+        // هنا يمكنك استخدام مفاتيح الصلاحيات المترجمة إذا أردت
+        return auth()->user()?->hasAnyPermission([
+            'full access',
+            'show phone numbers', // سيتم ترجمة هذا المفتاح في seeder
+            'add phone numbers',  // سيتم ترجمة هذا المفتاح في seeder
+        ]);
     }
 
     public static function form(Form $form): Form
@@ -28,7 +58,7 @@ class PhoneNumberResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('phone_number')
-                    ->label('Website phone number')
+                    ->label(trans_db('phone_number.phone_label')) // استخدام trans_db
                     ->required()
                     ->maxLength(20),
             ]);
@@ -39,7 +69,7 @@ class PhoneNumberResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('phone_number')
-                    ->label('رقم الهاتف'),
+                    ->label(trans_db('phone_number.phone_label')), // استخدام trans_db
             ])
             ->filters([
                 //

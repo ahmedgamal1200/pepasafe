@@ -3,13 +3,15 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PermissionResource\Pages;
+use Spatie\Permission\Models\Permission;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Spatie\Permission\Models\Permission;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Support\Enums\Alignment;
 
 class PermissionResource extends Resource
 {
@@ -17,9 +19,30 @@ class PermissionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-shield-check';
 
-    protected static ?string $navigationGroup = 'Access Control'; // الجروب اللي هيتحط فيه
+    protected static ?int $navigationSort = 10;
 
-    protected static ?int $navigationSort = 10; // ترتيبه في القائمة
+    // استخدام الدوال الثابتة للترجمة
+    public static function getNavigationGroup(): ?string
+    {
+        // استخدام المفتاح الموجود مسبقًا في RoleResource
+        return trans_db('roles.navigation_group');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('permissions.plural_model_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return trans_db('permissions.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db('permissions.plural_model_label');
+    }
+    // نهاية الدوال الثابتة للترجمة
 
     public static function canAccess(): bool
     {
@@ -32,9 +55,10 @@ class PermissionResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->required()
-                    ->label('Permission Name')
+                    // استخدام trans_db
+                    ->label(trans_db('permissions.permission_name'))
                     ->unique(ignoreRecord: true)
-                    ->dehydrateStateUsing(fn ($state) => strtolower($state)) // <-- ده السطر السحري
+                    ->dehydrateStateUsing(fn ($state) => strtolower($state))
                     ->autocomplete(false),
             ]);
     }
@@ -43,8 +67,16 @@ class PermissionResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name')->label('Permission')->searchable(),
-                TextColumn::make('created_at')->label('Created')->dateTime(),
+                TextColumn::make('name')
+                    // استخدام trans_db
+                    ->label(trans_db('permissions.permission_name'))
+                    ->searchable(),
+                TextColumn::make('created_at')
+                    // استخدام trans_db
+                    ->label(trans_db('permissions.created_at'))
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
@@ -56,7 +88,9 @@ class PermissionResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->modifyQueryUsing(fn ($query) => $query)
+            ->defaultSort('id', 'asc');
     }
 
     public static function getRelations(): array

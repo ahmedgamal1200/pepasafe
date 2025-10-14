@@ -117,15 +117,15 @@ class SendCertificateJob implements ShouldQueue
 
         try {
             $apiPayload = [
-                "name"             => 'gouda',
-                "phoneNumber"      => $sanitizedPhone, // تم التعديل لاستخدام متغير
-//                "phoneNumber"      => '+201205297854', // تم التعديل لاستخدام متغير
+                "name"             => 'document_alert',
+//                "phoneNumber"      => $sanitizedPhone, // تم التعديل لاستخدام متغير
+                "phoneNumber"      => '+201205297854', // تم التعديل لاستخدام متغير
                 "template_content" => 'test',
-                "template_id"      => 1492,
+                "template_id"      => 2386,
                 "workflow_id"      => 1,
                 "template" => [
-                    "name"     => "pepasafe_test",
-                    "language" => ["code" => "ar"],
+                    "name"     => "document_alert",
+                    "language" => ["code" => "en"],
                     "components" => [
                         [
                             "type" => "body",
@@ -191,7 +191,7 @@ class SendCertificateJob implements ShouldQueue
             $routeName = $isAttendance ? 'attendance.show' : 'documents.show';
             $certificateLink = route($routeName, $this->certificate->uuid);
 
-            $fullMessage = $message." رابط الوثيقة الخاصة بكم. يجب تسجيل الدخول بالبريد الإلكتروني الخاص بكم وكلمة المرور الافتراضية 123456789، ويجب تغييرها فور تسجيل دخولكم. ".$certificateLink;
+            $fullMessage = $message . " You must log in using your email address and the default password 123456789, which should be changed immediately after logging in. " . $certificateLink;
 
             // مسار ملف الـ PDF
             $pdfPath = storage_path('app/public/'.$this->certificate->file_path);

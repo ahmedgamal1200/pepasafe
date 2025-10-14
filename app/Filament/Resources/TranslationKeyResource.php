@@ -9,16 +9,41 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\App;
 
 class TranslationKeyResource extends Resource
 {
     protected static ?string $model = TranslationKey::class;
 
-    protected static ?string $navigationLabel = 'Translation keys';
-
-    protected static ?string $navigationGroup = 'Translation settings';
-
     protected static ?string $navigationIcon = 'heroicon-o-key';
+
+    // الدوال الثابتة للترجمة
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('translation_keys.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return trans_db('translation_keys.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return trans_db('translation_keys.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db('translation_keys.plural_model_label');
+    }
+
+    // إضافة isRtl لدعم اتجاه النص العربي في الجدول
+    public static function isRtl(): bool
+    {
+        return App::isLocale('ar');
+    }
+    // نهاية الدوال الثابتة للترجمة
 
     public static function canAccess(): bool
     {
@@ -32,7 +57,7 @@ class TranslationKeyResource extends Resource
         return $form
             ->schema([
                 TextInput::make('key')
-                    ->label('Key (مثلاً: document.title.default)')
+                    ->label(trans_db('translation_keys.key_label')) // ترجمة
                     ->required()
                     ->unique()
                     ->maxLength(255),
@@ -43,7 +68,7 @@ class TranslationKeyResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('key')->label('Key')->searchable(),
+                Tables\Columns\TextColumn::make('key')->label(trans_db('translation_keys.key_column'))->searchable(), // ترجمة
             ])
             ->filters([
                 //
@@ -55,7 +80,8 @@ class TranslationKeyResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('id', 'desc');
     }
 
     public static function getRelations(): array

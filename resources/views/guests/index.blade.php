@@ -154,20 +154,20 @@
     <!-- بطاقة 1 -->
     <div class="bg-white p-6 shadow-md rounded-lg text-center space-y-3 transition-transform duration-200 hover:scale-105">
         <i class="bi bi-fingerprint text-blue-600 text-2xl mx-auto"></i>
-        <h4 class="font-semibold text-lg">كود فريد</h4>
-        <p class="text-gray-600 text-sm">كود خاص بكل شهادة</p>
+        <h4 class="font-semibold text-lg">{{ trans_db('words.unique') }}</h4>
+        <p class="text-gray-600 text-sm">{{ trans_db('words.for') }}</p>
     </div>
     <!-- بطاقة 2 -->
     <div class="bg-white p-6 shadow-md rounded-lg text-center space-y-3 transition-transform duration-200 hover:scale-105">
         <i class="bi bi-qr-code text-blue-600 text-2xl mx-auto"></i>
         <h4 class="font-semibold text-lg">QR Code</h4>
-        <p class="text-gray-600 text-sm">مسح سريع التحقق</p>
+        <p class="text-gray-600 text-sm">{{ trans_db('words.fast.dele') }}</p>
     </div>
     <!-- بطاقة 3 -->
     <div class="bg-white p-6 shadow-md rounded-lg text-center space-y-3 transition-transform duration-200 hover:scale-105">
         <i class="bi bi-link-45deg text-blue-600 text-3xl mx-auto"></i>
-        <h4 class="font-semibold text-lg">روابط مباشرة</h4>
-        <p class="text-gray-600 text-sm">مشاركة سريعة وسهلة</p>
+        <h4 class="font-semibold text-lg">{{ trans_db('words.links') }}</h4>
+        <p class="text-gray-600 text-sm">{{ trans_db('words.share') }}</p>
     </div>
 </section>
 

@@ -17,6 +17,27 @@ class PaymentMethodResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
 
+    // استخدام مفاتيح الترجمة
+    protected static ?string $navigationLabel = 'PaymentMethods.navigation_label';
+    protected static ?string $modelLabel = 'PaymentMethods.model_label';
+    protected static ?string $pluralModelLabel = 'PaymentMethods.plural_model_label';
+
+    // دوال لترجمة العناوين ديناميكياً
+    public static function getNavigationLabel(): string
+    {
+        return trans_db(static::$navigationLabel);
+    }
+
+    public static function getModelLabel(): string
+    {
+        return trans_db(static::$modelLabel);
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db(static::$pluralModelLabel);
+    }
+
     public static function canViewAny(): bool
     {
         return auth()->user()?->hasAnyPermission([
@@ -55,14 +76,18 @@ class PaymentMethodResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('key')
                     ->required()
-                    ->label('Name Of Payment Method')
+                    // استخدام مفتاح الترجمة للـ Label
+                    ->label(trans_db('PaymentMethods.key_label'))
                     ->maxLength(255)
-                    ->placeholder('Like Bink Account Or VodCash'),
+                    // استخدام مفتاح الترجمة للـ Placeholder
+                    ->placeholder(trans_db('PaymentMethods.key_placeholder')),
                 Forms\Components\TextInput::make('value')
                     ->required()
-                    ->label('Value Of Payment Method')
+                    // استخدام مفتاح الترجمة للـ Label
+                    ->label(trans_db('PaymentMethods.value_label'))
                     ->maxLength(255)
-                    ->placeholder('123456789123456'),
+                    // استخدام مفتاح الترجمة للـ Placeholder
+                    ->placeholder(trans_db('PaymentMethods.value_placeholder')),
             ]);
     }
 
@@ -70,18 +95,27 @@ class PaymentMethodResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('key')->searchable(),
-                Tables\Columns\TextColumn::make('value'),
+                Tables\Columns\TextColumn::make('key')
+                    // استخدام مفتاح الترجمة لعنوان العمود
+                    ->label(trans_db('PaymentMethods.key_label'))
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('value')
+                    // استخدام مفتاح الترجمة لعنوان العمود
+                    ->label(trans_db('PaymentMethods.value_label')),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    // استخدام مفتاح الترجمة للإجراء
+                    ->label(trans_db('PaymentMethods.edit_action')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        // استخدام مفتاح الترجمة للإجراء الجماعي
+                        ->label(trans_db('PaymentMethods.delete_bulk_action')),
                 ]),
             ]);
     }

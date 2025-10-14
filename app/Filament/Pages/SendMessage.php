@@ -11,11 +11,26 @@ use Illuminate\Support\Carbon;
 
 class SendMessage extends Page
 {
+    // تعريب التسميات الرئيسية باستخدام الدوال بدلاً من الخصائص الثابتة
     protected static ?string $navigationIcon = 'heroicon-o-paper-airplane';
 
-    protected static ?string $navigationLabel = 'Send Notification';
+    protected static ?string $navigationLabel = null;
+    protected static ?string $navigationGroup = null;
 
-    protected static ?string $navigationGroup = 'Notifications';
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('send_message.navigation_label');
+    }
+
+    public function getTitle(): string
+    {
+        return trans_db('send_message.page_title');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return trans_db('notifications.navigation_group');
+    }
 
     protected static bool $shouldRegisterNavigation = true;
 
@@ -27,7 +42,7 @@ class SendMessage extends Page
 
     public array $message = [];
 
-    public string $subject = '';
+    public array $subject = [];
 
     public bool $send_to_all = false;
 
@@ -37,81 +52,86 @@ class SendMessage extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->can('full access');
+        return auth()->user()?->hasAnyPermission([
+            'full access',
+            'show notifications',
+            'send notifications',
+        ]);
     }
 
     protected function getFormSchema(): array
     {
         return [
             Forms\Components\Toggle::make('send_to_all')
-                ->label('Send to all users')
-                ->reactive(), // علشان نقدر نغير اختيار المستخدمين بناءً عليه
+                ->label(trans_db('send_message.send_to_all_label'))
+                ->reactive(),
 
             Forms\Components\Repeater::make('scheduled_dates')
-                ->label('Schedule Dates & Times')
+                ->label(trans_db('send_message.schedule_dates_label'))
                 ->schema([
                     Forms\Components\DateTimePicker::make('scheduled_at')
-                        ->label('Date & Time')
-                        ->placeholder('Choose a date and time')
+                        ->label(trans_db('send_message.date_time_label'))
+                        ->placeholder(trans_db('send_message.date_time_placeholder'))
                         ->required(),
                 ])
-                ->createItemButtonLabel('Add another date')
-                ->required(), // نخليه مطلوب عشان المستخدم لازم يحدد تاريخ واحد على الأقل
+                ->createItemButtonLabel(trans_db('send_message.add_date_button'))
+                ->required(),
 
             Forms\Components\Select::make('users')
-                ->label('Select users')
+                ->label(trans_db('send_message.select_users_label'))
                 ->multiple()
                 ->options(
                     User::all()->pluck('name', 'id')
                 )
-                ->getSearchResultsUsing(fn (string $search) => User::where('name', 'like', "%{$search}%")
+                ->getSearchResultsUsing(fn(string $search) => User::where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
                     ->pluck('name', 'id'))
                 ->searchable()
                 ->required()
-                ->visible(fn ($get) => ! $get('send_to_all')), // لو "إرسال إلى الكل" مفعل، نخفي اختيار المستخدمين
+                ->visible(fn($get) => !$get('send_to_all')),
 
             Forms\Components\Select::make('channel')
-                ->label('Select channel')
+                ->label(trans_db('send_message.select_channel_label'))
                 ->options([
-                    'whatsapp' => 'WhatsApp',
-                    'email' => 'Email',
-                    'sms' => 'SMS',
-                    'database' => 'Notification in system',
+                    'whatsapp' => trans_db('send_message.channel_whatsapp'),
+                    'email' => trans_db('send_message.channel_email'),
+                    'sms' => trans_db('send_message.channel_sms'),
+                    'database' => trans_db('send_message.channel_database'),
                 ])
                 ->required()
                 ->searchable()
                 ->reactive(),
 
-            // الكود الجديد هنا
-            Forms\Components\Tabs::make('Translations')
+            Forms\Components\Tabs::make(trans_db('send_message.translations_tab_title'))
                 ->tabs([
-                    Forms\Components\Tabs\Tab::make('Arabic')
+                    Forms\Components\Tabs\Tab::make(trans_db('send_message.tab_arabic'))
                         ->schema([
                             Forms\Components\TextInput::make('subject.ar')
-                                ->label('Email Subject (Arabic)')
-                                ->placeholder('ادخل موضوع الرسالة بالعربية')
-                                ->visible(fn ($get) => $get('channel') === 'email'),
+                                ->label(trans_db('send_message.subject_ar_label'))
+                                ->placeholder(trans_db('send_message.subject_ar_placeholder'))
+                                ->visible(fn($get) => $get('channel') === 'email'),
 
                             Forms\Components\Textarea::make('message.ar')
-                                ->label('Notification Message (Arabic)')
-                                ->placeholder('ادخل محتوى الرسالة بالعربية')
+                                ->label(trans_db('send_message.message_ar_label'))
+                                ->placeholder(trans_db('send_message.message_ar_placeholder'))
                                 ->rows(6),
-                        ]),
-                    Forms\Components\Tabs\Tab::make('English')
+                        ])
+                    // لضبط اتجاه النص للعربية، يمكن إضافة حقل نصي منفصل أو استخدام ميزة Right to Left (RTL) في CSS للحقول داخل الـ View
+                    ,
+                    Forms\Components\Tabs\Tab::make(trans_db('send_message.tab_english'))
                         ->schema([
                             Forms\Components\TextInput::make('subject.en')
-                                ->label('Email Subject (English)')
-                                ->placeholder('Enter the subject of the message in English')
-                                ->visible(fn ($get) => $get('channel') === 'email'),
+                                ->label(trans_db('send_message.subject_en_label'))
+                                ->placeholder(trans_db('send_message.subject_en_placeholder'))
+                                ->visible(fn($get) => $get('channel') === 'email'),
 
                             Forms\Components\Textarea::make('message.en')
-                                ->label('Notification Message (English)')
-                                ->placeholder('Enter the message content in English')
+                                ->label(trans_db('send_message.message_en_label'))
+                                ->placeholder(trans_db('send_message.message_en_placeholder'))
                                 ->rows(6),
                         ]),
                 ])
-                ->columnSpanFull(), // يجعل التبويبات تظهر على عرض كامل
+                ->columnSpanFull(),
         ];
     }
 
@@ -123,8 +143,8 @@ class SendMessage extends Page
         if (empty(array_filter($formData['message']))) {
             Notification::make()
                 ->danger()
-                ->title('Message is required')
-                ->body('Please enter the message in at least one language (Arabic or English).')
+                ->title(trans_db('send_message.validation_message_required_title'))
+                ->body(trans_db('send_message.validation_message_required_body'))
                 ->send();
 
             return;
@@ -134,18 +154,18 @@ class SendMessage extends Page
         if ($formData['channel'] === 'email' && empty($formData['subject']['ar']) && empty($formData['subject']['en'])) {
             Notification::make()
                 ->danger()
-                ->title('Subject is required')
-                ->body('Please enter a subject for the email in at least one language.')
+                ->title(trans_db('send_message.validation_subject_required_title'))
+                ->body(trans_db('send_message.validation_subject_required_body'))
                 ->send();
 
             return;
         }
 
-        if (! $this->send_to_all && empty($this->users)) {
+        if (!$this->send_to_all && empty($this->users)) {
             Notification::make()
                 ->danger()
-                ->title('No users selected')
-                ->body('Please select at least one user or enable "Send to all".')
+                ->title(trans_db('send_message.validation_users_required_title'))
+                ->body(trans_db('send_message.validation_users_required_body'))
                 ->send();
 
             return;
@@ -163,7 +183,7 @@ class SendMessage extends Page
             ]);
 
             \App\Jobs\ScheduleDashboardNotificationJob::dispatch(
-                $scheduledNotification->id, // هنا نضيف الـID
+                $scheduledNotification->id,
                 $formData['channel'],
                 $formData['message'],
                 $formData['subject'] ?? null,
@@ -173,8 +193,8 @@ class SendMessage extends Page
 
         Notification::make()
             ->success()
-            ->title('Scheduled successfully!')
-            ->body('Your message has been scheduled for sending.')
+            ->title(trans_db('send_message.success_title'))
+            ->body(trans_db('send_message.success_body'))
             ->send();
     }
 }

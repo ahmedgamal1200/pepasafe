@@ -14,15 +14,42 @@ class PrivacyPolicyResource extends Resource
 {
     protected static ?string $model = PrivacyPolicy::class;
 
-    protected static ?string $navigationGroup = 'Site Content';
-
     protected static ?string $navigationIcon = 'heroicon-o-shield-check';
+
+    // استخدام الدوال لاسترداد القيم المترجمة
+    protected static ?string $navigationGroup = 'Site Content'; // Placeholder
+    protected static ?string $navigationLabel = null;
+    protected static ?string $modelLabel = null;
+    protected static ?string $pluralModelLabel = null;
+
+    public static function getNavigationGroup(): ?string
+    {
+        // استخدام المفتاح العام لمحتوى الموقع
+        return trans_db('site_content.navigation_group');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('privacy_policy.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return trans_db('privacy_policy.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db('privacy_policy.plural_model_label');
+    }
 
     public static function canAccess(): bool
     {
         return auth()->user()?->hasAnyPermission([
-            'add privacy & policy',
+            // استخدام مفاتيح صلاحيات موحدة ونظيفة
             'full access',
+            'add privacy policy',
+            'show privacy policy', // تمت إضافته للاتساق مع نمط الموارد الأخرى
         ]);
     }
 
@@ -31,7 +58,7 @@ class PrivacyPolicyResource extends Resource
         return $form
             ->schema([
                 Forms\Components\RichEditor::make('content')
-                    ->label('Privacy & Policy')
+                    ->label(trans_db('privacy_policy.content_label')) // استخدام trans_db
                     ->required(),
             ]);
     }
@@ -40,7 +67,8 @@ class PrivacyPolicyResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('content'),
+                Tables\Columns\TextColumn::make('content')
+                    ->label(trans_db('privacy_policy.content_label_short')), // استخدام تسمية قصيرة للعمود
             ])
             ->filters([
                 //

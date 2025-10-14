@@ -8,6 +8,7 @@ use Filament\Forms\Components\MultiSelect;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\Alignment;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -17,9 +18,29 @@ class RoleResource extends Resource
 {
     protected static ?string $model = Role::class;
 
-    protected static ?string $navigationGroup = 'Access Control';
-
     protected static ?string $navigationIcon = 'heroicon-o-identification';
+
+    // استخدام الدوال الثابتة للترجمة
+    public static function getNavigationGroup(): ?string
+    {
+        return trans_db('roles.navigation_group');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('roles.plural_model_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return trans_db('roles.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db('roles.plural_model_label');
+    }
+    // نهاية الدوال الثابتة للترجمة
 
     public static function canAccess(): bool
     {
@@ -36,7 +57,8 @@ class RoleResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
-                    ->label('Role Name')
+                    // استخدام trans_db
+                    ->label(trans_db('roles.role_name'))
                     ->required()
                     ->maxLength(255)
                     ->unique(ignoreRecord: true)
@@ -44,7 +66,8 @@ class RoleResource extends Resource
 
                 MultiSelect::make('permissions')
                     ->relationship('permissions', 'name')
-                    ->label('Assign Permissions')
+                    // استخدام trans_db
+                    ->label(trans_db('roles.permissions'))
                     ->preload()
                     ->searchable(),
             ]);
@@ -54,14 +77,24 @@ class RoleResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name')->label('Role Name'),
+                TextColumn::make('name')
+                    // استخدام trans_db
+                    ->label(trans_db('roles.role_name'))
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('permissions.name')
-                    ->label('Permissions')
+                    // استخدام trans_db
+                    ->label(trans_db('roles.permissions'))
                     ->badge()
                     ->separator(', ')
                     ->limit(3)
                     ->tooltip(fn ($record) => $record->permissions->pluck('name')->join(', ')),
-                TextColumn::make('created_at')->label('Created')->dateTime(),
+                TextColumn::make('created_at')
+                    // استخدام trans_db
+                    ->label(trans_db('roles.created_at'))
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
@@ -73,7 +106,11 @@ class RoleResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            // تفعيل RTL للعربية
+            // تفعيل RTL للعربية
+            ->modifyQueryUsing(fn ($query) => $query)
+            ->defaultSort('id', 'asc');
     }
 
     public static function getRelations(): array
@@ -92,3 +129,4 @@ class RoleResource extends Resource
         ];
     }
 }
+

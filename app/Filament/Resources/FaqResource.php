@@ -14,16 +14,40 @@ class FaqResource extends Resource
 {
     protected static ?string $model = Faq::class;
 
-    // في FaqResource.php
-    protected static ?string $navigationGroup = 'Site Content';
-
     protected static ?string $navigationIcon = 'heroicon-o-question-mark-circle';
+
+    // استخدام الدوال لاسترداد القيم المترجمة
+    protected static ?string $navigationGroup = 'Site Content'; // Default value before translation
+    protected static ?string $navigationLabel = null;
+    protected static ?string $modelLabel = null;
+    protected static ?string $pluralModelLabel = null;
+
+    public static function getNavigationGroup(): ?string
+    {
+        // استخدام المفتاح العام لمحتوى الموقع
+        return trans_db('site_content.navigation_group');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('faq.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return trans_db('faq.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db('faq.plural_model_label');
+    }
 
     public static function canAccess(): bool
     {
         return auth()->user()?->hasAnyPermission([
             'full access',
-            'show faq',
+            'show faq', // هذه المفاتيح يتم ترجمتها أيضاً في الـ seeder
             'add faq',
         ]);
     }
@@ -33,9 +57,11 @@ class FaqResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('question')
+                    ->label(trans_db('faq.question_label')) // استخدام trans_db
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('answer')
+                    ->label(trans_db('faq.answer_label')) // استخدام trans_db
                     ->required()
                     ->maxLength(255),
             ]);
@@ -45,8 +71,10 @@ class FaqResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('question'),
-                Tables\Columns\TextColumn::make('answer'),
+                Tables\Columns\TextColumn::make('question')
+                    ->label(trans_db('faq.question_label')), // استخدام trans_db
+                Tables\Columns\TextColumn::make('answer')
+                    ->label(trans_db('faq.answer_label')), // استخدام trans_db
             ])
             ->filters([
                 //

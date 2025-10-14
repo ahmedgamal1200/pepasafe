@@ -14,15 +14,41 @@ class TermsAndConditionResource extends Resource
 {
     protected static ?string $model = TermsAndCondition::class;
 
-    protected static ?string $navigationGroup = 'Site Content';
-
     protected static ?string $navigationIcon = 'heroicon-o-book-open';
+
+    // استخدام الدوال لاسترداد القيم المترجمة
+    protected static ?string $navigationGroup = 'Site Content'; // Placeholder
+    protected static ?string $navigationLabel = null;
+    protected static ?string $modelLabel = null;
+    protected static ?string $pluralModelLabel = null;
+
+    public static function getNavigationGroup(): ?string
+    {
+        // استخدام المفتاح العام لمحتوى الموقع
+        return trans_db('site_content.navigation_group');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('terms_and_conditions.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return trans_db('terms_and_conditions.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db('terms_and_conditions.plural_model_label');
+    }
 
     public static function canAccess(): bool
     {
         return auth()->user()?->hasAnyPermission([
-            'add terms-and-conditions',
             'full access',
+            'add terms and conditions',
+            'show terms and conditions', // تمت إضافته للاتساق مع نمط الموارد الأخرى
         ]);
     }
 
@@ -31,7 +57,7 @@ class TermsAndConditionResource extends Resource
         return $form
             ->schema([
                 Forms\Components\RichEditor::make('content')
-                    ->label('Terms & Conditions')
+                    ->label(trans_db('terms_and_conditions.content_label')) // استخدام trans_db
                     ->required(),
             ]);
     }
@@ -40,7 +66,8 @@ class TermsAndConditionResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('content'),
+                Tables\Columns\TextColumn::make('content')
+                    ->label(trans_db('terms_and_conditions.content_label_short')), // استخدام تسمية قصيرة للعمود
             ])
             ->filters([
                 //

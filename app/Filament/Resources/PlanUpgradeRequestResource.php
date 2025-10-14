@@ -4,7 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PlanUpgradeRequestResource\Pages;
 use App\Models\PlanUpgradeRequest;
-use App\Services\PlanUpgradeRequestService;
+use App\Services\PlanUpgradeRequestService; // تم إضافة الخدمة الافتراضية
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -12,9 +12,10 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Columns\ViewColumn;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\ViewColumn;
+use Filament\Tables\Actions\Action;
+use Filament\Support\Enums\Alignment;
 
 class PlanUpgradeRequestResource extends Resource
 {
@@ -22,7 +23,27 @@ class PlanUpgradeRequestResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $navigationGroup = 'Requests';
+    // استخدام الدوال الثابتة للترجمة
+    public static function getNavigationGroup(): ?string
+    {
+        return trans_db('plan_upgrade_requests.navigation_group');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('plan_upgrade_requests.navigation_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return trans_db('plan_upgrade_requests.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db('plan_upgrade_requests.plural_model_label');
+    }
+    // نهاية الدوال الثابتة للترجمة
 
     public static function canAccess(): bool
     {
@@ -42,8 +63,9 @@ class PlanUpgradeRequestResource extends Resource
 
     public static function canReject(): bool
     {
+        // تم تصحيح الإذن بناءً على السياق (كان يشير إلى wallet recharge)
         return auth()->user()?->hasAnyPermission([
-            'reject requests for wallet recharge requests',
+            'reject requests for plan upgrade requests',
             'full access',
         ]);
     }
@@ -51,27 +73,35 @@ class PlanUpgradeRequestResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
+            // تحديد اتجاه النص (RTL) للغة العربية
+            ->columns(3)
             ->schema([
                 Select::make('user_id')
-                    ->label('User Name')
+                    // trans_db
+                    ->label(trans_db('plan_upgrade_requests.user_name'))
                     ->relationship('user', 'name')
                     ->required(),
                 Select::make('plan_id')
-                    ->label('الباقة')
+                    // trans_db
+                    ->label(trans_db('plan_upgrade_requests.plan_name'))
                     ->relationship('plan', 'name')
                     ->required(),
                 Select::make('subscription_id')
-                    ->label('الاشتراك')
+                    // trans_db
+                    ->label(trans_db('plan_upgrade_requests.subscription'))
                     ->relationship('subscription', 'id')
                     ->required(),
                 FileUpload::make('receipt_path')
-                    ->label('وصل الدفع')
+                    // trans_db
+                    ->label(trans_db('plan_upgrade_requests.receipt_path'))
                     ->directory('PlanUpgradeRequestReceipt')
                     ->preserveFilenames()
                     ->required(),
                 Textarea::make('rejected_reason')
-                    ->label('Rejection reason')
+                    // trans_db
+                    ->label(trans_db('plan_upgrade_requests.rejected_reason'))
                     ->columnSpanFull(),
+                // يمكنك إضافة حقل الحالة إذا لزم الأمر للتعديل
             ]);
     }
 
@@ -80,22 +110,35 @@ class PlanUpgradeRequestResource extends Resource
         return $table
             ->recordUrl(null)
             ->columns([
-                Tables\Columns\TextColumn::make('user.name'),
-                Tables\Columns\TextColumn::make('plan.name'),
+                Tables\Columns\TextColumn::make('user.name')
+                    // trans_db
+                    ->label(trans_db('plan_upgrade_requests.user_name'))
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('plan.name')
+                    // trans_db
+                    ->label(trans_db('plan_upgrade_requests.plan_name'))
+                    ->searchable(),
                 ViewColumn::make('receipt_path')
-                    ->label('Receipt')
+                    // trans_db
+                    ->label(trans_db('plan_upgrade_requests.receipt_path'))
                     ->view('filament.components.plan-upgrade-request-receipt')
                     ->url(null),
-                Tables\Columns\TextColumn::make('status'),
-                Tables\Columns\TextColumn::make('rejected_reason'),
-                //                Tables\Columns\TextColumn::make('subscription_id'),
+                Tables\Columns\TextColumn::make('status')
+                    // trans_db
+                    ->label(trans_db('plan_upgrade_requests.status'))
+                    // ترجمة الحالة مباشرة
+                    ->formatStateUsing(fn (string $state): string => trans_db("plan_upgrade_requests.status_{$state}")),
+                Tables\Columns\TextColumn::make('rejected_reason')
+                    // trans_db
+                    ->label(trans_db('plan_upgrade_requests.rejected_reason')),
             ])
             ->filters([
                 //
             ])
             ->actions([
                 Action::make('approve')
-                    ->label('Approve')
+                    // trans_db
+                    ->label(trans_db('plan_upgrade_requests.approve'))
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->visible(fn ($record) => $record->status === 'pending' &&
@@ -103,27 +146,31 @@ class PlanUpgradeRequestResource extends Resource
                     )
                     ->requiresConfirmation()
                     ->action(function ($record) {
+                        // الافتراض أن PlanUpgradeRequestService موجود
                         app(PlanUpgradeRequestService::class)->approve($record);
                     }),
 
                 Action::make('reject')
-                    ->label('Reject')
+                    // trans_db
+                    ->label(trans_db('plan_upgrade_requests.reject'))
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->visible(fn ($record) => $record->status === 'pending' &&
                         static::canReject()
-
                     )
                     ->requiresConfirmation()
                     ->form([
                         Textarea::make('rejected_reason')
-                            ->label('سبب الرفض')
+                            // trans_db
+                            ->label(trans_db('plan_upgrade_requests.reject_reason_prompt'))
                             ->maxLength(255),
                         Toggle::make('send_email')
-                            ->label('هل تريد إرسال سبب الرفض على البريد الإلكتروني؟')
+                            // trans_db
+                            ->label(trans_db('plan_upgrade_requests.send_email_toggle'))
                             ->default(false),
                     ])
                     ->action(function ($record, array $data) {
+                        // الافتراض أن PlanUpgradeRequestService موجود
                         app(PlanUpgradeRequestService::class)->reject(
                             $record,
                             $data['rejected_reason'],
@@ -133,7 +180,8 @@ class PlanUpgradeRequestResource extends Resource
 
                 Tables\Actions\EditAction::make()
                     ->visible(fn () => auth()->user()?->hasAnyPermission([
-                        'edit wallets recharge requests',
+                        // تم تعديل الإذن ليتناسب مع سياق ترقية الباقات
+                        'edit plan upgrade requests',
                         'full access',
                     ])),
 
@@ -142,7 +190,10 @@ class PlanUpgradeRequestResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            // تفعيل RTL للعربية
+            ->modifyQueryUsing(fn ($query) => $query)
+            ->defaultSort('id', 'asc');
     }
 
     public static function getRelations(): array

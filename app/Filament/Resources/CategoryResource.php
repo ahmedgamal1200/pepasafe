@@ -19,6 +19,31 @@ class CategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-adjustments-horizontal';
 
+    // استخدام مفاتيح ترجمة
+    protected static ?string $navigationLabel = 'Categories.navigation_label';
+    protected static ?string $title = 'Categories.title';
+
+    // إضافة هذه الدوال لترجمة العناوين ديناميكياً
+    public static function getNavigationLabel(): string
+    {
+        return trans_db(static::$navigationLabel);
+    }
+
+    public static function getModelLabel(): string
+    {
+        return trans_db('Categories.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db('Categories.plural_model_label');
+    }
+
+    public static function getTitle(): string
+    {
+        return trans_db(static::$title);
+    }
+
     public static function canAccess(): bool
     {
         return auth()->user()?->hasAnyPermission([
@@ -30,18 +55,19 @@ class CategoryResource extends Resource
 
     public static function form(Form $form): Form
     {
-
         return $form
             ->schema([
                 Forms\Components\TextInput::make('type')
+                    // استخدام مفتاح الترجمة
+                    ->label(trans_db('Categories.type_label'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Select::make('icon')
+                    // استخدام مفتاح الترجمة
+                    ->label(trans_db('Categories.icon_label'))
                     ->options(IconHelper::all())
                     ->required()
-                    // ودي الخطوة الأساسية لتفعيل عرض الـ HTML
                     ->allowHtml()
-                    // إضافة هذا السطر الجديد
                     ->native(false),
             ]);
     }
@@ -50,20 +76,28 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('type')->searchable()->sortable(),
-                // تعديل هنا: استخدم ViewColumn فقط
-                ViewColumn::make('icon')->view('filament.tables.columns.icon'),
+                // استخدام مفتاح الترجمة
+                TextColumn::make('type')
+                    ->label(trans_db('Categories.type_label'))
+                    ->searchable()
+                    ->sortable(),
+                ViewColumn::make('icon')
+                    ->label(trans_db('Categories.icon_label'))
+                    ->view('filament.tables.columns.icon'),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label(trans_db('Categories.edit_action')),
+                Tables\Actions\DeleteAction::make()
+                    ->label(trans_db('Categories.delete_action')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label(trans_db('Categories.delete_bulk_action')),
                 ]),
             ]);
     }
@@ -84,3 +118,4 @@ class CategoryResource extends Resource
         ];
     }
 }
+

@@ -14,16 +14,40 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\App;
 use Spatie\Permission\Models\Permission;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationGroup = 'Access Control';
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
+    public static function getNavigationGroup(): ?string
+    {
+        return trans_db('roles.navigation_group');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return trans_db('users.plural_model_label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return trans_db('users.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return trans_db('users.plural_model_label');
+    }
+
+    public static function isRtl(): bool
+    {
+        return App::isLocale('ar');
+    }
     public static function canAccess(): bool
     {
         return auth()->user()?->hasAnyPermission([
@@ -38,16 +62,18 @@ class UserResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
+                    ->label(trans_db('users.name'))
                     ->required(fn (string $context) => $context === 'create')
                     ->maxLength(255),
                 TextInput::make('email')
+                    ->label(trans_db('users.email'))
                     ->required(fn (string $context) => $context === 'create')
                     ->email()
                     ->unique(ignoreRecord: true),
 
                 TextInput::make('password')
                     ->password()
-                    ->label('Password')
+                    ->label(trans_db('users.password'))
                     ->required(fn (string $context) => $context === 'create')
                     ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
                     ->dehydrated(fn ($state) => filled($state))
@@ -55,7 +81,7 @@ class UserResource extends Resource
 
                 TextInput::make('password_confirmation')
                     ->password()
-                    ->label('Password Confirmation')
+                    ->label(trans_db('users.password_confirmation'))
                     ->required(fn (string $context) => $context === 'create')
                     ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
                     ->dehydrated(fn ($state) => filled($state))
@@ -65,12 +91,12 @@ class UserResource extends Resource
                     ->unique(ignoreRecord: true),
 
                 Select::make('category_id')
-                    ->label('Category')
+                    ->label(trans_db('users.category'))
                     ->options(Category::pluck('type', 'id'))
                     ->searchable(),
 
                 Select::make('role_id')
-                    ->label('Assign Role')
+                    ->label(trans_db('users.assign_role'))
                     ->options(\App\Models\Role::pluck('name', 'id'))
                     ->searchable()
                     ->native(false)
@@ -91,7 +117,7 @@ class UserResource extends Resource
                     }),
 
                 MultiSelect::make('permissions')
-                    ->label('Direct Permissions')
+                    ->label(trans_db('users.direct_permissions'))
                     ->options(fn () => Permission::all()->pluck('name', 'id'))
                     ->preload()
                     ->searchable()
@@ -115,28 +141,32 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name')->sortable(),
-                TextColumn::make('email')->searchable(),
-                TextColumn::make('phone')->searchable(),
+                TextColumn::make('name')->sortable()
+                    ->label(trans_db('users.name')),
+                TextColumn::make('email')->searchable()
+                    ->label(trans_db('users.email')),
+                TextColumn::make('phone')->searchable()
+                    ->label(trans_db('users.phone')),
                 TextColumn::make('category.type')
-                    ->label('Category')
+                    ->label(trans_db('users.category'))
                     ->sortable()
                     ->searchable(),
 
                 TextColumn::make('roles.name')
-                    ->label('Roles')
+                    ->label(trans_db('users.roles'))
                     ->badge()
                     ->separator(', ')
                     ->searchable(),
 
                 TextColumn::make('computed_permissions')
-                    ->label('Permissions')
+                    ->label(trans_db('users.permissions'))
                     ->badge()
                     ->getStateUsing(fn ($record) => $record->getAllPermissions()->pluck('name')->toArray())
                     ->separator(', ')
                     ->tooltip(fn ($record) => $record->getAllPermissions()->pluck('name')->join(', ')),
 
-                TextColumn::make('created_at')->searchable(),
+                TextColumn::make('created_at')->searchable()
+                    ->label(trans_db('users.created_at')),
             ])
             ->filters([
                 //
