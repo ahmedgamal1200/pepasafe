@@ -44,14 +44,6 @@
 
 <!-- Plan Card -->
 <div class="max-w-5xl mx-auto bg-gradient-to-l from-blue-600 to-purple-500 text-white rounded-lg p-6 flex flex-col md:flex-row justify-between items-center gap-4 mb-8 hover:shadow-lg transition-shadow duration-300">
-{{--    <div class="flex flex-col gap-2 w-full md:w-2/3">--}}
-{{--        <div class="text-xl font-semibold">الباقة: <strong>{{ $plan->name ?? 'super admin' }}</strong> ({{ $docsAvailableInPlan }} وثيقة متاحة)</div>--}}
-{{--        <div class="text-base">الرصيد المتاح:--}}
-{{--            <strong>--}}
-{{--                {{intval ($walletBalance) }} جنيه--}}
-{{--            </strong> (يمكنك إصدار {{intval ($docsAvailableFromWallet) }} شهادة إضافية)--}}
-{{--        </div>--}}
-{{--    </div>--}}
 
     @php
         $isRTL = app()->getLocale() === 'ar';
@@ -242,6 +234,7 @@
                             <label for="attendance-message-input" class="font-medium text-base {{ $textAlignment }}">{{ trans_db('form.message_text') }}</label>
                             <textarea
                                 id="attendance-message-input"
+{{--                                id="document-message-input"--}}
                                 name="attendance_message"
                                 rows="4"
                                 placeholder="{{ trans_db('form.message_placeholder') }}"
@@ -259,6 +252,7 @@
                                 @if (in_array('whatsapp', $plan->enabled_channels['attendance']))
                                     <label class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 transition {{ $reverseFlexDirection }}">
                                         <input type="checkbox" name="attendance_send_via[]" value="whatsapp" class="form-checkbox text-green-500"
+                                               data-placeholder="{{ trans_db('placeholders.whatsapp_message') }}"
                                             {{ in_array('whatsapp', old('attendance_send_via', [])) ? 'checked' : '' }} />
                                         <i class="fab fa-whatsapp text-2xl text-green-600"></i>
                                         <span>{{ trans_db('channels.whatsapp', 'ar') }}</span>
@@ -268,6 +262,7 @@
                                 @if (in_array('email', $plan->enabled_channels['attendance']))
                                     <label class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 transition {{ $reverseFlexDirection }}">
                                         <input type="checkbox" name="attendance_send_via[]" value="email" class="form-checkbox text-blue-500"
+                                               data-placeholder="{{ trans_db('placeholders.email_message') }}" {{-- **مهم: هذا هو الـ Placeholder الخاص بالإيميل** --}}
                                             {{ in_array('email', old('attendance_send_via', [])) ? 'checked' : '' }} />
                                         <i class="fas fa-envelope text-2xl text-blue-600"></i>
                                         <span>{{ trans_db('channels.email', 'ar') }}</span>
@@ -277,6 +272,7 @@
                                 @if (in_array('sms', $plan->enabled_channels['attendance']))
                                     <label class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 transition {{ $reverseFlexDirection }}">
                                         <input type="checkbox" name="attendance_send_via[]" value="sms" class="form-checkbox text-purple-500"
+                                               data-placeholder="{{ trans_db('placeholders.sms_message') }}" {{-- **مهم: هذا هو الـ Placeholder الخاص بالرسائل النصية** --}}
                                             {{ in_array('sms', old('attendance_send_via', [])) ? 'checked' : '' }} />
                                         <i class="fas fa-sms text-2xl text-purple-600"></i>
                                         <span>{{ trans_db('channels.sms', 'ar') }}</span>
@@ -451,6 +447,7 @@
                             <label class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 transition {{ $flexDirection }}">
                                 <input type="checkbox" name="document_send_via[]" value="whatsapp"
                                        class="form-checkbox text-green-500"
+                                       data-placeholder="{{ trans_db('placeholders.whatsapp_message') }}" {{-- **مهم: هذا هو الـ Placeholder الخاص بالواتساب** --}}
                                     {{ in_array('whatsapp', old('document_send_via', [])) ? 'checked' : '' }} />
                                 <i class="fab fa-whatsapp text-2xl text-green-600"></i>
                                 <span>{{ trans_db('channels.whatsapp', 'ar') }}</span>
@@ -463,9 +460,11 @@
                                     <span>{{ trans_db('channels.email') }}</span>
                                     <i class="fas fa-envelope text-2xl text-blue-600"></i>
                                     <input type="checkbox" name="document_send_via[]" value="email" class="form-checkbox text-blue-500"
+                                           data-placeholder="{{ trans_db('placeholders.email_message') }}" {{-- **مهم: هذا هو الـ Placeholder الخاص بالإيميل** --}}
                                         {{ in_array('email', old('document_send_via', [])) ? 'checked' : '' }} />
                                 @else
                                     <input type="checkbox" name="document_send_via[]" value="email" class="form-checkbox text-blue-500"
+                                           data-placeholder="{{ trans_db('placeholders.email_message') }}"
                                         {{ in_array('email', old('document_send_via', [])) ? 'checked' : '' }} />
                                     <i class="fas fa-envelope text-2xl text-blue-600"></i>
                                     <span>{{ trans_db('channels.email', 'ar') }}</span>
@@ -479,9 +478,11 @@
                                     <span>{{ trans_db('channels.sms') }}</span>
                                     <i class="fas fa-sms text-2xl text-purple-600"></i>
                                     <input type="checkbox" name="document_send_via[]" value="sms" class="form-checkbox text-purple-500"
+                                           data-placeholder="{{ trans_db('placeholders.sms_message') }}" {{-- **مهم: هذا هو الـ Placeholder الخاص بالرسائل النصية** --}}
                                         {{ in_array('sms', old('document_send_via', [])) ? 'checked' : '' }} />
                                 @else
                                     <input type="checkbox" name="document_send_via[]" value="sms" class="form-checkbox text-purple-500"
+                                           data-placeholder="{{ trans_db('placeholders.sms_message') }}" {{-- **مهم: هذا هو الـ Placeholder الخاص بالرسائل النصية** --}}
                                         {{ in_array('sms', old('document_send_via', [])) ? 'checked' : '' }} />
                                     <i class="fas fa-sms text-2xl text-purple-600"></i>
                                     <span>{{ trans_db('channels.sms', 'ar') }}</span>
@@ -691,6 +692,95 @@
     document.getElementById('warning-card-message').innerHTML = messageHtml;
 </script>
 
+{{-- كود ال placeholder بتاع الوثيقة --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // نحدد جميع الـ Checkboxes التي لها الاسم document_send_via[]
+        const checkboxes = document.querySelectorAll('input[name="document_send_via[]"]');
+
+        // **التعديل هنا:** البحث عن الـ Textarea باستخدام السمة name="document_message"
+        const textarea = document.querySelector('textarea[name="document_message"]');
+
+        // نتأكد من أن الـ textarea موجود قبل المتابعة
+        if (!textarea) {
+            console.error('Textarea with name="document_message" not found.');
+            return;
+        }
+
+        const defaultPlaceholder = textarea.placeholder; // حفظ الـ Placeholder الافتراضي
+
+        function updatePlaceholder() {
+            let selectedPlaceholder = defaultPlaceholder;
+
+            // نمر على كل Checkbox ونبحث عن أول Checkbox مُعلم (Checked)
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    // نستخدم getAttribute للحصول على قيمة data-placeholder (يجب إضافتها إلى HTML Checkboxes)
+                    selectedPlaceholder = checkbox.getAttribute('data-placeholder');
+
+                    // نوقف البحث عند إيجاد أول Checkbox مُعلم
+                    return;
+                }
+            });
+
+            // تحديث سمة الـ placeholder لمنطقة النص
+            textarea.placeholder = selectedPlaceholder;
+        }
+
+        // 1. إضافة مستمعي الحدث (Event Listeners) لكل Checkbox
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updatePlaceholder);
+        });
+
+        // 2. تشغيل الدالة مرة واحدة عند تحميل الصفحة
+        updatePlaceholder();
+    });
+</script>
+
+{{-- كود ال placeHolder بتاع الحضور --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // نحدد جميع الـ Checkboxes التي لها الاسم document_send_via[]
+        const checkboxes = document.querySelectorAll('input[name="attendance_send_via[]"]');
+
+        // **التعديل هنا:** البحث عن الـ Textarea باستخدام السمة name="document_message"
+        const textarea = document.querySelector('textarea[name="attendance_message"]');
+
+        // نتأكد من أن الـ textarea موجود قبل المتابعة
+        if (!textarea) {
+            console.error('Textarea with name="document_message" not found.');
+            return;
+        }
+
+        const defaultPlaceholder = textarea.placeholder; // حفظ الـ Placeholder الافتراضي
+
+        function updatePlaceholder() {
+            let selectedPlaceholder = defaultPlaceholder;
+
+            // نمر على كل Checkbox ونبحث عن أول Checkbox مُعلم (Checked)
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    // نستخدم getAttribute للحصول على قيمة data-placeholder (يجب إضافتها إلى HTML Checkboxes)
+                    selectedPlaceholder = checkbox.getAttribute('data-placeholder');
+
+                    // نوقف البحث عند إيجاد أول Checkbox مُعلم
+                    return;
+                }
+            });
+
+            // تحديث سمة الـ placeholder لمنطقة النص
+            textarea.placeholder = selectedPlaceholder;
+        }
+
+        // 1. إضافة مستمعي الحدث (Event Listeners) لكل Checkbox
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updatePlaceholder);
+        });
+
+        // 2. تشغيل الدالة مرة واحدة عند تحميل الصفحة
+        updatePlaceholder();
+    });
+</script>
 <!-- Script -->
 <script src="{{ asset('js/create-event.js') }}"></script>
 <script src="{{ asset('js/calculate-doc-price.js') }}"></script>
