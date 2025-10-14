@@ -282,7 +282,75 @@
                         </div>
                     @endif
 
-                    <div class="flex flex-col md:flex-row gap-6 {{ $direction === 'rtl' ? 'md:flex-row-reverse' : '' }}">
+{{--                    //////هتحط الكود هنا--}}
+
+                    <div class="form-block mb-8" dir="{{ $direction }}">
+                        <div class="flex items-center gap-6 mb-4">
+                            <label class="inline-flex items-center gap-2 {{ $reverseFlexDirection }}">
+                                <input type="radio" name="attendance_template_sides[]" value="front" class="js-face" data-face="front">
+                                <span>{{ trans_db('form.one_side') }}</span>
+                            </label>
+                            <label class="inline-flex items-center gap-2 {{ $reverseFlexDirection }}">
+                                <input type="radio" name="attendance_template_sides[]" value="back" class="js-face" data-face="back">
+                                <span>{{ trans_db('form.two_sides') }}</span>
+                            </label>
+                        </div>
+
+                        <div class="js-filehub attendance-filehub"></div>
+
+                        <div class="flex flex-col gap-6 mb-4">
+                            <div class="flex items-center gap-3 {{ $flexDirection }}">
+                                <i class="fas fa-edit text-2xl text-blue-600 cursor-pointer {{ $isRTL ? 'ml-2' : 'mr-2' }}"></i>
+                                <h4 class="text-2xl font-semibold">{{ trans_db('editor.title') }}</h4>
+                            </div>
+
+                            <div class="flex flex-col lg:flex-row items-start lg:items-center gap-6 mb-4" dir="{{ $direction }}">
+                                <div class="flex flex-col w-full lg:w-1/3">
+                                    <label for="certificate-validity" class="mb-1 font-medium {{ $textAlignment }}">{{ trans_db('certificate.validity') }}</label>
+                                    <select id="certificate-validity" name="attendance_validity" class="certificate-validity border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full {{ $textAlignment }}">
+                                        <option value="permanent" {{ old('attendance_validity') == 'permanent' ? 'selected' : '' }}>{{ trans_db('certificate.permanent') }}</option>
+                                        <option value="temporary" {{ old('attendance_validity') == 'temporary' ? 'selected' : '' }}>{{ trans_db('certificate.temporary') }}</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col md:flex-row items-center gap-2 mb-4 hidden certificate-dates" dir="{{ $direction }}">
+                                <input type="date" name="attendance_valid_from" value="{{ old('attendance_valid_from') }}"
+                                       class="valid-from border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full md:w-1/2 {{ $textAlignment }}" />
+                                <span class="text-base">{{ trans_db('doc.date.to') }}</span>
+                                <input type="date" name="attendance_valid_until" value="{{ old('attendance_valid_until') }}"
+                                       class="valid-to border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full md:w-1/2 {{ $textAlignment }}" />
+                            </div>
+                        </div>
+
+                        <div id="attendance-text-editor-panel" class="hidden p-3 border rounded-md shadow bg-white space-y-2 mt-3 w-72 text-sm {{ $textAlignment }}" dir="{{ $direction }}">
+                            <label class="block">
+                                <span class="text-gray-700 text-xs">{{ trans_db('editor.text_content') }}:</span>
+                                <input id="attendance-text-content" type="text" class="border px-2 py-1 w-full text-sm {{ $textAlignment }}" value="{{ old('text') }}"/>
+                            </label>
+                            <label class="block">
+                                <span class="text-gray-700 text-xs">{{ trans_db('editor.font_size') }}:</span>
+                                <input id="attendance-font-size" name="attendance_font_size" type="number" min="10" max="200"  value="{{ old('attendance_font_size', 20) }}" class="border px-2 py-1 w-full text-sm {{ $textAlignment }}"/>
+                            </label>
+                            <label class="block">
+                                <span class="text-gray-700 text-xs">{{ trans_db('editor.font_color') }}:</span>
+                                <input id="attendance-font-color" type="color" name="attendance_font_color" value="{{ old('attendance_font_color', '#000000') }}" class="w-full h-8" />
+                            </label>
+                            <label class="block">
+                                <span class="text-gray-700 text-xs">{{ trans_db('editor.font_family') }}:</span>
+                                <select id="attendance-font-family" name="attendance_font_family" class="border px-2 py-1 w-full text-sm {{ $textAlignment }}">
+                                    <option value="Arial" {{ old('attendance_font_family', 'Arial') == 'Arial' ? 'selected' : '' }}>Arial</option>
+                                    <option value="Times New Roman" {{ old('attendance_font_family') == 'Times New Roman' ? 'selected' : '' }}>Times New Roman</option>
+                                    <option value="Courier New" {{ old('attendance_font_family') == 'Courier New' ? 'selected' : '' }}>Courier New</option>
+                                    <option value="Tahoma" {{ old('attendance_font_family') == 'Tahoma' ? 'selected' : '' }}>Tahoma</option>
+                                </select>
+                            </label>
+                        </div>
+
+
+
+
+                        <div class="flex flex-col md:flex-row gap-6 {{ $direction === 'rtl' ? 'md:flex-row-reverse' : '' }}">
                         <div class="flex-1 bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg p-5 flex flex-col items-center gap-4 hover:border-blue-600 transition-colors duration-300">
                             <i class="fas fa-file-excel text-4xl text-green-600"></i>
                             <span id="badge-file-name-display" class="font-medium text-sm text-gray-500 hidden {{ $textAlignment }}"></span>
@@ -302,72 +370,13 @@
 {{--                    </div>--}}
                 </div>
 
-                <div class="flex flex-col gap-6 mb-4">
-                    <div class="flex items-center gap-3 {{ $flexDirection }}">
-                        <i class="fas fa-edit text-2xl text-blue-600 cursor-pointer {{ $isRTL ? 'ml-2' : 'mr-2' }}"></i>
-                        <h4 class="text-2xl font-semibold">{{ trans_db('editor.title') }}</h4>
-                    </div>
-
-                    <div class="flex flex-col lg:flex-row items-start lg:items-center gap-6 mb-4" dir="{{ $direction }}">
-                        <div class="flex flex-col w-full lg:w-1/3">
-                            <label for="certificate-validity" class="mb-1 font-medium {{ $textAlignment }}">{{ trans_db('certificate.validity') }}</label>
-                            <select id="certificate-validity" name="attendance_validity" class="certificate-validity border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full {{ $textAlignment }}">
-                                <option value="permanent" {{ old('attendance_validity') == 'permanent' ? 'selected' : '' }}>{{ trans_db('certificate.permanent') }}</option>
-                                <option value="temporary" {{ old('attendance_validity') == 'temporary' ? 'selected' : '' }}>{{ trans_db('certificate.temporary') }}</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-col md:flex-row items-center gap-2 mb-4 hidden certificate-dates" dir="{{ $direction }}">
-                        <input type="date" name="attendance_valid_from" value="{{ old('attendance_valid_from') }}"
-                               class="valid-from border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full md:w-1/2 {{ $textAlignment }}" />
-                        <span class="text-base">{{ trans_db('date.to') }}</span>
-                        <input type="date" name="attendance_valid_until" value="{{ old('attendance_valid_until') }}"
-                               class="valid-to border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full md:w-1/2 {{ $textAlignment }}" />
-                    </div>
-                </div>
-
-                <div class="form-block mb-8" dir="{{ $direction }}">
-                    <div class="flex items-center gap-6 mb-4">
-                        <label class="inline-flex items-center gap-2 {{ $reverseFlexDirection }}">
-                            <input type="radio" name="attendance_template_sides[]" value="front" class="js-face" data-face="front">
-                            <span>{{ trans_db('form.one_side') }}</span>
-                        </label>
-                        <label class="inline-flex items-center gap-2 {{ $reverseFlexDirection }}">
-                            <input type="radio" name="attendance_template_sides[]" value="back" class="js-face" data-face="back">
-                            <span>{{ trans_db('form.two_sides') }}</span>
-                        </label>
-                    </div>
-
-                    <div class="js-filehub attendance-filehub"></div>
 
                     <div class="fabric-canvas-container mt-4" dir="{{ $direction }}">
                         <canvas id="attendance-preview-canvas"></canvas>
                     </div>
 
-                    <div id="attendance-text-editor-panel" class="hidden p-3 border rounded-md shadow bg-white space-y-2 mt-3 w-72 text-sm {{ $textAlignment }}" dir="{{ $direction }}">
-                        <label class="block">
-                            <span class="text-gray-700 text-xs">{{ trans_db('editor.text_content') }}:</span>
-                            <input id="attendance-text-content" type="text" class="border px-2 py-1 w-full text-sm {{ $textAlignment }}" value="{{ old('text') }}"/>
-                        </label>
-                        <label class="block">
-                            <span class="text-gray-700 text-xs">{{ trans_db('editor.font_size') }}:</span>
-                            <input id="attendance-font-size" name="attendance_font_size" type="number" min="10" max="200"  value="{{ old('attendance_font_size', 20) }}" class="border px-2 py-1 w-full text-sm {{ $textAlignment }}"/>
-                        </label>
-                        <label class="block">
-                            <span class="text-gray-700 text-xs">{{ trans_db('editor.font_color') }}:</span>
-                            <input id="attendance-font-color" type="color" name="attendance_font_color" value="{{ old('attendance_font_color', '#000000') }}" class="w-full h-8" />
-                        </label>
-                        <label class="block">
-                            <span class="text-gray-700 text-xs">{{ trans_db('editor.font_family') }}:</span>
-                            <select id="attendance-font-family" name="attendance_font_family" class="border px-2 py-1 w-full text-sm {{ $textAlignment }}">
-                                <option value="Arial" {{ old('attendance_font_family', 'Arial') == 'Arial' ? 'selected' : '' }}>Arial</option>
-                                <option value="Times New Roman" {{ old('attendance_font_family') == 'Times New Roman' ? 'selected' : '' }}>Times New Roman</option>
-                                <option value="Courier New" {{ old('attendance_font_family') == 'Courier New' ? 'selected' : '' }}>Courier New</option>
-                                <option value="Tahoma" {{ old('attendance_font_family') == 'Tahoma' ? 'selected' : '' }}>Tahoma</option>
-                            </select>
-                        </label>
-                    </div>
+{{--            شلت الكود من هنا--}}
+
                 </div>
 
                 <button
@@ -494,82 +503,13 @@
             @endif
 
 
-            <div class="flex flex-col md:flex-row gap-6 mb-4 {{ $direction === 'rtl' ? 'md:flex-row-reverse' : '' }}" dir="{{ $direction }}">
-                <div class="flex-1 bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg p-5 flex flex-col items-center gap-4 hover:border-blue-600 transition-colors duration-300">
-                    <i class="fas fa-file-excel text-4xl text-green-600"></i>
-                    <span id="file-name-display" class="font-medium text-sm text-gray-500 hidden {{ $textAlignment }}"></span>
-                    <span class="font-semibold {{ $textAlignment }}">{{ trans_db('form.contact_excel_file') }}</span>
-                    <p class="text-sm text-gray-600 text-center {{ $textAlignment }}">{{ trans_db('form.con.file_description') }}</p>
-                    <label class="mt-auto inline-flex items-center gap-3 px-5 py-2 bg-green-600 text-white rounded-md cursor-pointer hover:bg-green-700 transition {{ $reverseFlexDirection }}">
-                        <i class="fas fa-upload"></i>
-                        <span>{{ trans_db('buttons.attach_files') }}</span>
-                        <input name="recipient_file_path" id="excel-input-model-1" type="file"
-                               class="sr-only" accept=".xlsx,.xls" multiple />
-                    </label>
-                </div>
-
-                <div class="flex-1 bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg p-5 flex flex-col items-center gap-4 hover:border-blue-600 transition-colors duration-300">
-                    <i class="fas fa-file-excel text-4xl text-green-600"></i>
-                    <span id="file-name-display-2" class="font-medium text-sm text-gray-500 hidden {{ $textAlignment }}"></span>
-                    <span class="font-semibold {{ $textAlignment }}">{{ trans_db('form.template_excel_file') }}</span>
-                    <p class="text-sm text-gray-600 text-center {{ $textAlignment }}">{{ trans_db('form.tem.file_description') }}</p>
-                    <label class="mt-auto inline-flex items-center gap-3 px-5 py-2 bg-green-600 text-white rounded-md cursor-pointer hover:bg-green-700 transition {{ $reverseFlexDirection }}">
-                        <i class="fas fa-upload"></i>
-                        <span>{{ trans_db('buttons.attach_files') }}</span>
-                        <input name="template_data_file_path" id="excel-input-model-2" type="file" value="{{ old('template_data_file_path') }}" class="sr-only" accept=".xlsx,.xls" multiple />
-                    </label>
-                </div>
-            </div>
-
-            <div class="flex flex-col gap-6 mb-4" dir="{{ $direction }}">
-                <div class="flex items-center gap-3 {{ $flexDirection }}">
-                    <i class="fas fa-edit text-2xl text-blue-600 cursor-pointer {{ $iconMargin }}"></i>
-                    <h4 class="text-2xl font-semibold">{{ trans_db('editor.title') }}</h4>
-                </div>
-
-                <div class="flex flex-col lg:flex-row items-start lg:items-center gap-6">
-                    <div class="flex flex-col w-full lg:w-1/3">
-                        <label for="select-cert-validity-new" class="mb-1 font-medium {{ $textAlignment }}">{{ trans_db('certificate.validity') }}</label>
-                        <select name="document_validity" class="select-cert-validity-new border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full cert-validity-new {{ $textAlignment }}">
-                            <option value="permanent" {{ old('document_validity') == 'permanent' ? 'selected' : '' }}>{{ trans_db('certificate.permanent') }}</option>
-                            <option value="temporary" {{ old('document_validity') == 'temporary' ? 'selected' : '' }}>{{ trans_db('certificate.temporary') }}</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="cert-dates-new mt-4 hidden">
-                    <div class="flex flex-col lg:flex-row gap-6">
-                        <div class="flex flex-col w-full lg:w-1/3">
-                            <label for="date-valid-from-new" class="mb-1 font-medium {{ $textAlignment }}">{{ trans_db('date.from') }}</label>
-                            <input
-                                type="date"
-                                id="date-valid-from-new"
-                                name="valid_from"
-                                value="{{ old('valid_from') }}"
-                                class="border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full {{ $textAlignment }}"
-                            />
-                        </div>
-                        <div class="flex flex-col w-full lg:w-1/3">
-                            <label for="date-valid-to-new" class="mb-1 font-medium {{ $textAlignment }}">{{ trans_db('date.to') }}</label>
-                            <input
-                                type="date"
-                                id="date-valid-to-new"
-                                name="valid_until"
-                                value="{{ old('valid_until') }}"
-                                class="border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full {{ $textAlignment }}"
-                            />
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <template id="file-template" class="js-document-upload-template">
                 <div class="filebox-card border-2 border-dashed border-gray-400 rounded-lg p-6 flex flex-col items-center gap-4 mb-4 hover:border-blue-600 transition-colors duration-300 relative min-h-[200px]" dir="{{ $direction }}">
                     <h3 class="card-title text-xl font-bold mb-4 {{ $textAlignment }}">{{ trans_db('form.card_title') }}</h3>
                     <div class="initial-upload-state flex flex-col items-center gap-4">
                         <i class="fas fa-cloud-upload-alt text-5xl text-gray-400 file-icon"></i>
                         <h4 class="text-lg font-semibold {{ $textAlignment }}">{{ trans_db('form.upload_template_file') }}</h4>
-{{--                        <p class="text-center text-gray-600 {{ $textAlignment }}">{{ trans_db('form.upload_file_types') }}</p>--}}
+                        {{--                        <p class="text-center text-gray-600 {{ $textAlignment }}">{{ trans_db('form.upload_file_types') }}</p>--}}
                         <label class="inline-flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-md cursor-pointer hover:bg-blue-700 transition {{ $reverseFlexDirection }}">
                             <i class="fas fa-upload"></i>
                             <span>{{ trans_db('buttons.attach_template') }}</span>
@@ -600,6 +540,48 @@
                 <div class="js-filehub"></div>
             </div>
 
+            <div class="flex flex-col gap-6 mb-4" dir="{{ $direction }}">
+                <div class="flex items-center gap-3 {{ $flexDirection }}">
+                    <i class="fas fa-edit text-2xl text-blue-600 cursor-pointer {{ $iconMargin }}"></i>
+                    <h4 class="text-2xl font-semibold">{{ trans_db('editor.title') }}</h4>
+                </div>
+
+                <div class="flex flex-col lg:flex-row items-start lg:items-center gap-6">
+                    <div class="flex flex-col w-full lg:w-1/3">
+                        <label for="select-cert-validity-new" class="mb-1 font-medium {{ $textAlignment }}">{{ trans_db('certificate.validity') }}</label>
+                        <select name="document_validity" class="select-cert-validity-new border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full cert-validity-new {{ $textAlignment }}">
+                            <option value="permanent" {{ old('document_validity') == 'permanent' ? 'selected' : '' }}>{{ trans_db('certificate.permanent') }}</option>
+                            <option value="temporary" {{ old('document_validity') == 'temporary' ? 'selected' : '' }}>{{ trans_db('certificate.temporary') }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="cert-dates-new mt-4 hidden">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="flex flex-col w-full lg:w-1/3">
+                            <label for="date-valid-from-new" class="mb-1 font-medium {{ $textAlignment }}">{{ trans_db('doc.date.from') }}</label>
+                            <input
+                                type="date"
+                                id="date-valid-from-new"
+                                name="valid_from"
+                                value="{{ old('valid_from') }}"
+                                class="border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full {{ $textAlignment }}"
+                            />
+                        </div>
+                        <div class="flex flex-col w-full lg:w-1/3">
+                            <label for="date-valid-to-new" class="mb-1 font-medium {{ $textAlignment }}">{{ trans_db('doc.date.to') }}</label>
+                            <input
+                                type="date"
+                                id="date-valid-to-new"
+                                name="valid_until"
+                                value="{{ old('valid_until') }}"
+                                class="border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full {{ $textAlignment }}"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="text-editor-panel" class="hidden p-3 border rounded-md shadow bg-white space-y-2 mt-3 w-72 text-sm {{ $textAlignment }}" dir="{{ $direction }}">
                 <label class="block">
                     <span class="text-gray-700 text-xs">{{ trans_db('editor.text_content') }}:</span>
@@ -623,6 +605,39 @@
                     </select>
                 </label>
             </div><br>
+
+
+
+            <div class="flex flex-col md:flex-row gap-6 mb-4 {{ $direction === 'rtl' ? 'md:flex-row-reverse' : '' }}" dir="{{ $direction }}">
+                <div class="flex-1 bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg p-5 flex flex-col items-center gap-4 hover:border-blue-600 transition-colors duration-300">
+                    <i class="fas fa-file-excel text-4xl text-green-600"></i>
+                    <span id="file-name-display" class="font-medium text-sm text-gray-500 hidden {{ $textAlignment }}"></span>
+                    <span class="font-semibold {{ $textAlignment }}">{{ trans_db('form.contact_excel_file') }}</span>
+                    <p class="text-sm text-gray-600 text-center {{ $textAlignment }}">{{ trans_db('form.con.file_description') }}</p>
+                    <label class="mt-auto inline-flex items-center gap-3 px-5 py-2 bg-green-600 text-white rounded-md cursor-pointer hover:bg-green-700 transition {{ $reverseFlexDirection }}">
+                        <i class="fas fa-upload"></i>
+                        <span>{{ trans_db('buttons.attach_files') }}</span>
+                        <input name="recipient_file_path" id="excel-input-model-1" type="file"
+                               class="sr-only" accept=".xlsx,.xls" multiple />
+                    </label>
+                </div>
+
+                <div class="flex-1 bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg p-5 flex flex-col items-center gap-4 hover:border-blue-600 transition-colors duration-300">
+                    <i class="fas fa-file-excel text-4xl text-green-600"></i>
+                    <span id="file-name-display-2" class="font-medium text-sm text-gray-500 hidden {{ $textAlignment }}"></span>
+                    <span class="font-semibold {{ $textAlignment }}">{{ trans_db('form.template_excel_file') }}</span>
+                    <p class="text-sm text-gray-600 text-center {{ $textAlignment }}">{{ trans_db('form.tem.file_description') }}</p>
+                    <label class="mt-auto inline-flex items-center gap-3 px-5 py-2 bg-green-600 text-white rounded-md cursor-pointer hover:bg-green-700 transition {{ $reverseFlexDirection }}">
+                        <i class="fas fa-upload"></i>
+                        <span>{{ trans_db('buttons.attach_files') }}</span>
+                        <input name="template_data_file_path" id="excel-input-model-2" type="file" value="{{ old('template_data_file_path') }}" class="sr-only" accept=".xlsx,.xls" multiple />
+                    </label>
+                </div>
+            </div>
+
+
+
+{{--        -----------------------------------------------ده المكان اللي فيه ارفاق الفايلز --}}
 
             <button type="button" id="fabric-popup"
                     class="finalize-btn w-full max-w-md mx-auto block px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition disabled:opacity-50"

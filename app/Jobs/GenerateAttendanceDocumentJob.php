@@ -342,7 +342,7 @@ class GenerateAttendanceDocumentJob implements ShouldQueue
             'recipient_id' => $this->recipient->id,
             'valid_from' => $this->template->valid_from,
             'valid_until' => $this->template->valid_until,
-        ], $currentDocumentUuid);
+        ], $currentDocumentUuid,  $currentUniqueCode);
 
 
         $attendanceDocument = $attendanceDocumentResult['attendanceDocument'];

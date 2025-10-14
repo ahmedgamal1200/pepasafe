@@ -82,6 +82,9 @@ class GenerateDocumentsJob implements ShouldQueue
         $currentDocumentUuid = Str::uuid()->toString();
         $currentUniqueCode = Str::random(10);
 
+        \Log::info("DEBUG: Generated Unique Code: " . $currentUniqueCode); // 👈 (المفترض VhdI1VQKai)
+
+
         // 1. **منطق تجهيز البيانات (يبقى كما هو)**
         $frontRenderedFields = [];
         if (! empty($this->frontTextData)) {
@@ -281,6 +284,7 @@ class GenerateDocumentsJob implements ShouldQueue
                 );
 
                 $textForUniqueCode = "Code:" . $currentUniqueCode;
+
                 $fontSize = 12;
                 $margin = 5;
 
@@ -347,6 +351,8 @@ class GenerateDocumentsJob implements ShouldQueue
             'valid_from' => $this->template->valid_from,
             'valid_until' => $this->template->valid_until,
         ], $currentDocumentUuid, $currentUniqueCode);
+
+
 
 
         $document = $documentResult['document'];

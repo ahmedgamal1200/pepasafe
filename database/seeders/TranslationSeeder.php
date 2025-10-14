@@ -2003,6 +2003,14 @@ class TranslationSeeder extends Seeder
                 'ar' => 'القيمة',
                 'en' => 'Value',
             ],
+            'event.sort.newest' => [
+                'ar' => 'الأحدث أولاً',
+                'en' => 'Newest First',
+            ],
+            'event.sort.older' => [
+                'ar' => 'الأقدم أولاً',
+                'en' => 'Oldest First',
+            ],
 
         ];
 

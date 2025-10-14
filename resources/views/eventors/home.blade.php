@@ -73,6 +73,18 @@
     </div>
 @endif
 
+<button id="sort-button" data-sort-order="desc"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold
+              py-1 px-2 sm:py-2 sm:px-4
+              rounded-lg transition-colors duration-200
+              block sm:inline-block w-full sm:w-auto text-center order-2 sm:order-1
+              rtl:mr-2 ltr:ml-2">
+    <i class="bi bi-sort-up ltr:mr-2 rtl:ml-2"></i>
+    <span>{{ trans_db('event.sort.newest') }}</span>
+</button>
+
+
+
 
 @if($events->isNotEmpty())
     <a href="{{ route('create-event') }}"
@@ -242,9 +254,9 @@
         {{--                   section search for event --}}
     @if($events)
 {{--        <div class="flex flex-wrap gap-4 justify-start">--}}
-<div class="flex flex-wrap">
+<div class="flex flex-wrap" id="events-container">
     @foreach($events as $event)
-            <div class="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2">
+            <div class="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2 event-item" data-date="{{ \Carbon\Carbon::parse($event->start_date)->timestamp }}">
         <a href="#">
             <section class="h-full flex flex-col justify-between bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105">
 
@@ -315,6 +327,79 @@
 
     @endif
 
+
+    <script>
+        window.i18n = {
+            event_sort_older: "{{ trans_db('event.sort.older') }}",
+            event_sort_newest: "{{ trans_db('event.sort.newest') }}",
+        };
+    </script>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sortButton = document.getElementById('sort-button');
+            const container = document.getElementById('events-container');
+
+            if (!sortButton || !container) return; // تحقق من وجود العناصر
+
+            sortButton.addEventListener('click', () => {
+                // الحصول على جميع عناصر الأحداث
+                const eventItems = Array.from(container.querySelectorAll('.event-item'));
+
+                // الحصول على ترتيب الفرز الحالي والتبديل إليه
+                let currentSortOrder = sortButton.getAttribute('data-sort-order') || 'desc';
+                const newSortOrder = currentSortOrder === 'desc' ? 'asc' : 'desc';
+
+                // دالة الترتيب (Sort Function)
+                eventItems.sort((a, b) => {
+                    // استخراج التواريخ (كأرقام Timestamp) من خاصية data-date
+                    const dateA = parseInt(a.getAttribute('data-date'));
+                    const dateB = parseInt(b.getAttribute('data-date'));
+
+                    if (newSortOrder === 'asc') {
+                        // تصاعدي: الأقدم أولاً (ASC)
+                        return dateA - dateB;
+                    } else {
+                        // تنازلي: الأحدث أولاً (DESC)
+                        return dateB - dateA;
+                    }
+                });
+
+                // إعادة ترتيب العناصر في DOM
+                eventItems.forEach(item => {
+                    container.appendChild(item);
+                });
+
+                // تحديث حالة الزرار
+                sortButton.setAttribute('data-sort-order', newSortOrder);
+                updateButtonText(newSortOrder);
+            });
+
+            /**
+             * تحديث نص وأيقونة الزر بناءً على حالة الترتيب الجديدة
+             */
+            function updateButtonText(order) {
+                const icon = sortButton.querySelector('i');
+                const textSpan = sortButton.querySelector('span');
+
+                if (order === 'asc') {
+                    // الترتيب الآن هو الأقدم أولاً، النص التالي يجب أن يكون 'الأحدث أولاً'
+                    icon.classList.remove('bi-sort-down');
+                    icon.classList.add('bi-sort-up');
+                    textSpan.textContent = window.i18n.event_sort_newest;
+                } else {
+                    // الترتيب الآن هو الأحدث أولاً، النص التالي يجب أن يكون 'الأقدم أولاً'
+                    icon.classList.remove('bi-sort-up');
+                    icon.classList.add('bi-sort-down');
+                    textSpan.textContent = window.i18n.event_sort_older;
+                }
+            }
+
+            // لضمان عرض النص الصحيح عند التحميل الأولي
+            updateButtonText('desc'); // نبدأ بالافتراضي وهو 'desc' (الأحدث أولاً)
+        });
+    </script>
 @include('partials.footer')
 
 </body>

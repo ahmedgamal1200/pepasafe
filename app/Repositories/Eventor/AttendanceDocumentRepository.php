@@ -9,7 +9,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class AttendanceDocumentRepository
 {
-    public function create(array $data, string $uuid): array
+    public function create(array $data, string $uuid, string $currentUniqueCode): array
     {
 //        $uuid = Str::uuid();
         $qrCode = QrCode::format('png')->size(200)->generate(route('documents.verify', $uuid));
@@ -20,7 +20,7 @@ class AttendanceDocumentRepository
         $attendanceDocument =  AttendanceDocument::create([
             'file_path' => $data['file_path'],
             'uuid' => $uuid,
-            'unique_code' => Str::random(10),
+            'unique_code' => $currentUniqueCode,
             'qr_code_path' => $qrPath,
             'status' => 'pending',
             'attendance_template_id' => $data['attendance_template_id'],
