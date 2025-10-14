@@ -10,6 +10,7 @@ use App\Http\Controllers\Eventor\HomeController;
 use App\Http\Controllers\Eventor\NotificationController;
 use App\Http\Controllers\Eventor\Wallet\WalletController;
 use App\Http\Controllers\Eventor\Wallet\WalletRechargeRequestController;
+use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\Pages\DocumentController;
 use App\Http\Controllers\Pages\PrivacyAndPolicyController;
 use App\Http\Controllers\Pages\TermsController;
@@ -168,5 +169,9 @@ Route::post('/calculate-document-price', [DocumentController::class, 'calculateD
 Route::get('about', [AboutController::class, 'index'])->name('about');
 Route::get('terms', [TermsController::class, 'index'])->name('terms');
 Route::get('privacy', [PrivacyAndPolicyController::class, 'index'])->name('privacy');
+
+Route::get('language/{locale}', [LanguageController::class, 'changeLocale'])->name('language.switch');
+
+
 
 require __DIR__.'/auth.php';

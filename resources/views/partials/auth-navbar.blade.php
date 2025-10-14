@@ -65,7 +65,8 @@
             {{-- `mr-1 rtl:ml-1 rtl:mr-0` for correct icon spacing relative to text --}}
             <i class="fas fa-globe text-lg mr-1 rtl:ml-1 rtl:mr-0"></i>
             {{-- Display the language to switch TO --}}
-            <span id="current-language">{{ $isRtl ? 'EN' : 'العربية' }}</span>
+{{--            <span id="current-language">{{ $isRtl ? 'EN' : 'العربية' }}</span>--}}
+            <span id="current-language">{{ app()->getLocale() === 'ar' ? 'EN' : 'العربية' }}</span>
         </button>
 
         @if(auth()->check())
@@ -219,29 +220,35 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
 
-        // ** إضافة قيمة اللغة الحالية من Blade **
-        // ** إضافة قيمة اللغة الحالية من Blade **
-        const isRtl = {{ $isRtl ? 'true' : 'false' }};
-        // targetLangDisplay: اللغة التي سيتم التبديل إليها (النص الظاهر على الزر)
-        const targetLangDisplay = isRtl ? 'EN' : 'العربية';
+// ** إضافة قيمة اللغة الحالية واللغة المستهدفة من Blade **
+// $currentLocale هي اللغة الحالية للموقع (مثل 'ar' أو 'en')
+        const currentLocale = '{{ app()->getLocale() }}'; // 👈 نستخدم دالة app()->getLocale()
+// targetLocale هو رمز اللغة التي سيتم التبديل إليها ('en' إذا كانت الحالية 'ar', والعكس)
+        const targetLocale = (currentLocale === 'ar') ? 'en' : 'ar';
+// targetLangDisplay: اللغة التي سيتم التبديل إليها (النص الظاهر على الزر)
+        const targetLangDisplay = (currentLocale === 'ar') ? 'EN' : 'العربية';
 
-        // ** alertPrefix: نص التنبيه المترجم للغة الحالية **
+// ** alertPrefix: نص التنبيه المترجم للغة الحالية **
         const alertPrefix = '{{ trans_db("nav.language_switch_alert_prefix") }}';
 
-        // --- الجزء الخاص باللغة ---
+// --- الجزء الخاص باللغة ---
         const languageSwitcher = document.getElementById('language-switcher');
         const currentLanguageSpan = document.getElementById('current-language');
 
         if (languageSwitcher && currentLanguageSpan) {
             languageSwitcher.addEventListener('click', () => {
-                if (currentLanguageSpan.textContent === 'EN') {
-                    currentLanguageSpan.textContent = 'العربية';
-                } else {
-                    currentLanguageSpan.textContent = 'EN';
-                }
+                // إنشاء رابط تغيير اللغة باستخدام المسار المسمى (Route Name)
+                const switchUrl = '{{ route('language.switch', ['locale' => 'REPLACEME']) }}'; // استخدام Placeholder
+                const finalUrl = switchUrl.replace('REPLACEME', targetLocale); // استبدال الـ Placeholder بالرمز الصحيح
+
+                // إعادة التوجيه إلى المسار الجديد الذي سيعالج تغيير اللغة وإعادة التوجيه
+                window.location.href = finalUrl;
+
+                // ** ملاحظة: لست بحاجة إلى تغيير النص داخل الزر (currentLanguageSpan.textContent) هنا **
+                // لأن إعادة التوجيه ستعيد تحميل الصفحة وستقوم Blade بتعيين النص الصحيح
             });
         }
-        // --- نهاية الجزء الخاص باللغة ---
+// --- نهاية الجزء الخاص باللغة ---
 
         // --- جزء قائمة الموبايل ---
         const mobileMenuToggle = document.getElementById('mobile-menu-toggle');

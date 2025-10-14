@@ -17,9 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         // 👇 لجعل middleware يشتغل على كل الريكوستات
-        $middleware->append(SetLocaleFromRequest::class);
         $middleware->append(CheckCookieConsent::class);
+//        $middleware->append(SetLocaleFromRequest::class);
         //        $middleware->append(EnsureOtpIsVerified::class);
+        $middleware->appendToGroup('web', SetLocaleFromRequest::class);
 
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,

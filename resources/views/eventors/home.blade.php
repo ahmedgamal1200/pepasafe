@@ -89,6 +89,8 @@
 
 
 
+
+
 {{-- قسم الانتظار--}}
 @if(auth()->check() && auth()->user()->hasRole('eventor') && $user->paymentReceipts->where('status', 'pending')->isNotEmpty())
     @php
