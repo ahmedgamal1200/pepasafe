@@ -19,7 +19,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Models\AttendanceDocument; // استيراد نموذج وثيقة الحضور
-use App\Models\AttendanceTemplate; // استيراد نموذج قالب الحضور
+use App\Models\AttendanceTemplate;
+use Throwable;
+
+// استيراد نموذج قالب الحضور
 
 class DocumentController extends Controller
 {
@@ -130,6 +133,16 @@ class DocumentController extends Controller
 
         $count = (int) $request->count;
 
+        // --- **البداية: التعديل المطلوب لزيادة الخصم** ---
+        // التحقق من تفعيل الحضور من الطلب
+        $isAttendanceEnabled = (bool) $request->input('is_attendance_enabled', false);
+
+        // في حال تفعيل الحضور، نضاعف عدد الوثائق المحتسبة للخصم (خصم وثيقتين بدلاً من واحدة)
+        if ($isAttendanceEnabled) {
+            $count *= 2; // مضاعفة عدد الوثائق
+        }
+        // --- **النهاية: التعديل المطلوب لزيادة الخصم** ---
+
         $user = Auth::user();
         $subscription = $user->subscription;
         $plan = $subscription?->plan;
@@ -230,7 +243,7 @@ class DocumentController extends Controller
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function downloadAll(DocumentTemplate $template)
     {
@@ -307,7 +320,10 @@ class DocumentController extends Controller
         }
     }
 
-        protected function getDocumentHtmlContent($document): string
+    /**
+     * @throws Throwable
+     */
+    protected function getDocumentHtmlContent($document): string
     {
         return view('templates.certificate', ['document' => $document])->render();
     }

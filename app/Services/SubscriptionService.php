@@ -13,13 +13,21 @@ class SubscriptionService
         $this->subscriptionRepository = $subscriptionRepository;
     }
 
-    public function hasEnoughBalance(int $required): bool
+    /**
+     * التحقق من توفر رصيد كافٍ للوثائق المطلوبة، مع الأخذ في الاعتبار تفعيل الحضور.
+     */
+    public function hasEnoughBalance(int $required, bool $isAttendanceEnabled = false): bool
     {
-        return $this->subscriptionRepository->hasEnoughBalance($required);
+        // تم تمرير المُعامل الإضافي إلى الـ Repository
+        return $this->subscriptionRepository->hasEnoughBalance($required, $isAttendanceEnabled);
     }
 
-    public function chargeDocument(int $amount): void
+    /**
+     * خصم تكلفة الوثائق بشكل فعلي، مع الأخذ في الاعتبار تفعيل الحضور.
+     */
+    public function chargeDocument(int $amount, bool $isAttendanceEnabled = false): void
     {
-        $this->subscriptionRepository->chargeDocument($amount);
+        // تم تمرير المُعامل الإضافي إلى الـ Repository
+        $this->subscriptionRepository->chargeDocument($amount, $isAttendanceEnabled);
     }
 }

@@ -5,10 +5,42 @@ document.addEventListener('DOMContentLoaded', function() {
     const warningCardMessage = document.getElementById('warning-card-message');
     const warningCardIcon = document.getElementById('warning-card-icon');
 
+    // **[تعديل 1: تعريف زر الحضور ومتغير لتخزين عدد الصفوف]**
+    // نفترض أن مفتاح التبديل للحضور يحمل الكلاس 'toggle-presence'
+    const attendanceToggle = document.querySelector('.toggle-presence');
+    let lastRowCount = 0; // لتخزين آخر عدد صفوف تم قراءته من الإكسل
+
+
+    // **[تعديل 2: دالة موحدة لجمع البيانات وإرسالها]**
+    /**
+     * دالة مساعدة تجمع البيانات الحالية (العد وحالة الحضور) وتشغل الحساب
+     */
+    function triggerDocumentPriceCalculation() {
+        const count = lastRowCount;
+        // الحصول على حالة التفعيل: true إذا كان محددًا، false إذا لم يكن كذلك
+        const isAttendanceEnabled = attendanceToggle ? attendanceToggle.checked : false;
+
+        // يمكنك إضافة قيم attendance_char_count و document_char_count هنا إذا لزم الأمر
+        // const attendanceCharCount = 0;
+        // const documentCharCount = 0;
+
+        if (count > 0) {
+            // تشغيل الحساب بالبيانات الموحدة
+            fetchDocumentPrice(count, isAttendanceEnabled); // تمرير isAttendanceEnabled
+        } else if (count === 0 && excelInput.files && excelInput.files.length > 0) {
+            updateWarningCard({ status: 'info', message: 'ملف الإكسل فارغ.' });
+        } else {
+            // رسالة افتراضية إذا لم يكن هناك ملف إكسل محدد
+            warningCard.classList.add('hidden'); // إخفاء البطاقة إذا لم يكن هناك عدد للوثائق
+        }
+    }
+
+
     if (excelInput) {
         excelInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (!file) {
+                lastRowCount = 0;
                 warningCard.classList.add('hidden');
                 return;
             }
@@ -24,8 +56,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     const range = XLSX.utils.decode_range(worksheet['!ref']);
                     const rowCount = range.e.r; // عدد الصفوف بعد صف العناوين
 
+                    lastRowCount = rowCount; // **تخزين عدد الصفوف**
+
+                    // **[تعديل 3: استدعاء الدالة الموحدة]**
                     if (rowCount > 0) {
-                        fetchDocumentPrice(rowCount);
+                        triggerDocumentPriceCalculation();
                     } else {
                         updateWarningCard({ status: 'info', message: 'ملف الإكسل فارغ.' });
                     }
@@ -38,11 +73,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // **[تعديل 4: إضافة معالج حدث لزر الحضور]**
+    if (attendanceToggle) {
+        attendanceToggle.addEventListener('change', function() {
+            // عند تغيير حالة الحضور، نعيد الحساب بالعدد المخزن للصفوف
+            triggerDocumentPriceCalculation();
+        });
+    }
+
     /**
-     * إرسال عدد الصفوف إلى الخادم عبر AJAX واستقبال تفاصيل السعر
+     * إرسال عدد الصفوف وحالة الحضور إلى الخادم عبر AJAX واستقبال تفاصيل السعر
      * @param {int} count عدد الصفوف
+     * @param {boolean} isAttendanceEnabled حالة تفعيل الحضور (تمت إضافتها)
      */
-    function fetchDocumentPrice(count) {
+    function fetchDocumentPrice(count, isAttendanceEnabled = false) {
         updateWarningCard({ status: 'loading', message: `تم العثور على ${count} صف. جاري حساب التكلفة...` });
 
         fetch('/calculate-document-price', {
@@ -52,7 +96,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
             },
             body: JSON.stringify({
-                count: count
+                count: count,
+                // **[تعديل 5: إرسال حالة الحضور]**
+                is_attendance_enabled: isAttendanceEnabled
             })
         })
             .then(response => {
@@ -75,8 +121,6 @@ document.addEventListener('DOMContentLoaded', function() {
      * عرض الرسائل الديناميكية في بطاقة التحذير بناءً على البيانات من الخادم
      * @param {object} data الكائن المستلم من الخادم
      */
-    // استبدل دالة updateWarningCard بالكامل بهذا الكود
-
     function updateWarningCard(data) {
         let messageHtml = '';
         let cardType = 'info'; // 'success', 'warning', 'error', 'info'
@@ -86,9 +130,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // رسالة جديدة للسيناريو الأول بناءً على طلبك
                 messageHtml = `
                             ${window.i18n.issue_docs_message
-                            .replace(':docs_count', `<strong>${data.docs_count}</strong>`)
-                            .replace(':total_cost', `<strong>${data.total_cost}</strong>`)
-                            .replace(':plan_balance_after', `<strong>${data.plan_balance_after}</strong>`)}
+                    .replace(':docs_count', `<strong>${data.docs_count}</strong>`)
+                    .replace(':total_cost', `<strong>${data.total_cost}</strong>`)
+                    .replace(':plan_balance_after', `<strong>${data.plan_balance_after}</strong>`)}
                             `;
 
 

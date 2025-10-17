@@ -2261,23 +2261,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const previewContainer = document.createElement('div');
         previewContainer.className = 'preview-container';
         previewContainer.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center;
-        align-items: center; z-index: 1000; overflow: auto;
-    `;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center;
+    align-items: center; z-index: 1000; overflow: auto;
+`;
+
+        // 🌟🌟 الإضافة المطلوبة هنا 🌟🌟
+        previewContainer.onclick = (event) => {
+            // نتحقق مما إذا كان النقر حدث على العنصر الحاوية نفسه وليس على أي من أبنائه
+            if (event.target === previewContainer) {
+                previewContainer.remove();
+                if (previewCanvas) previewCanvas.dispose();
+            }
+        };
+        // 🌟🌟 نهاية الإضافة المطلوبة 🌟🌟
 
         const previewWrapper = document.createElement('div');
         previewWrapper.style.cssText = `
-        position: relative; background: white; border-radius: 8px; padding: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; align-items: center;
-    `;
+    position: relative; background: white; border-radius: 8px; padding: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; align-items: center;
+`;
 
         const closeButton = document.createElement('button');
         closeButton.innerHTML = 'X';
         closeButton.className = 'absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors';
         closeButton.style.cssText = `
-        position: absolute; top: 10px; right: 10px; z-index: 1001;
-    `;
+    position: absolute; top: 10px; right: 10px; z-index: 1001;
+`;
+
         closeButton.onclick = () => {
             previewContainer.remove();
             if (previewCanvas) previewCanvas.dispose();
@@ -2311,10 +2322,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // `;
 
             bottomCard.style.cssText =`
-    background-color: white; border: 1px solid #ccc; border-radius: 4px;
-    padding: 3px 8px; display: flex; flex-direction: row-reverse; gap: 8px;
-    align-items: center; width: 64%; box-sizing: border-box;
-    margin-top: -5px`;
+background-color: white; border: 1px solid #ccc; border-radius: 4px;
+padding: 3px 8px; display: flex; flex-direction: row-reverse; gap: 8px;
+align-items: center; width: 64%; box-sizing: border-box;
+margin-top: -5px`;
 
 
 
@@ -2327,10 +2338,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const verifiedText = document.createElement('span');
             verifiedText.textContent = 'Verified by Pepasafe';
             verifiedText.style.cssText = `
-            font-weight: bold;
-            font-size: 14px;
-            color: #4a5568;
-        `;
+        font-weight: bold;
+        font-size: 14px;
+        color: #4a5568;
+    `;
 
             bottomCard.appendChild(logoImg);
             bottomCard.appendChild(verifiedText); // إضافة النص بدلاً من الصورة
@@ -2347,15 +2358,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalWidth = originalCanvas.width;
             const originalHeight = originalCanvas.height;
 
-            const maxWidth = window.innerWidth * 0.8;
-            const maxHeight = window.innerHeight * 0.6;
+            // const maxWidth = window.innerWidth * 0.8;
+            // const maxHeight = window.innerHeight * 0.6;
 
             let scale = 1;
-            if (originalWidth > maxWidth || originalHeight > maxHeight) {
-                const scaleX = maxWidth / originalWidth;
-                const scaleY = maxHeight / originalHeight;
-                scale = Math.min(scaleX, scaleY);
-            }
+            // if (originalWidth > maxWidth || originalHeight > maxHeight) {
+            //     const scaleX = maxWidth / originalWidth;
+            //     const scaleY = maxHeight / originalHeight;
+            //     scale = Math.min(scaleX, scaleY);
+            // }
 
             const previewWidth = originalWidth * scale;
             const previewHeight = originalHeight * scale;

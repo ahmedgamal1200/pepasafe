@@ -197,7 +197,7 @@
                     <div class="inline-flex items-center justify-center gap-3 p-2 bg-blue-100 border border-blue-600 rounded-lg presence-wrapper {{ $reverseFlexDirection }}">
                         <span class="presence-label font-medium text-blue-600">{{ trans_db('form.enable_attendance') }}</span>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" class="sr-only peer toggle-presence" name="is_attendance_enabled"/>
+                            <input type="checkbox" id="toggleAttendance" class="sr-only peer toggle-presence" name="is_attendance_enabled"/>
                             <div class="toggle-track w-12 h-6 bg-gray-200 rounded-full peer-checked:bg-blue-600 transition-all duration-300"></div>
                             <div class="toggle-thumb absolute left-1 top-1 bg-white w-4 h-4 rounded-full peer-checked:translate-x-6 transition-transform duration-300"></div>
                         </label>
@@ -284,6 +284,22 @@
 
 {{--                    //////هتحط الكود هنا--}}
 
+                    <div class="flex flex-col gap-3 bg-yellow-100 border-2 border-dashed border-gray-400 rounded-lg p-5 hover:bg-yellow-200 transition-colors duration-300 {{ $reverseFlexDirection }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-thumbtack text-2xl text-gray-600 {{ $iconMargin }}"></i>
+                            <span class="font-semibold text-gray-800 {{ $textAlignment }}">
+                                {{ trans_db('form.important_note') }}
+                            </span>
+                        </div>
+
+                        <ul class="list-disc pl-8 text-gray-700 {{ $textAlignment }}">
+                            <li>{{ trans_db('form.important_note.1') }}</li>
+                            <li>{{ trans_db('form.important_note.2') }}</li>
+                            <li>{{ trans_db('form.important_note.3') }}</li>
+                        </ul>
+                    </div>
+
+
                     <div class="form-block mb-8" dir="{{ $direction }}">
                         <div class="flex items-center gap-6 mb-4">
                             <label class="inline-flex items-center gap-2 {{ $reverseFlexDirection }}">
@@ -363,11 +379,6 @@
                             </label>
                         </div>
                     </div>
-
-{{--                    <div class="flex items-center gap-3 bg-yellow-100 border-2  border-dashed  border-gray-400 rounded-lg p-5 hover:bg-yellow-200 transition-colors duration-300 {{ $reverseFlexDirection }}">--}}
-{{--                        <i class="fas fa-thumbtack text-2xl text-gray-600 {{ $iconMargin }}"></i>--}}
-{{--                        <span class="font-semibold text-gray-800 {{ $textAlignment }}">{{ trans_db('form.important_note') }}</span>--}}
-{{--                    </div>--}}
                 </div>
 
 
@@ -502,6 +513,21 @@
                 </div>
             @endif
 
+            <div class="flex flex-col gap-3 bg-yellow-100 border-2 border-dashed border-gray-400 rounded-lg p-5 hover:bg-yellow-200 transition-colors duration-300 {{ $reverseFlexDirection }}">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-thumbtack text-2xl text-gray-600 {{ $iconMargin }}"></i>
+                    <span class="font-semibold text-gray-800 {{ $textAlignment }}">
+                                {{ trans_db('form.important_note') }}
+                            </span>
+                </div>
+
+                <ul class="list-disc pl-8 text-gray-700 {{ $textAlignment }}">
+                    <li>{{ trans_db('form.important_note.1') }}</li>
+                    <li>{{ trans_db('form.important_note.2') }}</li>
+                    <li>{{ trans_db('form.important_note.3') }}</li>
+                </ul>
+            </div><br>
+
 
             <template id="file-template" class="js-document-upload-template">
                 <div class="filebox-card border-2 border-dashed border-gray-400 rounded-lg p-6 flex flex-col items-center gap-4 mb-4 hover:border-blue-600 transition-colors duration-300 relative min-h-[200px]" dir="{{ $direction }}">
@@ -518,8 +544,9 @@
                         </label>
                     </div>
 
-                    <div class="fabric-canvas-container hidden w-full h-96 flex justify-center items-center absolute inset-0 relative" dir="{{ $direction }}">
-                        <button type="button" class="remove-preview-btn absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg hover:bg-red-600 transition z-10" title="{{ trans_db('buttons.remove_file') }}">
+{{--                    <div class="fabric-canvas-container hidden w-full h-96 flex justify-center items-center absolute inset-0 relative" dir="{{ $direction }}">--}}
+                    <div class="fabric-canvas-container hidden flex justify-center items-center absolute inset-0 relative" dir="{{ $direction }}" style="width: 794px; height: 1123px; max-width: 100%;">
+                    <button type="button" class="remove-preview-btn absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg hover:bg-red-600 transition z-10" title="{{ trans_db('buttons.remove_file') }}">
                             &times;
                         </button>
                     </div>
@@ -796,6 +823,7 @@
         updatePlaceholder();
     });
 </script>
+
 <!-- Script -->
 <script src="{{ asset('js/create-event.js') }}"></script>
 <script src="{{ asset('js/calculate-doc-price.js') }}"></script>

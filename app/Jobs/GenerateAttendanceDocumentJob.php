@@ -136,15 +136,16 @@ class GenerateAttendanceDocumentJob implements ShouldQueue
         try {
             // أ. قراءة الصورة الأمامية وتغيير حجمها
             $frontImage = $manager->read($this->backgroundPathFront);
-            $frontImage->resize($this->canvasWidth, $this->canvasHeight);
+//            $frontImage->resize($this->canvasWidth, $this->canvasHeight);
+            $frontImage->cover($this->canvasWidth, $this->canvasHeight);
 
             // ب. تحديد الكانفاس النهائي
             if ($this->backgroundPathBack) {
                 // دمج صورتين
                 // 1. قراءة الصورة الخلفية وتغيير حجمها
                 $backImage = $manager->read($this->backgroundPathBack);
-                $backImage->resize($this->canvasWidth, $this->canvasHeight);
-
+//                $backImage->resize($this->canvasWidth, $this->canvasHeight);
+                $backImage->cover($this->canvasWidth, $this->canvasHeight);
                 // 2. **التعديل هنا:** استخدام create بدلاً من canvas
                 $combinedImage = $manager->create(
                     $this->canvasWidth,

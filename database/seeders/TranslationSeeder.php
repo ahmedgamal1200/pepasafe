@@ -2011,6 +2011,22 @@ class TranslationSeeder extends Seeder
                 'ar' => 'الأقدم أولاً',
                 'en' => 'Oldest First',
             ],
+            'form.important_note' => [
+                'ar' => 'اقرأ التعليمات التالية جيدًا قبل البدء في الاستخدام، فهي ضرورية للغاية:',
+                'en' => 'Please read the following instructions carefully before you start using, as they are extremely important:',
+            ],
+            'form.important_note.1' => [
+                'ar' => 'يجب إرفاق القالب كصورة بصيغة A4 فقط لضمان عدم تلف الصورة.',
+                'en' => 'The template must be attached as an A4 format image only to ensure the image is not distorted.',
+            ],
+            'form.important_note.2' => [
+                'ar' => 'يجب إرفاق القالب أولاً، ثم بعد ذلك رفع ملفات Excel.',
+                'en' => 'The template must be uploaded first, then the Excel files can be uploaded.',
+            ],
+            'form.important_note.3' => [
+                'ar' => 'يجب أن يكون ملف بيانات القالب مطابقًا لملف بيانات التواصل.',
+                'en' => 'The template data file must match the contact data file.',
+            ],
 
         ];
 

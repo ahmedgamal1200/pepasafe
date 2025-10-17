@@ -58,10 +58,13 @@ class DocumentGenerationController extends Controller
         DB::beginTransaction();
 
         try {
+            $isAttendanceEnabled = (bool) $request->input('is_attendance_enabled', false);
+
             // Check the subscription balance
             $recipientCount = $this->recipientService->getRecipientCount($request->file('recipient_file_path'));
-            if (!$this->subscriptionService->hasEnoughBalance($recipientCount)) {
-                return back()->with('error', "عدد الشهادات المطلوبة ($recipientCount) أكبر من رصيدك الحالي.");
+            // **[تعديل 2: تمرير حالة الحضور للتحقق من الرصيد]**
+            if (!$this->subscriptionService->hasEnoughBalance($recipientCount, $isAttendanceEnabled)) {
+                return back()->with('error', "عدد الشهادات المطلوبة ($recipientCount) أكبر من رصيدك الحالي (بما يشمل التكلفة المزدوجة للحضور إن وجد).");
             }
 
             // Create event
@@ -118,7 +121,8 @@ class DocumentGenerationController extends Controller
             //            }
 
             // Deduct balance
-            $this->subscriptionService->chargeDocument($recipientCount);
+            // **[تعديل 3: تمرير حالة الحضور للخصم الفعلي]**
+            $this->subscriptionService->chargeDocument($recipientCount, $isAttendanceEnabled);
 
             DB::commit();
 

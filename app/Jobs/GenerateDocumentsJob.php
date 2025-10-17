@@ -145,15 +145,37 @@ class GenerateDocumentsJob implements ShouldQueue
 
         try {
             // أ. قراءة الصورة الأمامية وتغيير حجمها
+//            $frontImage = $manager->read($this->backgroundPathFront);
+//            $frontImage->resize($this->canvasWidth, $this->canvasHeight);
+//             أ. قراءة الصورة الأمامية وتغيير حجمها
+//            $frontImage = $manager->read($this->backgroundPathFront);
+//            $frontImage->scaleDown(width: $this->canvasWidth, height: $this->canvasHeight);
+////
+//            $newFrontImageCanvas = $manager->create($this->canvasWidth, $this->canvasHeight, 'transparent');
+//            $newFrontImageCanvas->place($frontImage, 'center');
+//
+//            $frontImage = $newFrontImageCanvas;
             $frontImage = $manager->read($this->backgroundPathFront);
-            $frontImage->resize($this->canvasWidth, $this->canvasHeight);
+            $frontImage->cover($this->canvasWidth, $this->canvasHeight);
+
+// يجب أن تتأكد أيضاً من حفظ الصورة النهائية كـ PNG أو WEBP
+// لكي يتم دعم الشفافية في الملف المُولَّد. // الآن frontImage هو الكانفاس الجديد
 
             // ب. تحديد الكانفاس النهائي
             if ($this->backgroundPathBack) {
                 // دمج صورتين
                 // 1. قراءة الصورة الخلفية وتغيير حجمها
+//                $backImage = $manager->read($this->backgroundPathBack);
+//                $backImage->resize($this->canvasWidth, $this->canvasHeight);
+                // 1. قراءة الصورة الخلفية وتغيير حجمها
                 $backImage = $manager->read($this->backgroundPathBack);
-                $backImage->resize($this->canvasWidth, $this->canvasHeight);
+//                $backImage->scaleDown(width: $this->canvasWidth, height: $this->canvasHeight);
+//
+//                $newBackImageCanvas = $manager->create($this->canvasWidth, $this->canvasHeight, '#FFFFFF'); // #FFFFFF هو لون الخلفية (أبيض)
+//                $newBackImageCanvas->place($backImage, 'center');
+//
+//                $backImage = $newBackImageCanvas; // الآن backImage هو الكانفاس الجديد
+                $backImage->cover($this->canvasWidth, $this->canvasHeight);
 
                 // 2. **التعديل هنا:** استخدام create بدلاً من canvas
                 $combinedImage = $manager->create(
@@ -339,7 +361,7 @@ class GenerateDocumentsJob implements ShouldQueue
         }
 
         // 7. **حفظ المستند (يبقى في النهاية)**
-        $imagePath = 'certificates/'.auth()->id().'/'.uniqid().'.jpg';
+        $imagePath = 'certificates/'.auth()->id().'/'.uniqid().'.png';
         $imageFullPath = storage_path("app/public/{$imagePath}");
         Storage::disk('public')->makeDirectory('certificates/'.auth()->id());
         $image->save($imageFullPath);
