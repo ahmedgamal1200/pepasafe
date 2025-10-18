@@ -12,7 +12,7 @@ class AttendanceDocumentRepository
     public function create(array $data, string $uuid, string $currentUniqueCode): array
     {
 //        $uuid = Str::uuid();
-        $qrCode = QrCode::format('png')->size(200)->generate(route('documents.verify', $uuid));
+        $qrCode = QrCode::format('png')->size(200)->generate(route('attendance.show', $uuid));
         $qrPath = "qrcodes/{$uuid}.png";
         Storage::disk('public')->makeDirectory('qrcodes');
         Storage::disk('public')->put($qrPath, $qrCode);

@@ -201,7 +201,7 @@ class GenerateAttendanceDocumentJob implements ShouldQueue
         // 5. **إضافة QR Codes (مع التحقق)**
         if (! empty($this->frontQrCodesData)) {
             foreach ($this->frontQrCodesData as $qrCodeData) {
-                $qrCodeLink = route('documents.show', $currentDocumentUuid);
+                $qrCodeLink = route('attendance.show', $currentDocumentUuid);
 
                 $options = new QROptions([
                     'version'    => QRCode::VERSION_AUTO,

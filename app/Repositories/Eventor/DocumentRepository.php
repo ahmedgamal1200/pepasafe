@@ -13,7 +13,7 @@ class DocumentRepository
     {
 
         // تأكد من أن الـ route() تستخدم الـ uuid الذي تم تمريره
-        $qrCode = QrCode::format('png')->size(200)->generate(route('documents.verify', $uuid));
+        $qrCode = QrCode::format('png')->size(200)->generate(route('documents.show', $uuid));
         $qrPath = "qrcodes/{$uuid}.png"; // استخدم الـ uuid هنا أيضًا
         Storage::disk('public')->makeDirectory('qrcodes');
         Storage::disk('public')->put($qrPath, $qrCode);
