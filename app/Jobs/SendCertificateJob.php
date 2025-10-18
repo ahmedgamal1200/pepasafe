@@ -118,8 +118,8 @@ class SendCertificateJob implements ShouldQueue
         try {
             $apiPayload = [
                 "name"             => 'document_alert',
-//                "phoneNumber"      => $sanitizedPhone, // تم التعديل لاستخدام متغير
-                "phoneNumber"      => '+201205297854', // تم التعديل لاستخدام متغير
+//                "phoneNumber"      => $sanitizedPhone,
+                "phoneNumber"      => '+201205297854',
                 "template_content" => 'test',
                 "template_id"      => 2386,
                 "workflow_id"      => 1,

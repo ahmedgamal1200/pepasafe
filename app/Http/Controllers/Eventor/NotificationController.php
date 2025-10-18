@@ -33,13 +33,21 @@ class NotificationController extends Controller
 
     public function getLatestNotifications()
     {
-        // هات الإشعارات غير المقروءة لليوزر الحالي
-        $notifications = Auth::user()->unreadNotifications;
+        $notifications = Auth::user()->unreadNotifications->map(function ($notification) {
+            // التأكد من تطبيق المنطقة الزمنية (Africa/Cairo)
+            $notification->created_at_formatted = $notification->created_at->diffForHumans();
 
-        // رجع الإشعارات كـ JSON
+            // إذا كنت تحتاج التوقيت الخام في الـ JS، يجب أن يكون بتوقيت القاهرة
+            // هذا السطر مهم لضمان أن الـ JS يتعامل مع وقت القاهرة بدلاً من UTC
+            $notification->created_at_cairo = $notification->created_at->setTimezone('Africa/Cairo')->toDateTimeString();
+
+            return $notification;
+        });
+
+        // ستحتاج إلى إرجاع مجموعة البيانات كـ Array وليس كـ Collection
         return response()->json([
             'count' => $notifications->count(),
-            'notifications' => $notifications,
+            'notifications' => $notifications->toArray(), // استخدام toArray ضروري لعرض الحقول الجديدة
         ]);
     }
 }

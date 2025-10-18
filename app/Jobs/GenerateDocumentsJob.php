@@ -282,7 +282,7 @@ class GenerateDocumentsJob implements ShouldQueue
 
                 $finalQrCodeY = $qrCodeY + $yOffset;
 
-                $scanMeText = "SCAN ME!";
+                $scanMeText = "Scan to verify!";
                 $scanMeFontSize = 12;
                 $scanMeMargin = 5;
 

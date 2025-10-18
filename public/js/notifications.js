@@ -170,7 +170,12 @@ window.notificationSystem = {
     },
 
     formatTimestamp(timestamp) {
-        const date = new Date(timestamp);
+        // تأكد من إضافة 'Z' في النهاية إذا لم تكن موجودة بالفعل لتفسيرها كـ UTC
+        const timeString = timestamp.endsWith('Z') ? timestamp : timestamp + 'Z';
+
+        // المتصفح سيقوم بتحويل هذا التوقيت من UTC إلى التوقيت المحلي للمستخدم (القاهرة)
+        const date = new Date(timeString);
+
         const now = new Date();
         const diffMs = now - date;
         const diffMins = Math.round(diffMs / 60000);
@@ -228,7 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             id: notification.id,
                             title: notification.data.title ?? 'New Notification',
                             message: notification.data.message ?? '',
-                            timestamp: notification.created_at,
+                            // تم التعديل هنا: استخدام الحقل الذي تم تنسيقه بتوقيت القاهرة
+                            timestamp: notification.created_at_cairo || notification.created_at,
                             read_at: notification.read_at
                         });
                         fragment.appendChild(newElement);
