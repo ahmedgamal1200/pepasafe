@@ -115,6 +115,11 @@ class SendCertificateJob implements ShouldQueue
     {
         $sanitizedPhone = str_starts_with($phone, '+') ? $phone : "+{$phone}";
 
+        // 🧹 تنظيف الرسالة من الأسطر الجديدة والتبويبات والمسافات الزائدة
+        $message = preg_replace("/[\r\n\t]+/", " ", $message);
+        $message = preg_replace("/ {2,}/", " ", $message);
+        $message = trim($message);
+
         try {
             $apiPayload = [
                 "name"             => 'document_alert',
@@ -191,7 +196,7 @@ class SendCertificateJob implements ShouldQueue
             $routeName = $isAttendance ? 'attendance.show' : 'documents.show';
             $certificateLink = route($routeName, $this->certificate->uuid);
 
-            $fullMessage = $message . " You must log in using your email address and the default password 123456789, which should be changed immediately after logging in. " . $certificateLink;
+            $fullMessage = $message . " ,You must log in using your email address and the default password 123456789, which should be changed immediately after logging in. " . $certificateLink;
 
             // مسار ملف الـ PDF
             $pdfPath = storage_path('app/public/'.$this->certificate->file_path);

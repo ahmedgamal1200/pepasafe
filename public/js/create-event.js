@@ -236,16 +236,16 @@ function updateUI(input) {
 
     if (input.checked) {
         label.textContent = window.i18n.off_attendance;
-        label.classList.replace('text-blue-600', 'text-red-600');
-        wrapper.classList.replace('border-blue-600', 'border-red-600');
-        wrapper.classList.replace('bg-blue-100', 'bg-red-100');
-        track.classList.replace('peer-checked:bg-blue-600', 'peer-checked:bg-red-600');
+        label.classList.replace('text-blue-600', 'text-blue-600');
+        wrapper.classList.replace('border-blue-600', 'border-blue-600');
+        wrapper.classList.replace('bg-blue-100', 'bg-blue-100');
+        track.classList.replace('peer-checked:bg-blue-600', 'peer-checked:bg-blue-600');
     } else {
         label.textContent = window.i18n.on_attendance;
-        label.classList.replace('text-red-600', 'text-blue-600');
-        wrapper.classList.replace('border-red-600', 'border-blue-600');
-        wrapper.classList.replace('bg-red-100', 'bg-blue-100');
-        track.classList.replace('peer-checked:bg-red-600', 'peer-checked:bg-blue-600');
+        label.classList.replace('text-blue-600', 'text-blue-600');
+        wrapper.classList.replace('border-blue-600', 'border-blue-600');
+        wrapper.classList.replace('bg-blue-100', 'bg-blue-100');
+        track.classList.replace('peer-checked:bg-blue-600', 'peer-checked:bg-blue-600');
     }
 }
 
@@ -313,6 +313,14 @@ let isDragging = false;
 let isPanning = false;
 let lastPosX = 0;
 let lastPosY = 0;
+
+const STANDARD_SIZES = {
+    'A4': { width: 794, height: 1123 },      // 210mm x 297mm @ 96 DPI
+    'Letter': { width: 816, height: 1056 },  // 8.5in x 11in @ 96 DPI
+    'Card': { width: 324, height: 204 },     // CR80 - 85.6mm x 54mm @ 96 DPI
+    'A5': { width: 560, height: 794 },       // 148mm x 210mm @ 96 DPI
+    'B5': { width: 665, height: 945 }        // 176mm x 250mm @ 96 DPI
+};
 
 
 function getCardDataType(fileHub) {
@@ -470,16 +478,16 @@ function updateUI(input) {
 
     if (input.checked) {
         label.textContent = window.i18n.off_attendance;
-        label.classList.replace('text-blue-600', 'text-red-600');
-        wrapper.classList.replace('border-blue-600', 'border-red-600');
-        wrapper.classList.replace('bg-blue-100', 'bg-red-100');
-        track.classList.replace('peer-checked:bg-blue-600', 'peer-checked:bg-red-600');
+        label.classList.replace('text-blue-600', 'text-blue-600');
+        wrapper.classList.replace('border-blue-600', 'border-blue-600');
+        wrapper.classList.replace('bg-blue-100', 'bg-blue-100');
+        track.classList.replace('peer-checked:bg-blue-600', 'peer-checked:bg-blue-600');
     } else {
         label.textContent = window.i18n.on_attendance;
-        label.classList.replace('text-red-600', 'text-blue-600');
-        wrapper.classList.replace('border-red-600', 'border-blue-600');
-        wrapper.classList.replace('bg-red-100', 'bg-blue-100');
-        track.classList.replace('peer-checked:bg-red-600', 'peer-checked:bg-blue-600');
+        label.classList.replace('text-blue-600', 'text-blue-600');
+        wrapper.classList.replace('border-blue-600', 'border-blue-600');
+        wrapper.classList.replace('bg-blue-100', 'bg-blue-100');
+        track.classList.replace('peer-checked:bg-blue-600', 'peer-checked:bg-blue-600');
     }
 }
 
@@ -838,22 +846,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function initializeTemplateCanvas(canvasElement, imageUrl, cardIdentifier) {
+// تم إضافة explicitWidth و explicitHeight إلى توقيع الدالة مع قيم افتراضية 0
+    function initializeTemplateCanvas(canvasElement, imageUrl, cardIdentifier, explicitWidth = 0, explicitHeight = 0) {
         if (!canvasElement) {
             console.error('Canvas element not provided or found.');
             return;
         }
 
-        // تأكد من أن cardData موجود ككائن عام (يجب أن يكون معرّفاً في النطاق العام)
+        // ❌ تم حذف الكود هنا الذي كان يستدعي:
+        // cardData[cardIdentifier].fabricCanvas.dispose();
+        // لأن عملية التنظيف (Dispose) يجب أن تتم بالكامل وحصرياً في معالج حدث الحذف (removePreviewBtn.addEventListener)
+        // لتجنب خطأ TypeError: Cannot read properties of undefined (reading 'removeChild')
+        // عند محاولة التخلص من Canvas تم تدميره بالفعل أو إزالة عنصر الـ DOM الخاص به.
 
-        if (cardData[cardIdentifier] && cardData[cardIdentifier].fabricCanvas) {
-            cardData[cardIdentifier].fabricCanvas.dispose();
-            cardData[cardIdentifier].fabricCanvas = null;
+
+        // 🌟 التعديل هنا: إعطاء الأولوية للأبعاد الصريحة التي تم تمريرها
+        let finalCanvasWidth = explicitWidth;
+        let finalCanvasHeight = explicitHeight;
+
+        if (finalCanvasWidth === 0 || finalCanvasHeight === 0) {
+            // إذا لم يتم تمرير أبعاد صريحة (كالحالة عند أول رفع للصورة)، نقرأ من DOM
+            const rect = canvasElement.getBoundingClientRect();
+            finalCanvasWidth = rect.width;
+            finalCanvasHeight = rect.height;
+            // console.log(`[INIT] - ${cardIdentifier} أبعاد الـ Canvas HTML: ${finalCanvasWidth}x${finalCanvasHeight}`);
         }
-
-        const rect = canvasElement.getBoundingClientRect();
-        let finalCanvasWidth = rect.width;
-        let finalCanvasHeight = rect.height;
 
         if (finalCanvasWidth === 0 || finalCanvasHeight === 0) {
             const parentContainer = canvasElement.parentElement;
@@ -861,13 +878,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 finalCanvasWidth = parentContainer.offsetWidth;
                 finalCanvasHeight = parentContainer.offsetHeight;
             } else {
+                // ملاحظة: تم الاحتفاظ بأبعاد افتراضية لتجنب القيم الصفرية
                 finalCanvasWidth = 900;
                 finalCanvasHeight = 600;
                 console.warn(`Canvas dimensions are zero for ${cardIdentifier}. Using default width: ${finalCanvasWidth}, height: ${finalCanvasHeight}`);
             }
         }
+
+        // لضمان أن الـ Canvas لا يقل عن حجم أدنى
         if (finalCanvasWidth < 400) finalCanvasWidth = 400;
         if (finalCanvasHeight < 300) finalCanvasHeight = 300;
+        // console.log(`[INIT] - ${cardIdentifier} الأبعاد النهائية للـ Fabric Canvas: ${finalCanvasWidth}x${finalCanvasHeight}`);
 
         canvasElement.style.width = `${finalCanvasWidth}px`;
         canvasElement.style.height = `${finalCanvasHeight}px`;
@@ -889,7 +910,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // تعيين الكانفاس النشط
         currentCanvas.on('mouse:down', function() {
             activeCanvas = this;
-            console.log(`Mouse down, activeCanvas set to: ${this.cardIdentifier}`);
+            // console.log(`Mouse down, activeCanvas set to: ${this.cardIdentifier}`);
         });
 
         // إعداد محرر النصوص
@@ -913,7 +934,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     fontFamily: fontFamily.value
                 });
                 activeCanvas.renderAll();
-                saveITextObjectsFromSpecificCanvas(activeCanvas, activeCanvas.cardIdentifier, cardData);
+                // يجب تمرير cardData هنا بدلاً من المتغير العام
+                // saveITextObjectsFromSpecificCanvas(activeCanvas, activeCanvas.cardIdentifier, cardData);
             }
         }
 
@@ -957,13 +979,36 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const imageUrlToLoad = cardData[cardIdentifier].imageUrl || imageUrl;
+        let finalImageUrl;
 
-        fabric.Image.fromURL(imageUrlToLoad, function(img) {
+        // 🌟🌟 التحقق من نوع الـ URL وتطبيق Cache Busting 🌟🌟
+        if (imageUrlToLoad && imageUrlToLoad.startsWith('data:')) {
+            // إذا كان Base64 URI، نستخدمه كما هو
+            finalImageUrl = imageUrlToLoad;
+        } else if (imageUrlToLoad) {
+            // إذا كان URL عادي، نضيف Timestamp لكسر الـ Cache وإجبار التحميل بالحجم الكامل
+            finalImageUrl = `${imageUrlToLoad}?t=${new Date().getTime()}`;
+        } else {
+            console.warn(`No image URL provided for canvas initialization: ${cardIdentifier}`);
+            // لا نحتاج لتهيئة الخلفية، لكن قد نحتاج لإعادة العناصر النصية
+            restoreITextObjectsOnSpecificCanvas(currentCanvas, cardIdentifier, cardData);
+            currentCanvas.renderAll();
+            return currentCanvas;
+        }
+
+
+        fabric.Image.fromURL(finalImageUrl, function(img) { // استخدام finalImageUrl
+            if (!img) {
+                console.error('Failed to load image for canvas initialization.');
+                return;
+            }
+
             const scaleX = finalCanvasWidth / img.width;
             const scaleY = finalCanvasHeight / img.height;
-            const scale = Math.min(scaleX * 0.97, scaleY * 0.97);
 
-            img.scale(scale);
+            // التحجيم الصحيح لضمان عدم القص أو الفراغات
+            const scale = Math.min(scaleX, scaleY);
+            // console.log(`[INIT] - ${cardIdentifier} تحجيم صورة الخلفية: Scale=${scale.toFixed(3)}, Original=${img.width}x${img.height}`);
 
             currentCanvas.setBackgroundImage(img, currentCanvas.renderAll.bind(currentCanvas), {
                 scaleX: scale,
@@ -975,12 +1020,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 absolutePositioned: true
             });
 
+            // استعادة عناصر النص بعد تحميل الخلفية
             restoreITextObjectsOnSpecificCanvas(currentCanvas, cardIdentifier, cardData);
             currentCanvas.renderAll();
         }, { crossOrigin: 'Anonymous' });
 
         // --------------------------------------------------------------------------------
-        // منطق السحب والإفلات المعدّل (ليدعم I-Text و QR Code)
+        // ... باقي منطق السحب والإفلات (كما هو) ...
         // --------------------------------------------------------------------------------
 
         currentCanvas.on('mouse:down', function(opt) {
@@ -1100,7 +1146,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (cardData[targetCard]) {
                                 saveITextObjectsFromSpecificCanvas(targetCanvas, targetCard, cardData);
                             }
-                            console.log(`تم إفلات QR Code على ${targetCard} في (${pointer.x}, ${pointer.y})`);
+                            // console.log(`تم إفلات QR Code على ${targetCard} في (${pointer.x}, ${pointer.y})`);
                         }, { crossOrigin: 'Anonymous' }, (err) => {
                             // معالج خطأ مخصص للتحميل
                             console.error('Error loading QR code during drag-and-drop:', err);
@@ -1132,7 +1178,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (cardData[targetCardId]) {
                             saveITextObjectsFromSpecificCanvas(targetCanvas, targetCardId, cardData);
                         }
-                        console.log(`تم إفلات النص '${newObject.text}' على ${targetCardId} في (${pointer.x}, ${pointer.y})`);
+                        // console.log(`تم إفلات النص '${newObject.text}' على ${targetCardId} في (${pointer.x}, ${pointer.y})`);
                     }
 
                 } else {
@@ -1140,7 +1186,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentlyDraggedFabricObject.set({ opacity: 1, selectable: true, evented: true });
                     startDragCanvas.renderAll();
                     startDragCanvas.setActiveObject(currentlyDraggedFabricObject);
-                    console.log('تم إرجاع العنصر للكانفاس الأصلي.');
+                    // console.log('تم إرجاع العنصر للكانفاس الأصلي.');
                 }
 
                 // خطوة حاسمة: مسح المتغيرات المؤقتة والـ Proxy لإنهاء عملية السحب
@@ -1156,8 +1202,140 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return currentCanvas;
     }
+    // ملاحظة: افترض أن STANDARD_SIZES و saveITextObjectsFromSpecificCanvas
+// و initializeTemplateCanvas دوال أو متغيرات عامة ومعدلة لتقبل cardDataRef.
 
+    /**
+     * تطبيق حجم القالب على مجموعة محددة من العناصر باستخدام بياناتها الخاصة.
+     * * @param {string} selectedSizeKey - مفتاح الحجم المختار (مثل 'A4', 'Card').
+     * @param selectedSizeKey
+     * @param {string} containerSelector - محدد CSS للحاوية الرئيسية (مثل '.certificate-filehub' أو '.attendance-filehub').
+     * @param {object} cardDataRef - مرجع لكائن البيانات (certificateCardData أو attendanceCardData).
+     */
+    function applyTemplateSize(selectedSizeKey, containerSelector, cardDataRef) {
+        const targetFileHub = document.querySelector(containerSelector);
 
+        if (!targetFileHub) {
+            console.warn(`Target file hub not found for selector: ${containerSelector}`);
+            return;
+        }
+
+        // البحث عن الكروت داخل الحاوية المستهدفة فقط
+        const allCardElements = targetFileHub.querySelectorAll('.filebox-card');
+        const newDimensions = STANDARD_SIZES[selectedSizeKey] || STANDARD_SIZES['A4'];
+
+        if (allCardElements.length === 0) {
+            console.warn(`No .filebox-card elements found in ${containerSelector}.`);
+            return;
+        }
+
+        console.log(`[APPLY] - بدء تغيير الحجم إلى: ${selectedSizeKey} لـ ${containerSelector}`);
+
+        allCardElements.forEach(cardElement => {
+            const canvasEl = cardElement.querySelector('canvas');
+            // يجب أن يكون cardId هو نفس المعرف المستخدم في cardDataRef
+            const cardId = canvasEl ? canvasEl.getAttribute('data-card-id') : null;
+
+            // استخدام مرجع البيانات الممرر
+            const cardData = cardDataRef;
+
+            if (!canvasEl || !cardId || !cardData[cardId] || !cardData[cardId].imageUrl) {
+                // فقط لتغيير حجم الكارد إذا لم يكن هناك صورة مرفوعة بعد
+                cardElement.style.width = `${newDimensions.width}px`;
+                cardElement.style.height = `${newDimensions.height}px`;
+                return;
+            }
+
+            const currentCanvas = cardData[cardId].fabricCanvas;
+            let scaleFactor = 1;
+
+            if (currentCanvas) {
+                const oldWidth = currentCanvas.width;
+                const oldHeight = currentCanvas.height;
+
+                // 🌟 يجب التأكد أن هذه الدالة تستخدم cardDataRef الآن
+                saveITextObjectsFromSpecificCanvas(currentCanvas, cardId, cardData);
+
+                // حساب معامل التحجيم
+                if (oldWidth > 0 && oldHeight > 0) {
+                    const widthScale = newDimensions.width / oldWidth;
+                    const heightScale = newDimensions.height / oldHeight;
+                    scaleFactor = Math.min(widthScale, heightScale);
+                }
+
+                // 1. تدمير Canvas القديم
+                currentCanvas.dispose();
+                cardData[cardId].fabricCanvas = null;
+            }
+
+            // 2. تطبيق أبعاد الحاوية وعنصر الـ Canvas HTML الجديدة
+            cardElement.style.width = `${newDimensions.width}px`;
+            cardElement.style.height = `${newDimensions.height}px`;
+
+            canvasEl.style.width = `${newDimensions.width}px`;
+            canvasEl.style.height = `${newDimensions.height}px`;
+            canvasEl.width = newDimensions.width;
+            canvasEl.height = newDimensions.height;
+
+            // 3. تطبيق التحجيم على العناصر المحفوظة
+            if (scaleFactor !== 1 && cardData[cardId].iTextObjects.length > 0) {
+                cardData[cardId].iTextObjects.forEach(obj => {
+                    obj.scaleX *= scaleFactor;
+                    obj.scaleY *= scaleFactor;
+                    obj.left *= scaleFactor;
+                    obj.top *= scaleFactor;
+                });
+            }
+
+            // 4. إعادة التهيئة
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    if (cardData[cardId] && cardData[cardId].imageUrl) {
+                        // 🌟 التعديل الحرج هنا: تمرير cardDataRef كمعامل رابع
+                        initializeTemplateCanvas(
+                            canvasEl,
+                            cardData[cardId].imageUrl,
+                            cardId,
+                            cardData // تمرير مرجع البيانات
+                        );
+
+                        // 💥 خطوة إضافية: لضمان عرض عناصر النص المحفوظة فوراً
+                        if (cardData[cardId].iTextObjects.length > 0 && cardData[cardId].fabricCanvas) {
+                            // 🌟 يجب التأكد أن هذه الدالة تستخدم cardDataRef الآن
+                            restoreITextObjectsOnSpecificCanvas(cardData[cardId].fabricCanvas, cardId, cardData);
+                            cardData[cardId].fabricCanvas.renderAll();
+                        }
+                    }
+                }, 50);
+            });
+
+            cardData[cardId].sizeKey = selectedSizeKey;
+        });
+
+        console.log(`[APPLY] - انتهى تغيير الحجم لـ ${containerSelector}.`);
+    }
+
+    const certSelect = document.getElementById('template-size-select');
+
+    if (certSelect) {
+        certSelect.addEventListener('change', (event) => {
+            // نستخدم محدد CSS يمثل حاوية الشهادات فقط
+            // ونمرر كائن البيانات الخاص بالشهادات (certificateCardData)
+            applyTemplateSize(event.target.value, '.js-filehub:not(.attendance-filehub)', certificateCardData);
+        });
+    }
+
+    // 2. ربط قائمة أحجام الحضور
+    // يجب أن تكون هذه قائمة أحجام منفصلة عن الشهادات
+    const attendanceSelect = document.getElementById('attendance-size-select');
+
+    if (attendanceSelect) {
+        attendanceSelect.addEventListener('change', (event) => {
+            // نستخدم محدد CSS يمثل حاوية الحضور فقط
+            // ونمرر كائن البيانات الخاص بالبطاقات (attendanceCardData)
+            applyTemplateSize(event.target.value, '.attendance-filehub', attendanceCardData);
+        });
+    }
 
 
     // ---------------------------------------------------------------------------------------
@@ -1696,16 +1874,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         removePreviewBtn.addEventListener('click', () => {
+            // 1. مسح قيمة حقل الملفات
             fileInput.value = '';
-            updateCardDisplayState(false);
+
+            // 2. التخلص من كائن Fabric Canvas (مهم لتحرير الموارد)
             if (cardData[cardIdentifier].fabricCanvas) {
                 cardData[cardIdentifier].fabricCanvas.dispose();
                 cardData[cardIdentifier].fabricCanvas = null;
             }
+
+            // 3. **الخطوة الحاسمة لإزالة عنصر <canvas> الذي تم إنشاؤه ديناميكياً:**
+            // نستخدم querySelectorAll لإزالة عنصر <canvas> تحديداً.
+            fabricCanvasContainer.querySelectorAll('canvas, iframe').forEach(el => el.remove());
+
+            // 4. إفراغ ما تبقى في الحاوية (قد يكون عناصر DOM أخرى)
+            // **ملاحظة:** بما أن الزر الأحمر (removePreviewBtn) في كودك الأصلي موجود داخل fabric-canvas-container،
+            // فإن إفراغ innerHTML قد يحذفه. سنقوم بالتنظيف ثم إعادة إضافته لضمان وجوده في مكانه الثابت.
             fabricCanvasContainer.innerHTML = '';
             fabricCanvasContainer.appendChild(removePreviewBtn);
+
+            // 5. مسح المراجع
             cardData[cardIdentifier].imageUrl = null;
             currentTemplateCanvasElement = null;
+
+            // 6. تحديث حالة العرض (إظهار زر الرفع الأولي وإخفاء الحاوية الحالية)
+            updateCardDisplayState(false);
         });
 
         // إضافة حدث للتحقق من أسماء الحقول عند إرسال النموذج
@@ -1883,7 +2076,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (backRadio && backRadio.checked) {
             const b = document.importNode(fileTpl, true);
-            b.querySelector('.card-title').textContent =  window.i18n.documents_back_side;
+            b.querySelector('.card-title').textContent = window.i18n.documents_back_side;
             b.querySelector('.side-input').name = 'certificate_template_sides[]'; // تعديل اسم الإدخال
             b.querySelector('.side-input').value = 'back';
             b.querySelector('.file-input').name = 'document_template_file_path[]';
@@ -1939,8 +2132,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(`Cleared back card data for ${backCardId}`);
             }
         }
-    }
 
+        // 🌟🌟 الإضافة الجديدة لتطبيق الأبعاد القياسية بعد إنشاء الكارد 🌟🌟
+        const sizeSelect = document.getElementById('template-size-select');
+        if (sizeSelect) {
+            // نستخدم requestAnimationFrame و setTimeout لضمان استقرار العناصر في الـ DOM قبل محاولة قياس أبعادها
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    applyTemplateSize(sizeSelect.value || 'A4');
+                }, 50); // تأخير بسيط
+            });
+        }
+    }
 
     function renderAttendanceCards(block, initial = false) {
         const containers = block.querySelectorAll('.attachments-container');
@@ -2321,30 +2524,30 @@ document.addEventListener('DOMContentLoaded', () => {
             // margin-top: -5px;
             // `;
 
-            bottomCard.style.cssText =`
-background-color: white; border: 1px solid #ccc; border-radius: 4px;
-padding: 3px 8px; display: flex; flex-direction: row-reverse; gap: 8px;
-align-items: center; width: 64%; box-sizing: border-box;
-margin-top: -5px`;
+//             bottomCard.style.cssText =`
+// background-color: white; border: 1px solid #ccc; border-radius: 4px;
+// padding: 3px 8px; display: flex; flex-direction: row-reverse; gap: 8px;
+// align-items: center; width: 64%; box-sizing: border-box;
+// margin-top: -5px`;
 
 
 
-            const logoImg = document.createElement('img');
-            logoImg.src = '/assets/logo.jpg'; // 👈 **تأكد من هذا المسار**
-            logoImg.alt = 'شعار الموقع';
-            logoImg.style.height = '40px';
+        //     const logoImg = document.createElement('img');
+        //     logoImg.src = '/assets/logo.jpg'; // 👈 **تأكد من هذا المسار**
+        //     logoImg.alt = 'شعار الموقع';
+        //     logoImg.style.height = '40px';
+        //
+        //     // ⭐⭐ هنا التعديل: استبدال الـ QR code بالنص ⭐⭐
+        //     const verifiedText = document.createElement('span');
+        //     verifiedText.textContent = 'Verified by Pepasafe';
+        //     verifiedText.style.cssText = `
+        // font-weight: bold;
+        // font-size: 14px;
+        // color: #4a5568;
+    // `;
 
-            // ⭐⭐ هنا التعديل: استبدال الـ QR code بالنص ⭐⭐
-            const verifiedText = document.createElement('span');
-            verifiedText.textContent = 'Verified by Pepasafe';
-            verifiedText.style.cssText = `
-        font-weight: bold;
-        font-size: 14px;
-        color: #4a5568;
-    `;
-
-            bottomCard.appendChild(logoImg);
-            bottomCard.appendChild(verifiedText); // إضافة النص بدلاً من الصورة
+            // bottomCard.appendChild(logoImg);
+            // bottomCard.appendChild(verifiedText); // إضافة النص بدلاً من الصورة
             previewWrapper.appendChild(bottomCard);
         }
         // ⭐⭐ نهاية التعديلات الجديدة ⭐⭐

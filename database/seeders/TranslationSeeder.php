@@ -2016,9 +2016,10 @@ class TranslationSeeder extends Seeder
                 'en' => 'Please read the following instructions carefully before you start using, as they are extremely important:',
             ],
             'form.important_note.1' => [
-                'ar' => 'يجب إرفاق القالب كصورة بصيغة A4 فقط لضمان عدم تلف الصورة.',
-                'en' => 'The template must be attached as an A4 format image only to ensure the image is not distorted.',
+                'ar' => 'اختر المقاس الذي تريده من القائمة المنسدلة المسماة "اختار مقاس القالب". ومن الضروري جدًا أن يكون القالب الذي ترفعه مطابقًا للمقاس الذي اخترته حتى لا تتشوه الصورة.',
+                'en' => "Select the desired size from the dropdown menu named 'Choose the template size'. It is very important that the template you upload matches the selected size to avoid image distortion.",
             ],
+
             'form.important_note.2' => [
                 'ar' => 'يجب إرفاق القالب أولاً، ثم بعد ذلك رفع ملفات Excel.',
                 'en' => 'The template must be uploaded first, then the Excel files can be uploaded.',
@@ -2027,6 +2028,23 @@ class TranslationSeeder extends Seeder
                 'ar' => 'يجب أن يكون ملف بيانات القالب مطابقًا لملف بيانات التواصل.',
                 'en' => 'The template data file must match the contact data file.',
             ],
+            'form.certificate_section' => [
+                'ar' => 'الجزء الخاص بالشهادة',
+                'en' => 'Certificate Section',
+            ],
+            'chose_the_template_size' => [
+                'ar' => 'اختار مقاس القالب',
+                'en' => 'Choose the template size',
+            ],
+            'cm' => [
+                'ar' => 'سم' ,
+                'en' => 'cm',
+            ],
+            'template_default' => [
+                'ar' => 'الوضع الافتراضي' ,
+                'en' => 'Default',
+            ],
+
 
         ];
 

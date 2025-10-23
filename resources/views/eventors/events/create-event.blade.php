@@ -310,6 +310,18 @@
                                 <input type="radio" name="attendance_template_sides[]" value="back" class="js-face" data-face="back">
                                 <span>{{ trans_db('form.two_sides') }}</span>
                             </label>
+
+                            <div class="flex items-center gap-3">
+                                <label for="template-size-select" class="font-medium {{ $textAlignment }}">{{ trans_db('chose_the_template_size') }}:</label>
+                                <select id="attendance-size-select" class="select-cert-validity-new border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 cert-validity-new {{ $textAlignment }}">
+                                    <option value="A4">A4 (21 * 29.7 {{ trans_db('cm') }})</option>
+                                    <option value="Letter">Letter (21.6 * 27.9 {{ trans_db('cm') }})</option>
+                                    <option value="Card">CR80 (8.6 * 5.6 {{ trans_db('cm') }})</option>
+                                    <option value="A5">A5 (14.8 * 21 {{ trans_db('cm') }})</option>
+                                    <option value="B5">B5 (17.6 * 25 {{ trans_db('cm') }})</option>
+                                    <option value="Default" selected>{{ trans_db('template_default') }}</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="js-filehub attendance-filehub"></div>
@@ -425,6 +437,14 @@
             </div>
 
             <div class="flex flex-col gap-4 mb-6" style="margin-top: 20px;" dir="{{ $direction }}">
+                <label class="font-medium text-base {{ $textAlignment }} bg-yellow-200 px-2 rounded">
+                    {{ trans_db('form.certificate_section') }}
+                </label>
+
+
+
+
+
                 <div class="flex flex-col gap-2 w-full">
                     <label for="project-from" class="font-medium text-base {{ $textAlignment }}">{{ trans_db('form.send_date') }}:</label>
                     <input
@@ -530,23 +550,36 @@
 
 
             <template id="file-template" class="js-document-upload-template">
-                <div class="filebox-card border-2 border-dashed border-gray-400 rounded-lg p-6 flex flex-col items-center gap-4 mb-4 hover:border-blue-600 transition-colors duration-300 relative min-h-[200px]" dir="{{ $direction }}">
-                    <h3 class="card-title text-xl font-bold mb-4 {{ $textAlignment }}">{{ trans_db('form.card_title') }}</h3>
-                    <div class="initial-upload-state flex flex-col items-center gap-4">
-                        <i class="fas fa-cloud-upload-alt text-5xl text-gray-400 file-icon"></i>
-                        <h4 class="text-lg font-semibold {{ $textAlignment }}">{{ trans_db('form.upload_template_file') }}</h4>
+                <!-- إضافة mx-auto وترك العرض ليتم تحديده بالـ JS -->
+                <div class="filebox-card border-2 border-dashed border-gray-400 rounded-lg p-3 flex flex-col items-center gap-2 mb-4 mx-auto
+                hover:border-blue-600 transition-colors duration-300 relative min-h-[150px]"
+                     dir="{{ $direction }}">
+
+                    <!-- التعديل 1: تصغير حجم عنوان الكارد قليلاً (من text-xl إلى text-base) وتقليل الـ mb-4 إلى mb-2 -->
+                    <h3 class="card-title text-base font-bold mb-2 {{ $textAlignment }}">{{ trans_db('form.card_title') }}</h3>
+
+                    <!-- التعديل 2: تقليل الـ gap في حالة الرفع الأولي إلى gap-2 -->
+                    <div class="initial-upload-state flex flex-col items-center gap-2">
+
+                        <!-- التعديل 3: تصغير حجم الأيقونة (من text-5xl إلى text-2xl) -->
+                        <i class="fas fa-cloud-upload-alt text-2xl text-gray-400 file-icon"></i>
+
+                        <!-- التعديل 4: تصغير حجم نص العنوان الفرعي (من text-lg إلى text-sm) -->
+                        <h4 class="text-sm font-semibold {{ $textAlignment }}">{{ trans_db('form.upload_template_file') }}</h4>
+
                         {{--                        <p class="text-center text-gray-600 {{ $textAlignment }}">{{ trans_db('form.upload_file_types') }}</p>--}}
-                        <label class="inline-flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-md cursor-pointer hover:bg-blue-700 transition {{ $reverseFlexDirection }}">
-                            <i class="fas fa-upload"></i>
+
+                        <!-- التعديل 5: تقليل الـ Padding وحجم الخط في الزر إلى الحد الأدنى (px-2 py-1 و text-xs) -->
+                        <label class="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded-md cursor-pointer hover:bg-blue-700 transition {{ $reverseFlexDirection }} text-xs">
+                            <i class="fas fa-upload text-sm"></i> <!-- تصغير أيقونة الرفع قليلاً أيضاً -->
                             <span>{{ trans_db('buttons.attach_template') }}</span>
                             <input name="document_template_file_path[]" type="file" class="sr-only file-input" accept="application/pdf,image/*">
                             <input type="hidden" name="document_template_sides[]" class="side-input" value="">
                         </label>
                     </div>
 
-{{--                    <div class="fabric-canvas-container hidden w-full h-96 flex justify-center items-center absolute inset-0 relative" dir="{{ $direction }}">--}}
-                    <div class="fabric-canvas-container hidden flex justify-center items-center absolute inset-0 relative" dir="{{ $direction }}" style="width: 794px; height: 1123px; max-width: 100%;">
-                    <button type="button" class="remove-preview-btn absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg hover:bg-red-600 transition z-10" title="{{ trans_db('buttons.remove_file') }}">
+                    <div class="fabric-canvas-container hidden w-full h-full flex justify-center items-center absolute inset-0 relative" dir="{{ $direction }}">
+                        <button type="button" class="remove-preview-btn absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg hover:bg-red-600 transition z-10" title="{{ trans_db('buttons.remove_file') }}">
                             &times;
                         </button>
                     </div>
@@ -554,7 +587,7 @@
             </template>
 
             <div class="form-block mb-8" dir="{{ $direction }}">
-                <div class="flex items-center gap-6 mb-4">
+                <div class="flex flex-wrap items-center gap-6 mb-4">
                     <label class="inline-flex items-center gap-2 {{ $reverseFlexDirection }}">
                         <input type="radio" name="front" value="front" class="js-face" data-face="front"/>
                         <span>{{ trans_db('form.one_side') }}</span>
@@ -563,9 +596,22 @@
                         <input type="radio" name="back" value="back" class="js-face" data-face="back"/>
                         <span>{{ trans_db('form.two_sides') }}</span>
                     </label>
+
+                    <div class="flex items-center gap-3">
+                        <label for="template-size-select" class="font-medium {{ $textAlignment }}">{{ trans_db('chose_the_template_size') }}:</label>
+                        <select id="template-size-select" class="select-cert-validity-new border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 cert-validity-new {{ $textAlignment }}">
+                            <option value="A4">A4 (21 * 29.7 {{ trans_db('cm') }})</option>
+                            <option value="Letter">Letter (21.6 * 27.9 {{ trans_db('cm') }})</option>
+                            <option value="Card">CR80 (8.6 * 5.6 {{ trans_db('cm') }})</option>
+                            <option value="A5">A5 (14.8 * 21 {{ trans_db('cm') }})</option>
+                            <option value="B5">B5 (17.6 * 25 {{ trans_db('cm') }})</option>
+                            <option value="Default" selected>{{ trans_db('template_default') }}</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="js-filehub"></div>
             </div>
+
 
             <div class="flex flex-col gap-6 mb-4" dir="{{ $direction }}">
                 <div class="flex items-center gap-3 {{ $flexDirection }}">
