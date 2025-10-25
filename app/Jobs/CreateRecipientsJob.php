@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 
 class CreateRecipientsJob implements ShouldQueue
@@ -48,11 +49,12 @@ class CreateRecipientsJob implements ShouldQueue
                     'name' => $row['name'],
                     'email' => $row['email'],
                     'password' => bcrypt('password123'),
-                    'phone' => $row['phone_number'] ?? null,
+                    'phone' => $row['phone'] ?? null,
                     'slug' => $lastSlug, // إضافة حقل الـ slug هنا
                     'created_at' => $now,
                     'updated_at' => $now,
                 ];
+                    Log::info('SMS sent to '.$row['phone']);
             }
         }
 

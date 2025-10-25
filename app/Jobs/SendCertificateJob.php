@@ -76,12 +76,12 @@ class SendCertificateJob implements ShouldQueue
     protected function sendSMS($phone, $message): void
     {
         $apiKey = 'OEklukhmcMiXQKrBS13UKHciPOFfWINIagSgZB0D4CTeoSx1h8OwrlR3FP9t' ?? null;
-        $to = $user->phone ?? null;
+//        $to = $user->phone;
 //        $to = '+201205297854';
 
         $requestBody = [
             "name" => "BeOn Sales",
-            "phoneNumber" => $to,
+            "phoneNumber" => $phone,
             "template_id" => 1651,
             "vars" => [
                 $message
