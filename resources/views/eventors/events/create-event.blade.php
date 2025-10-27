@@ -21,6 +21,11 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 </head>
 
@@ -313,13 +318,79 @@
 
                             <div class="flex items-center gap-3">
                                 <label for="template-size-select" class="font-medium {{ $textAlignment }}">{{ trans_db('chose_the_template_size') }}:</label>
-                                <select id="attendance-size-select" class="select-cert-validity-new border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 cert-validity-new {{ $textAlignment }}">
+                                <select id="attendance-size-select"
+                                        class="searchable border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 cert-validity-new {{ $textAlignment }}">
                                     <option value="A4">A4 (21 * 29.7 {{ trans_db('cm') }})</option>
                                     <option value="Letter">Letter (21.6 * 27.9 {{ trans_db('cm') }})</option>
                                     <option value="Card">CR80 (8.6 * 5.6 {{ trans_db('cm') }})</option>
                                     <option value="A5">A5 (14.8 * 21 {{ trans_db('cm') }})</option>
                                     <option value="B5">B5 (17.6 * 25 {{ trans_db('cm') }})</option>
+
+                                    <option value="10x15">10 x 15 (10 * 15 {{ trans_db('cm') }})</option>
+                                    <option value="16:9">16:9 Wide (10.2 * 18.1 {{ trans_db('cm') }})</option>
+                                    <option value="16K">16K (19.5 * 27 {{ trans_db('cm') }})</option>
+                                    <option value="5x7">5 x 7 in (12.7 * 17.8 {{ trans_db('cm') }})</option>
+                                    <option value="5x8">5 x 8 in (12.7 * 20.3 {{ trans_db('cm') }})</option>
+                                    <option value="8x10">8 x 10 in (20.3 * 25.4 {{ trans_db('cm') }})</option>
+                                    <option value="8.5x13">8.5 x 13 in (21.6 * 33 {{ trans_db('cm') }})</option>
+                                    <option value="9x13">9 x 13 cm (8.9 * 12.7 {{ trans_db('cm') }})</option>
+                                    <option value="A0">A0 (84.1 * 118.9 {{ trans_db('cm') }})</option>
+                                    <option value="A1">A1 (59.4 * 84.1 {{ trans_db('cm') }})</option>
+                                    <option value="A2">A2 (42 * 59.4 {{ trans_db('cm') }})</option>
+                                    <option value="A3">A3 (29.7 * 42 {{ trans_db('cm') }})</option>
+                                    <option value="A3+">A3+ (32.9 * 48.3 {{ trans_db('cm') }})</option>
+                                    <option value="A6">A6 (10.5 * 14.8 {{ trans_db('cm') }})</option>
+                                    <option value="A7">A7 (7.4 * 10.5 {{ trans_db('cm') }})</option>
+                                    <option value="A8">A8 (52 * 7.4 {{ trans_db('cm') }})</option>
+                                    <option value="A9">A9 (3.7 * 5.2 {{ trans_db('cm') }})</option>
+                                    <option value="A10">A10 (2.6 * 3.7 {{ trans_db('cm') }})</option>
+                                    <option value="B0">B0 (100 * 141.4 {{ trans_db('cm') }})</option>
+                                    <option value="B1">B1 (70.7 * 100 {{ trans_db('cm') }})</option>
+                                    <option value="B2">B2 (50 * 70.7 {{ trans_db('cm') }})</option>
+                                    <option value="B3">B3 (35.3 * 50 {{ trans_db('cm') }})</option>
+                                    <option value="B4">B4 (25 * 35.3 {{ trans_db('cm') }})</option>
+                                    <option value="B6">B6 (12.5 * 17.6 {{ trans_db('cm') }})</option>
+                                    <option value="B7">B7 (8.8 * 12.5 {{ trans_db('cm') }})</option>
+                                    <option value="B8">B8 (6.2 * 8.8 {{ trans_db('cm') }})</option>
+                                    <option value="B9">B9 (4.4 * 6.2 {{ trans_db('cm') }})</option>
+                                    <option value="B10">B10 (3.1 * 4.4 {{ trans_db('cm') }})</option>
+                                    <option value="BusinessCard">Business Card (8.5 * 5.5 {{ trans_db('cm') }})</option>
+                                    <option value="CR100">CR100 (10 * 7 {{ trans_db('cm') }})</option>
+                                    <option value="Envelope#10">Envelope #10 (10.5 * 24.1 {{ trans_db('cm') }})</option>
+                                    <option value="EnvelopeC6">Envelope C6 (11.4 * 16.2 {{ trans_db('cm') }})</option>
+                                    <option value="EnvelopeDL">Envelope DL (11 * 22 {{ trans_db('cm') }})</option>
+                                    <option value="F4">F4 (21 * 33 {{ trans_db('cm') }})</option>
+                                    <option value="GovernmentLetter">Government-Letter (20.3 * 26.7 {{ trans_db('cm') }}
+                                        )
+                                    </option>
+                                    <option value="HalfLetter">Half Letter (14 * 21.6 {{ trans_db('cm') }})</option>
+                                    <option value="ID-2">ID-2 (10.5 * 7.4 {{ trans_db('cm') }})</option>
+                                    <option value="IndianLegal">Indian-Legal (21.5 * 34.5 {{ trans_db('cm') }})</option>
+                                    <option value="JISB4">JIS B4 (25.7 * 36.4 {{ trans_db('cm') }})</option>
+                                    <option value="JISB5">JIS B5 (18.2 * 25.7 {{ trans_db('cm') }})</option>
+                                    <option value="JISB6">JIS B6 (12.8 * 18.2 {{ trans_db('cm') }})</option>
+                                    <option value="Legal">Legal (21.6 * 35.6 {{ trans_db('cm') }})</option>
+                                    <option value="MexicanLegal">Mexican Legal (21.5 * 34 {{ trans_db('cm') }})</option>
+                                    <option value="PostCard">Post Card (10 * 14.8 {{ trans_db('cm') }})</option>
+                                    <option value="Tabloid">Tabloid / Ledger (27.9 * 43.2 {{ trans_db('cm') }})</option>
+
                                     <option value="Default" selected>{{ trans_db('template_default') }}</option>
+                                </select>
+                            </div>
+
+{{--                            -------------------------------------------------------------}}
+
+                            <div class="flex items-center gap-3">
+                                <label for="template-size-select" class="font-medium {{ $textAlignment }}">{{ trans_db('page_orientation') }}:</label>
+                                <select id="attendance-size-select"
+                                        class="border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 cert-validity-new {{ $textAlignment }}">
+{{--
+                                              يعني الورقة واقفة بالطول
+                                                   عمودي الإرتفاع أكبر من العرض
+--}}
+                                    <option value="portrait">{{ trans_db('portrait') }})</option>
+{{--                                          اافقي  يعني الورقة بالعرض   --}}
+                                    <option value="landscape" selected>{{ trans_db('landscape') }})</option>
                                 </select>
                             </div>
                         </div>
@@ -599,15 +670,71 @@
 
                     <div class="flex items-center gap-3">
                         <label for="template-size-select" class="font-medium {{ $textAlignment }}">{{ trans_db('chose_the_template_size') }}:</label>
-                        <select id="template-size-select" class="select-cert-validity-new border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 cert-validity-new {{ $textAlignment }}">
+                        <select id="template-size-select" class="searchable border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 cert-validity-new {{ $textAlignment }}">
                             <option value="A4">A4 (21 * 29.7 {{ trans_db('cm') }})</option>
                             <option value="Letter">Letter (21.6 * 27.9 {{ trans_db('cm') }})</option>
                             <option value="Card">CR80 (8.6 * 5.6 {{ trans_db('cm') }})</option>
                             <option value="A5">A5 (14.8 * 21 {{ trans_db('cm') }})</option>
                             <option value="B5">B5 (17.6 * 25 {{ trans_db('cm') }})</option>
+                            <option value="10x15">10 x 15 (10 * 15 {{ trans_db('cm') }})</option>
+                            <option value="16:9">16:9 Wide (10.2 * 18.1 {{ trans_db('cm') }})</option>
+                            <option value="16K">16K (19.5 * 27 {{ trans_db('cm') }})</option>
+                            <option value="5x7">5 x 7 in (12.7 * 17.8 {{ trans_db('cm') }})</option>
+                            <option value="5x8">5 x 8 in (12.7 * 20.3 {{ trans_db('cm') }})</option>
+                            <option value="8x10">8 x 10 in (20.3 * 25.4 {{ trans_db('cm') }})</option>
+                            <option value="8.5x13">8.5 x 13 in (21.6 * 33 {{ trans_db('cm') }})</option>
+                            <option value="9x13">9 x 13 cm (8.9 * 12.7 {{ trans_db('cm') }})</option>
+                            <option value="A0">A0 (84.1 * 118.9 {{ trans_db('cm') }})</option>
+                            <option value="A1">A1 (59.4 * 84.1 {{ trans_db('cm') }})</option>
+                            <option value="A2">A2 (42 * 59.4 {{ trans_db('cm') }})</option>
+                            <option value="A3">A3 (29.7 * 42 {{ trans_db('cm') }})</option>
+                            <option value="A3+">A3+ (32.9 * 48.3 {{ trans_db('cm') }})</option>
+                            <option value="A6">A6 (10.5 * 14.8 {{ trans_db('cm') }})</option>
+                            <option value="A7">A7 (7.4 * 10.5 {{ trans_db('cm') }})</option>
+                            <option value="A8">A8 (52 * 7.4 {{ trans_db('cm') }})</option>
+                            <option value="A9">A9 (3.7 * 5.2 {{ trans_db('cm') }})</option>
+                            <option value="A10">A10 (2.6 * 3.7 {{ trans_db('cm') }})</option>
+                            <option value="B0">B0 (100 * 141.4 {{ trans_db('cm') }})</option>
+                            <option value="B1">B1 (70.7 * 100 {{ trans_db('cm') }})</option>
+                            <option value="B2">B2 (50 * 70.7 {{ trans_db('cm') }})</option>
+                            <option value="B3">B3 (35.3 * 50 {{ trans_db('cm') }})</option>
+                            <option value="B4">B4 (25 * 35.3 {{ trans_db('cm') }})</option>
+                            <option value="B6">B6 (12.5 * 17.6 {{ trans_db('cm') }})</option>
+                            <option value="B7">B7 (8.8 * 12.5 {{ trans_db('cm') }})</option>
+                            <option value="B8">B8 (6.2 * 8.8 {{ trans_db('cm') }})</option>
+                            <option value="B9">B9 (4.4 * 6.2 {{ trans_db('cm') }})</option>
+                            <option value="B10">B10 (3.1 * 4.4 {{ trans_db('cm') }})</option>
+                            <option value="BusinessCard">Business Card (8.5 * 5.5 {{ trans_db('cm') }})</option>
+                            <option value="CR100">CR100 (10 * 7 {{ trans_db('cm') }})</option>
+                            <option value="Envelope#10">Envelope #10 (10.5 * 24.1 {{ trans_db('cm') }})</option>
+                            <option value="EnvelopeC6">Envelope C6 (11.4 * 16.2 {{ trans_db('cm') }})</option>
+                            <option value="EnvelopeDL">Envelope DL (11 * 22 {{ trans_db('cm') }})</option>
+                            <option value="F4">F4 (21 * 33 {{ trans_db('cm') }})</option>
+                            <option value="GovernmentLetter">Government-Letter (20.3 * 26.7 {{ trans_db('cm') }})</option>
+                            <option value="HalfLetter">Half Letter (14 * 21.6 {{ trans_db('cm') }})</option>
+                            <option value="ID-2">ID-2 (10.5 * 7.4 {{ trans_db('cm') }})</option>
+                            <option value="IndianLegal">Indian-Legal (21.5 * 34.5 {{ trans_db('cm') }})</option>
+                            <option value="JISB4">JIS B4 (25.7 * 36.4 {{ trans_db('cm') }})</option>
+                            <option value="JISB5">JIS B5 (18.2 * 25.7 {{ trans_db('cm') }})</option>
+                            <option value="JISB6">JIS B6 (12.8 * 18.2 {{ trans_db('cm') }})</option>
+                            <option value="Legal">Legal (21.6 * 35.6 {{ trans_db('cm') }})</option>
+                            <option value="MexicanLegal">Mexican Legal (21.5 * 34 {{ trans_db('cm') }})</option>
+                            <option value="PostCard">Post Card (10 * 14.8 {{ trans_db('cm') }})</option>
+                            <option value="Tabloid">Tabloid / Ledger (27.9 * 43.2 {{ trans_db('cm') }})</option>
+
                             <option value="Default" selected>{{ trans_db('template_default') }}</option>
                         </select>
+                        <div class="flex items-center gap-3">
+                            <label for="page-orientation-select" class="font-medium {{ $textAlignment }}">{{ trans_db('page_orientation') }}:</label>
+                            {{-- نستخدم ID فريد لقائمة الاتجاه --}}
+                            <select id="page-orientation-select"
+                                    class="orientation-selector border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 cert-validity-new {{ $textAlignment }}">
+                                <option value="portrait">{{ trans_db('portrait') }}</option>
+                                <option value="landscape" selected>{{ trans_db('landscape') }}</option>
+                            </select>
+                        </div>
                     </div>
+
                 </div>
                 <div class="js-filehub"></div>
             </div>
@@ -868,6 +995,18 @@
         // 2. تشغيل الدالة مرة واحدة عند تحميل الصفحة
         updatePlaceholder();
     });
+
+
+
+        $(document).ready(function() {
+        // تطبيق Select2 على جميع العناصر التي تحمل هذا الكلاس
+        $('.searchable').select2({
+            placeholder: "{{ trans_db('search_for_template_size') }}", // نص توضيحي
+            allowClear: true, // للسماح بمسح الاختيار
+        });
+    });
+
+
 </script>
 
 <!-- Script -->

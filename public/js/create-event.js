@@ -319,7 +319,54 @@ const STANDARD_SIZES = {
     'Letter': { width: 816, height: 1056 },  // 8.5in x 11in @ 96 DPI
     'Card': { width: 324, height: 204 },     // CR80 - 85.6mm x 54mm @ 96 DPI
     'A5': { width: 560, height: 794 },       // 148mm x 210mm @ 96 DPI
-    'B5': { width: 665, height: 945 }        // 176mm x 250mm @ 96 DPI
+    'B5': { width: 665, height: 945 },        // 176mm x 250mm @ 96 DPI
+
+
+    '10x15': { width: 378, height: 567 },
+    '16:9': { width: 386, height: 684 },
+    '16K': { width: 737, height: 1020 },
+    '5x7': { width: 480, height: 673 },
+    '5x8': { width: 480, height: 767 },
+    '8x10': { width: 767, height: 960 },
+    '8.5x13': { width: 816, height: 1247 },
+    '9x13': { width: 336, height: 480 },
+    'A0': { width: 3179, height: 4494 },
+    'A1': { width: 2245, height: 3179 },
+    'A2': { width: 1587, height: 2245 },
+    'A3': { width: 1123, height: 1587 },
+    'A3+': { width: 1243, height: 1826 },
+    'A6': { width: 397, height: 559 },
+    'A7': { width: 280, height: 397 },
+    'A8': { width: 197, height: 280 },
+    'A9': { width: 140, height: 197 },
+    'A10': { width: 98, height: 140 },
+    'B0': { width: 3779, height: 5346 },
+    'B1': { width: 2676, height: 3779 },
+    'B2': { width: 1890, height: 2676 },
+    'B3': { width: 1361, height: 1890 },
+    'B4': { width: 945, height: 1361 },
+    'B6': { width: 472, height: 668 },
+    'B7': { width: 332, height: 472 },
+    'B8': { width: 235, height: 332 },
+    'B9': { width: 166, height: 235 },
+    'B10': { width: 117, height: 166 },
+    'BusinessCard': { width: 322, height: 208 },
+    'CR100': { width: 378, height: 265 },
+    'Envelope#10': { width: 397, height: 911 },
+    'EnvelopeC6': { width: 431, height: 612 },
+    'EnvelopeDL': { width: 416, height: 831 },
+    'F4': { width: 794, height: 1247 },
+    'GovernmentLetter': { width: 767, height: 1009 },
+    'HalfLetter': { width: 529, height: 816 },
+    'ID-2': { width: 397, height: 280 },
+    'IndianLegal': { width: 813, height: 1304 },
+    'JISB4': { width: 971, height: 1376 },
+    'JISB5': { width: 688, height: 971 },
+    'JISB6': { width: 484, height: 688 },
+    'Legal': { width: 816, height: 1346 },
+    'MexicanLegal': { width: 813, height: 1285 },
+    'PostCard': { width: 378, height: 559 },
+    'Tabloid': { width: 1054, height: 1633 }
 };
 
 
@@ -1212,7 +1259,14 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {string} containerSelector - محدد CSS للحاوية الرئيسية (مثل '.certificate-filehub' أو '.attendance-filehub').
      * @param {object} cardDataRef - مرجع لكائن البيانات (certificateCardData أو attendanceCardData).
      */
-    function applyTemplateSize(selectedSizeKey, containerSelector, cardDataRef) {
+    /**
+     * تطبيق حجم القالب على مجموعة محددة من العناصر باستخدام بياناتها الخاصة.
+     * @param {string} selectedSizeKey - مفتاح الحجم المختار (مثل 'A4', 'Card').
+     * @param {string} containerSelector - محدد CSS للحاوية الرئيسية.
+     * @param {object} cardDataRef - مرجع لكائن البيانات.
+     * @param {string} currentOrientation - الاتجاه الحالي ('portrait' أو 'landscape'). 👈 مُعامل إضافي
+     */
+    function applyTemplateSize(selectedSizeKey, containerSelector, cardDataRef, currentOrientation = 'portrait') {
         const targetFileHub = document.querySelector(containerSelector);
 
         if (!targetFileHub) {
@@ -1222,25 +1276,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // البحث عن الكروت داخل الحاوية المستهدفة فقط
         const allCardElements = targetFileHub.querySelectorAll('.filebox-card');
-        const newDimensions = STANDARD_SIZES[selectedSizeKey] || STANDARD_SIZES['A4'];
+        const baseDimensions = STANDARD_SIZES[selectedSizeKey] || STANDARD_SIZES['A4'];
+
+        let newDimensions = { ...baseDimensions }; // نسخ الأبعاد الأساسية
+
+        // 💥 تطبيق الاتجاه (Rotation) 💥
+        if (currentOrientation === 'landscape') {
+            // إذا كان الاتجاه أفقيًا، يتم عكس العرض والارتفاع
+            newDimensions.width = baseDimensions.height;
+            newDimensions.height = baseDimensions.width;
+        }
+        // ------------------------------------
 
         if (allCardElements.length === 0) {
             console.warn(`No .filebox-card elements found in ${containerSelector}.`);
             return;
         }
 
-        console.log(`[APPLY] - بدء تغيير الحجم إلى: ${selectedSizeKey} لـ ${containerSelector}`);
+        console.log(`[APPLY] - بدء تغيير الحجم إلى: ${selectedSizeKey} (${currentOrientation}) لـ ${containerSelector}`);
 
         allCardElements.forEach(cardElement => {
             const canvasEl = cardElement.querySelector('canvas');
-            // يجب أن يكون cardId هو نفس المعرف المستخدم في cardDataRef
             const cardId = canvasEl ? canvasEl.getAttribute('data-card-id') : null;
-
-            // استخدام مرجع البيانات الممرر
             const cardData = cardDataRef;
 
+            // 🛑 حفظ الاتجاه والمقاس في كائن البيانات
+            if (cardData[cardId]) {
+                cardData[cardId].sizeKey = selectedSizeKey;
+                cardData[cardId].orientation = currentOrientation;
+            }
+
             if (!canvasEl || !cardId || !cardData[cardId] || !cardData[cardId].imageUrl) {
-                // فقط لتغيير حجم الكارد إذا لم يكن هناك صورة مرفوعة بعد
+                // تطبيق الأبعاد الجديدة
                 cardElement.style.width = `${newDimensions.width}px`;
                 cardElement.style.height = `${newDimensions.height}px`;
                 return;
@@ -1253,7 +1320,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const oldWidth = currentCanvas.width;
                 const oldHeight = currentCanvas.height;
 
-                // 🌟 يجب التأكد أن هذه الدالة تستخدم cardDataRef الآن
                 saveITextObjectsFromSpecificCanvas(currentCanvas, cardId, cardData);
 
                 // حساب معامل التحجيم
@@ -1291,7 +1357,6 @@ document.addEventListener('DOMContentLoaded', () => {
             requestAnimationFrame(() => {
                 setTimeout(() => {
                     if (cardData[cardId] && cardData[cardId].imageUrl) {
-                        // 🌟 التعديل الحرج هنا: تمرير cardDataRef كمعامل رابع
                         initializeTemplateCanvas(
                             canvasEl,
                             cardData[cardId].imageUrl,
@@ -1299,43 +1364,58 @@ document.addEventListener('DOMContentLoaded', () => {
                             cardData // تمرير مرجع البيانات
                         );
 
-                        // 💥 خطوة إضافية: لضمان عرض عناصر النص المحفوظة فوراً
                         if (cardData[cardId].iTextObjects.length > 0 && cardData[cardId].fabricCanvas) {
-                            // 🌟 يجب التأكد أن هذه الدالة تستخدم cardDataRef الآن
                             restoreITextObjectsOnSpecificCanvas(cardData[cardId].fabricCanvas, cardId, cardData);
                             cardData[cardId].fabricCanvas.renderAll();
                         }
                     }
                 }, 50);
             });
-
-            cardData[cardId].sizeKey = selectedSizeKey;
         });
 
         console.log(`[APPLY] - انتهى تغيير الحجم لـ ${containerSelector}.`);
     }
+// ----------------------------------------------------------------------------------
 
     const certSelect = document.getElementById('template-size-select');
 
-    if (certSelect) {
-        certSelect.addEventListener('change', (event) => {
-            // نستخدم محدد CSS يمثل حاوية الشهادات فقط
-            // ونمرر كائن البيانات الخاص بالشهادات (certificateCardData)
-            applyTemplateSize(event.target.value, '.js-filehub:not(.attendance-filehub)', certificateCardData);
+    $(document).ready(function() {
+        // 1. تهيئة Select2 لجميع العناصر التي تحمل الكلاس 'searchable'
+        // (هذا يجب أن يكون موجوداً لتشغيل خاصية البحث)
+        $('.searchable').select2({
+            placeholder: "{{ trans_db('search_for_template_size') }}",
+            allowClear: true,
         });
-    }
 
-    // 2. ربط قائمة أحجام الحضور
-    // يجب أن تكون هذه قائمة أحجام منفصلة عن الشهادات
-    const attendanceSelect = document.getElementById('attendance-size-select');
+        // ------------------------------------------------------------------
+        // 2. الاستماع لحدث التغيير الخاص بـ "الشهادات" (الكود الموجود لديك)
+        // ------------------------------------------------------------------
+        $('#template-size-select').on('change', function (event) {
+            const selectedValue = $(this).val();
 
-    if (attendanceSelect) {
-        attendanceSelect.addEventListener('change', (event) => {
-            // نستخدم محدد CSS يمثل حاوية الحضور فقط
-            // ونمرر كائن البيانات الخاص بالبطاقات (attendanceCardData)
-            applyTemplateSize(event.target.value, '.attendance-filehub', attendanceCardData);
+            applyTemplateSize(
+                selectedValue,
+                '.js-filehub:not(.attendance-filehub)', // مُحدد حاوية الشهادات
+                certificateCardData                     // كائن بيانات الشهادات
+            );
         });
-    }
+
+        // ------------------------------------------------------------------
+        // 3. إضافة الاستماع لحدث التغيير الخاص بـ "الحضور" (الكود المفقود)
+        // ------------------------------------------------------------------
+        $('#attendance-size-select').on('change', function (event) {
+            const selectedValue = $(this).val();
+
+            applyTemplateSize(
+                selectedValue,
+                // المُحدد الصحيح لحاوية الحضور فقط (نستخدم الكلاس الذي قمت باستثنائه في الشهادات)
+                '.attendance-filehub',
+                // كائن بيانات بطاقات الحضور (يجب أن يكون معرّفاً ومتاحاً)
+                attendanceCardData
+            );
+        });
+
+    });
 
 
     // ---------------------------------------------------------------------------------------

@@ -2044,6 +2044,22 @@ class TranslationSeeder extends Seeder
                 'ar' => 'الوضع الافتراضي' ,
                 'en' => 'Default',
             ],
+            'search_for_template_size' => [
+                'ar' => 'البحث عن مقاس القالب' ,
+                'en' => 'Search for template size',
+            ],
+            'page_orientation' => [
+                'ar' => 'اتجاه الصفحة' ,
+                'en' => 'Page Orientation',
+            ],
+            'landscape' => [
+                'ar' => 'أفقي' ,
+                'en' => 'Landscape',
+            ],
+            'portrait' => [
+                'ar' => 'عمودي' ,
+                'en' => 'Portrait',
+            ],
 
 
         ];
