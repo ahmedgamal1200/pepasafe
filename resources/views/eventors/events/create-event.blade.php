@@ -653,7 +653,7 @@
                         <label class="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded-md cursor-pointer hover:bg-blue-700 transition {{ $reverseFlexDirection }} text-xs">
                             <i class="fas fa-upload text-sm"></i> <!-- تصغير أيقونة الرفع قليلاً أيضاً -->
                             <span>{{ trans_db('buttons.attach_template') }}</span>
-                            <input name="document_template_file_path[]" type="file" required class="sr-only file-input" accept="application/pdf,image/*">
+                            <input name="document_template_file_path[]" type="file" class="sr-only file-input" accept="application/pdf,image/*">
                             <input type="hidden" name="document_template_sides[]" class="side-input" value="">
                         </label>
                     </div>
