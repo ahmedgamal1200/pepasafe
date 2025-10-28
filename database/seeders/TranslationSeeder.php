@@ -2060,6 +2060,10 @@ class TranslationSeeder extends Seeder
                 'ar' => 'عمودي' ,
                 'en' => 'Portrait',
             ],
+            'form.choose_validity' => [
+                            'ar' => 'اختر الصلاحية' ,
+                            'en' => 'Choose Validity',
+                        ],
 
 
         ];

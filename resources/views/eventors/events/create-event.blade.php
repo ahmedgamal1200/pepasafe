@@ -144,12 +144,14 @@
         <div class="flex flex-col gap-2 mb-4">
             <label for="event-name" class="text-base">{{ trans_db('event.name.label') }}:</label>
             <input type="text" id="event-name" placeholder="{{ trans_db('event.name_placeholder') }}" name="event_title"
+                   required
                    value="{{ old('event_title') }}"
                    class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full" />
         </div>
         <div class="flex flex-col gap-2 mb-4">
             <label for="Issuing-authority-name" class="text-base">{{ trans_db('event.issuer.label') }}:</label>
             <input type="text" id="Issuing-authority-name" placeholder="{{ trans_db('event.issuer_placeholder') }}" name="issuer"
+                   required
                    value="{{ old('issuer') }}" class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full" />
         </div>
         @php
@@ -163,6 +165,7 @@
             <div class="flex flex-col w-full md:w-1/2">
                 <label for="from-date" class="{{ $textAlignment }} mb-1">{{ trans_db('doc.date.from') }}:</label>
                 <input type="date" id="from-date" name="event_start_date"
+                       required
                        value="{{ old('event_start_date') }}"
                        class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full" />
             </div>
@@ -171,6 +174,7 @@
             <div class="flex flex-col w-full md:w-1/2">
                 <label for="to-date" class="{{ $textAlignment }} mb-1">{{ trans_db('doc.date.to') }}:</label>
                 <input type="date" id="to-date" name="event_end_date"
+                       required
                        value="{{ old('event_end_date') }}"
                        class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full" />
             </div>
@@ -211,9 +215,9 @@
             </div>
 
             <div class="flex flex-col gap-6 mb-4" style="margin-top: 20px;">
-                <label class="text-base {{ $textAlignment }}">{{ trans_db('form.name') }}:</label>
-                <input type="text" placeholder="{{ trans_db('form.name.placeholder') }}" class="border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full {{ $textAlignment }}"
-                       name="document_title" value="{{ old('document_title') }}"
+                <label for="document_title" class="text-base {{ $textAlignment }}">{{ trans_db('form.name') }}:</label>
+                <input type="text" id="document_title" placeholder="{{ trans_db('form.name.placeholder') }}" class="border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full {{ $textAlignment }}"
+                       name="document_title" required value="{{ old('document_title') }}"
                 />
             </div>
 
@@ -228,7 +232,7 @@
                             <label for="project-from" class="font-medium text-base {{ $textAlignment }}">{{ trans_db('form.send_date') }}</label>
                             <input
                                 type="datetime-local"
-                                id="project-from"
+{{--                                id="project-from"--}}
                                 name="attendance_send_at"
                                 class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full {{ $textAlignment }}"
                                 value="{{ old('attendance_send_at') }}"
@@ -407,6 +411,7 @@
                                 <div class="flex flex-col w-full lg:w-1/3">
                                     <label for="certificate-validity" class="mb-1 font-medium {{ $textAlignment }}">{{ trans_db('certificate.validity') }}</label>
                                     <select id="certificate-validity" name="attendance_validity" class="certificate-validity border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full {{ $textAlignment }}">
+                                        <option value="" disabled selected>{{ trans_db('form.choose_validity') }}</option>
                                         <option value="permanent" {{ old('attendance_validity') == 'permanent' ? 'selected' : '' }}>{{ trans_db('certificate.permanent') }}</option>
                                         <option value="temporary" {{ old('attendance_validity') == 'temporary' ? 'selected' : '' }}>{{ trans_db('certificate.temporary') }}</option>
                                     </select>
@@ -517,10 +522,11 @@
 
 
                 <div class="flex flex-col gap-2 w-full">
-                    <label for="project-from" class="font-medium text-base {{ $textAlignment }}">{{ trans_db('form.send_date') }}:</label>
+                    <label for="document_send_at" class="font-medium text-base {{ $textAlignment }}">{{ trans_db('form.send_date') }}</label>
                     <input
+                        required
                         type="datetime-local"
-                        id="project-from"
+                        id="document_send_at"
                         name="document_send_at"
                         value="{{ old('document_send_at') }}"
                         class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full {{ $textAlignment }}"
@@ -532,6 +538,7 @@
                     <textarea
                         id="document-message-input"
                         name="document_message"
+                        required
                         rows="4"
                         placeholder="{{ trans_db('form.message_placeholder') }}"
                         class="border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-600 w-full {{ $textAlignment }}"
@@ -552,7 +559,9 @@
 
         @if ($plan && is_array($plan->enabled_channels['documents'] ?? []))
                 <div class="flex flex-col gap-2 mb-6" dir="{{ $direction }}">
-                    <label class="font-medium text-base {{ $textAlignment }}">{{ trans_db('form.channels') }}</label>
+                    <label id="document_send_via" class="font-medium text-base {{ $textAlignment }}">
+                        {{ trans_db('form.channels') }} <span class="text-red-600">*</span>
+                    </label>
                     <div class="flex flex-wrap gap-4 {{ $justifyContent }}">
                         @if (in_array('whatsapp', $plan->enabled_channels['documents']))
                             <label class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 transition {{ $flexDirection }}">
@@ -644,7 +653,7 @@
                         <label class="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded-md cursor-pointer hover:bg-blue-700 transition {{ $reverseFlexDirection }} text-xs">
                             <i class="fas fa-upload text-sm"></i> <!-- تصغير أيقونة الرفع قليلاً أيضاً -->
                             <span>{{ trans_db('buttons.attach_template') }}</span>
-                            <input name="document_template_file_path[]" type="file" class="sr-only file-input" accept="application/pdf,image/*">
+                            <input name="document_template_file_path[]" type="file" required class="sr-only file-input" accept="application/pdf,image/*">
                             <input type="hidden" name="document_template_sides[]" class="side-input" value="">
                         </label>
                     </div>
@@ -749,10 +758,17 @@
                 <div class="flex flex-col lg:flex-row items-start lg:items-center gap-6">
                     <div class="flex flex-col w-full lg:w-1/3">
                         <label for="select-cert-validity-new" class="mb-1 font-medium {{ $textAlignment }}">{{ trans_db('certificate.validity') }}</label>
-                        <select name="document_validity" class="select-cert-validity-new border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full cert-validity-new {{ $textAlignment }}">
-                            <option value="permanent" {{ old('document_validity') == 'permanent' ? 'selected' : '' }}>{{ trans_db('certificate.permanent') }}</option>
-                            <option value="temporary" {{ old('document_validity') == 'temporary' ? 'selected' : '' }}>{{ trans_db('certificate.temporary') }}</option>
+                        <select name="document_validity" required
+                                class="select-cert-validity-new border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-600 w-full cert-validity-new {{ $textAlignment }}">
+                            <option value="" disabled selected>{{ trans_db('form.choose_validity') }}</option>
+                            <option value="permanent" {{ old('document_validity') == 'permanent' ? 'selected' : '' }}>
+                                {{ trans_db('certificate.permanent') }}
+                            </option>
+                            <option value="temporary" {{ old('document_validity') == 'temporary' ? 'selected' : '' }}>
+                                {{ trans_db('certificate.temporary') }}
+                            </option>
                         </select>
+
                     </div>
                 </div>
 
@@ -817,7 +833,7 @@
                     <label class="mt-auto inline-flex items-center gap-3 px-5 py-2 bg-green-600 text-white rounded-md cursor-pointer hover:bg-green-700 transition {{ $reverseFlexDirection }}">
                         <i class="fas fa-upload"></i>
                         <span>{{ trans_db('buttons.attach_files') }}</span>
-                        <input name="recipient_file_path" id="excel-input-model-1" type="file"
+                        <input name="recipient_file_path" required id="excel-input-model-1" type="file"
                                class="sr-only" accept=".xlsx,.xls" multiple />
                     </label>
                 </div>
@@ -830,7 +846,7 @@
                     <label class="mt-auto inline-flex items-center gap-3 px-5 py-2 bg-green-600 text-white rounded-md cursor-pointer hover:bg-green-700 transition {{ $reverseFlexDirection }}">
                         <i class="fas fa-upload"></i>
                         <span>{{ trans_db('buttons.attach_files') }}</span>
-                        <input name="template_data_file_path" id="excel-input-model-2" type="file" value="{{ old('template_data_file_path') }}" class="sr-only" accept=".xlsx,.xls" multiple />
+                        <input name="template_data_file_path" required id="excel-input-model-2" type="file" value="{{ old('template_data_file_path') }}" class="sr-only" accept=".xlsx,.xls" multiple />
                     </label>
                 </div>
             </div>
@@ -872,10 +888,12 @@
 
     <!-- حاوية مركزية -->
     <div class="flex justify-center mb-8">
-        <button type="submit" class="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition">
+        <button id="submit-btn" type="submit" disabled
+                class="flex items-center gap-2 bg-green-300 text-white px-6 py-3 rounded-md opacity-60 cursor-not-allowed transition">
             <i class="fas fa-check fa-lg"></i>
-            <br><span>{{ trans_db('event.con.create.event') }}</span>
+            <span>{{ trans_db('event.con.create.event') }}</span>
         </button>
+
     </div>
 
     <input type="hidden" name="text_data" id="text_data">
@@ -890,6 +908,45 @@
     window.csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     window.cardData = window.cardData || {}; // تأكد إن ده معرف أو تم تهيئته في مكان آخر قبل استخدامه
 </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const requiredFields = document.querySelectorAll("input[required], select[required], textarea[required]");
+        const submitBtn = document.getElementById("submit-btn");
+
+        function checkFields() {
+            let allFilled = true;
+
+            requiredFields.forEach(field => {
+                if (field.type === "file") {
+                    if (!field.files || field.files.length === 0) {
+                        allFilled = false;
+                    }
+                } else if (!field.value.trim()) {
+                    allFilled = false;
+                }
+            });
+
+            submitBtn.disabled = !allFilled;
+
+            if (allFilled) {
+                submitBtn.classList.remove("bg-green-300", "opacity-60", "cursor-not-allowed");
+                submitBtn.classList.add("bg-green-600");
+            } else {
+                submitBtn.classList.add("bg-green-300", "opacity-60", "cursor-not-allowed");
+                submitBtn.classList.remove("bg-green-600");
+            }
+        }
+
+        requiredFields.forEach(field => {
+            field.addEventListener(field.type === "file" ? "change" : "input", checkFields);
+        });
+
+        checkFields();
+    });
+</script>
+
+
 
 
 
@@ -1008,6 +1065,41 @@
 
 
 </script>
+
+<style>
+    .required-star {
+        color: red;
+        margin-left: 4px;
+        font-weight: bold;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const requiredFields = document.querySelectorAll("input[required], select[required], textarea[required]");
+
+        requiredFields.forEach(field => {
+
+            let label = document.querySelector(`label[for="${field.id}"]`);
+
+            // لو الـ label مغلّف الـ input (خاص للـ file inputs)
+            if (!label) {
+                label = field.closest("label");
+            }
+
+            if (label && !label.querySelector(".required-star")) {
+                const star = document.createElement("span");
+                star.textContent = " *";
+                star.classList.add("required-star");
+                label.appendChild(star);
+            }
+        });
+
+    });
+</script>
+
+
 
 <!-- Script -->
 <script src="{{ asset('js/create-event.js') }}"></script>
