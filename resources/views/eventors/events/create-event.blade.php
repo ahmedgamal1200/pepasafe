@@ -649,7 +649,6 @@
 
                         {{--                        <p class="text-center text-gray-600 {{ $textAlignment }}">{{ trans_db('form.upload_file_types') }}</p>--}}
 
-                        <!-- التعديل 5: تقليل الـ Padding وحجم الخط في الزر إلى الحد الأدنى (px-2 py-1 و text-xs) -->
                         <label class="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded-md cursor-pointer hover:bg-blue-700 transition {{ $reverseFlexDirection }} text-xs">
                             <i class="fas fa-upload text-sm"></i> <!-- تصغير أيقونة الرفع قليلاً أيضاً -->
                             <span>{{ trans_db('buttons.attach_template') }}</span>
@@ -664,6 +663,8 @@
                         </button>
                     </div>
                 </div>
+
+
             </template>
 
             <div class="form-block mb-8" dir="{{ $direction }}">
@@ -798,30 +799,7 @@
                 </div>
             </div>
 
-            <div id="text-editor-panel" class="hidden p-3 border rounded-md shadow bg-white space-y-2 mt-3 w-72 text-sm {{ $textAlignment }}" dir="{{ $direction }}">
-                <label class="block">
-                    <span class="text-gray-700 text-xs">{{ trans_db('editor.text_content') }}:</span>
-                    <input id="text-content" type="text" class="border px-2 py-1 w-full text-sm {{ $textAlignment }}" />
-                </label>
-                <label class="block">
-                    <span class="text-gray-700 text-xs">{{ trans_db('editor.font_size') }}:</span>
-                    <input id="font-size" type="number" min="10" max="200" value="20" class="border px-2 py-1 w-full text-sm {{ $textAlignment }}" />
-                </label>
-                <label class="block">
-                    <span class="text-gray-700 text-xs">{{ trans_db('editor.font_color') }}:</span>
-                    <input id="font-color" type="color" value="#000000" class="w-full h-8" />
-                </label>
-                <label class="block">
-                    <span class="text-gray-700 text-xs">{{ trans_db('editor.font_family') }}:</span>
-                    <select id="font-family" class="border px-2 py-1 w-full text-sm {{ $textAlignment }}">
-                        <option value="Arial">Arial</option>
-                        <option value="Times New Roman">Times New Roman</option>
-                        <option value="Courier New">Courier New</option>
-                        <option value="Tahoma">Tahoma</option>
-                    </select>
-                </label>
-            </div><br>
-
+{{--                                      شيلت الاديتور من هنا   --}}
 
 
             <div class="flex flex-col md:flex-row gap-6 mb-4 {{ $direction === 'rtl' ? 'md:flex-row-reverse' : '' }}" dir="{{ $direction }}">

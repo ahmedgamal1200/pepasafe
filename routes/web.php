@@ -135,6 +135,7 @@ Route::middleware(['auth', 'role:eventor|super admin|admin|employee'])->group(fu
     Route::post('/update-attendance', [UserController::class, 'updateAttendance']);
 
     Route::get('/download-documents/{template}', [DocumentController::class, 'downloadAll'])->name('documents.download');
+    Route::get('/download-users-data/{eventId}', [DocumentController::class, 'downloadUsersData'])->name('download.users.data');
     Route::get('/download-bages-attendance/{template}', [AttendanceController::class, 'downloadAll'])->name('bages.download');
 
 });

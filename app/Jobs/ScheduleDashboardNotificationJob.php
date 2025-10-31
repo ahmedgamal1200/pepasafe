@@ -25,7 +25,7 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
         public int $scheduledNotificationId,
         public string $channel,
         public array $message,
-        public ?string $subject = null,
+        public ?array $subject = null,
         public array $userIds = [],
     ) {
         //
@@ -50,7 +50,9 @@ class ScheduleDashboardNotificationJob implements ShouldQueue
         foreach ($users as $user) {
             $locale = app()->getLocale();
             $messageForUser = $this->message[$locale] ?? null;
-            $subjectForUser = $this->subject; // الموضوع ليس مترجماً
+//            $subjectForUser = $this->subject; // الموضوع ليس مترجماً
+            $subjectForUser = $this->subject[$locale] ?? $this->subject['en'] ?? 'Message Form PepaSafe';
+
 
             if (is_null($messageForUser)) {
                 $messageForUser = $this->message['en'] ?? $this->message['ar'] ?? null;

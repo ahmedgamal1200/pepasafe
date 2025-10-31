@@ -2681,6 +2681,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (obj.type === 'i-text' && excelFirstRowData && obj.text) {
                     const headerText = obj.text.trim();
                     if (excelFirstRowData.hasOwnProperty(headerText)) {
+                        // هذا هو الجزء الذي يقوم بالاستبدال
                         clonedObj.set('text', String(excelFirstRowData[headerText]));
                     }
                 }

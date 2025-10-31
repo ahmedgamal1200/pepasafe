@@ -585,10 +585,16 @@
                 <i class="fas fa-file-alt text-base sm:text-lg text-gray-700"></i>
                 <span class="text-xs sm:text-sm">{{ trans_db('buttons.all_documents') }}</span>
             </a>
-            <a href="{{ route('bages.download', ['template' => $attendance->id]) }}" class="w-full flex justify-center items-center gap-2 px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300 {{ $isRTL ? 'flex-row-reverse' : '' }}">
+            <a href="{{ route('download.users.data', ['eventId' => $event->id]) }}" class="w-full flex justify-center items-center gap-2 px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300 {{ $isRTL ? 'flex-row-reverse' : '' }}">
                 <i class="fas fa-file-alt text-base sm:text-lg text-gray-700"></i>
-                <span class="text-xs sm:text-sm">{{ trans_db('buttons.all_bages_attendances') }}</span>
+                <span class="text-xs sm:text-sm">{{ trans_db('buttons.data_for_users') }}</span>
             </a>
+            @if(!empty($attendance))
+            <a href="{{ route('bages.download', ['template' => $attendance->id ]) }}" class="w-full flex justify-center items-center gap-2 px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300 {{ $isRTL ? 'flex-row-reverse' : '' }}">
+                    <i class="fas fa-file-alt text-base sm:text-lg text-gray-700"></i>
+                    <span class="text-xs sm:text-sm">{{ trans_db('buttons.all_bages_attendances') }}</span>
+                </a>
+            @endif
         </div>
 
         <div class="flex flex-col sm:flex-row justify-start items-center gap-3 sm:gap-4 mt-4 {{ $isRTL ? 'sm:flex-row-reverse' : '' }}">

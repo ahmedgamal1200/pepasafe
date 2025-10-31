@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Pages;
 
+use App\Exports\UsersExport;
 use App\Http\Controllers\Controller;
 use App\Models\Document;
 use App\Models\DocumentTemplate;
 use App\Models\Event;
 use App\Models\Recipient;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf; // 👈 هذا هو الاستيراد الصحيح
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
@@ -20,6 +22,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Models\AttendanceDocument; // استيراد نموذج وثيقة الحضور
 use App\Models\AttendanceTemplate;
+use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
 
 // استيراد نموذج قالب الحضور
@@ -326,5 +329,22 @@ class DocumentController extends Controller
     protected function getDocumentHtmlContent($document): string
     {
         return view('templates.certificate', ['document' => $document])->render();
+    }
+
+    public function downloadUsersData(int $eventId)
+    {
+        // 1️⃣ نجيب اسم الحدث
+        $event = Event::findOrFail($eventId);
+
+        // 2️⃣ نجيب كل user_id من receipts حسب الحدث
+        $userIds = Recipient::where('event_id', $eventId)->pluck('user_id');
+
+        // 3️⃣ نجيب بيانات المستخدمين
+        $users = User::whereIn('id', $userIds)->get(['name', 'phone', 'email', 'is_attendance', 'updated_at']);
+
+        // 4️⃣ نعمل export
+        $fileName = $event->title . '_participants.xlsx';
+
+        return Excel::download(new UsersExport($users), $fileName);
     }
 }

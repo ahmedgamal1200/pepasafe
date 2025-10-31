@@ -83,6 +83,17 @@
     <span>{{ trans_db('event.sort.newest') }}</span>
 </button>
 
+@if($events->isNotEmpty())
+    <a href="{{ route('home.users') }}"
+       class="bg-gray-600 hover:bg-green-700 text-white font-semibold
+                  py-1 px-2 sm:py-2 sm:px-4
+                  rounded-lg transition-colors duration-200
+                  ms-0 sm:ms-40 mt-4 sm:mt-0
+                  block sm:inline-block sm:w-auto w-full text-center">
+        {{ trans_db('event.your.docs') }}
+    </a>
+@endif
+
 
 
 

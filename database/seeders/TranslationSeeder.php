@@ -2061,9 +2061,25 @@ class TranslationSeeder extends Seeder
                 'en' => 'Portrait',
             ],
             'form.choose_validity' => [
-                            'ar' => 'اختر الصلاحية' ,
-                            'en' => 'Choose Validity',
-                        ],
+                  'ar' => 'اختر الصلاحية' ,
+                   'en' => 'Choose Validity',
+            ],
+            'channels.sms' => [
+                    'ar' => 'رسائل SMS' ,
+                   'en' => 'SMS',
+            ],
+            'channels.email' => [
+                    'ar' => 'البريد الإلكتروني' ,
+                   'en' => 'Email',
+            ],
+            'event.your.docs' => [
+                    'ar' => 'الشهادات الخاصة بك' ,
+                   'en' => 'Your Certificates',
+            ],
+            'buttons.data_for_users' => [
+                    'ar' => 'ملف بيانات المشاركين' ,
+                   'en' => 'Participants Data File',
+            ],
 
 
         ];
