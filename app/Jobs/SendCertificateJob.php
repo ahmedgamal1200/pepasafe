@@ -32,30 +32,36 @@ class SendCertificateJob implements ShouldQueue
     /**
      * إرسال بريد إلكتروني باستخدام إعدادات SMTP من api_configs
      */
-    protected function sendEmail($user, $message, $pdfPath)
+    protected function sendEmail($user, $message, $pdfPath): void
     {
         try {
             $config = ApiConfig::whereIn('key', [
-                'smtp_host', 'smtp_port', 'smtp_username', 'smtp_password',
-                'smtp_from_address', 'smtp_from_name',
+                'mail_host',
+                'mail_port',
+                'mail_username',
+                'mail_password',
+                'mail_from_address',
+                'mail_from_name',
             ])->pluck('value', 'key')->toArray();
 
-            if (empty($config['smtp_host']) || empty($config['smtp_from_address'])) {
+            // تأكد إن الإعدادات الأساسية موجودة
+            if (empty($config['mail_host']) || empty($config['mail_from_address'])) {
                 throw new Exception('إعدادات SMTP غير مكتملة.');
             }
 
             // إعداد الـ Mailer ديناميكيًا
             config([
                 'mail.mailers.dynamic.transport' => 'smtp',
-                'mail.mailers.dynamic.host' => $config['smtp_host'],
-                'mail.mailers.dynamic.port' => $config['smtp_port'],
-                'mail.mailers.dynamic.username' => $config['smtp_username'],
-                'mail.mailers.dynamic.password' => $config['smtp_password'],
+                'mail.mailers.dynamic.host' => $config['mail_host'],
+                'mail.mailers.dynamic.port' => $config['mail_port'],
+                'mail.mailers.dynamic.username' => $config['mail_username'],
+                'mail.mailers.dynamic.password' => $config['mail_password'],
                 'mail.mailers.dynamic.encryption' => 'tls',
-                'mail.from.address' => $config['smtp_from_address'],
-                'mail.from.name' => $config['smtp_from_name'] ?? 'Your App Name',
+                'mail.from.address' => $config['mail_from_address'],
+                'mail.from.name' => $config['mail_from_name'] ?? 'Your App Name',
             ]);
 
+            // إرسال الإيميل
             Mail::mailer('dynamic')->raw($message, function ($mail) use ($user, $pdfPath) {
                 $mail->to($user->email)
                     ->subject('وثيقتك جاهزة!')
