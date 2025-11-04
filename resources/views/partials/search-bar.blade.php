@@ -1,61 +1,87 @@
 <section class="space max-w-xl mx-auto px-4 sm:px-0">
+    @php
+        // هذا الجزء يجب أن يكون معرّفًا مرة واحدة في بداية ملف الـ Blade
+        $isRTL = app()->getLocale() === 'ar';
+        $direction = $isRTL ? 'rtl' : 'ltr';
+
+        // الترتيب المطلوب:
+        // العربية (RTL): [Input/Form Box] - [QR] - [Search]
+        // الإنجليزية (LTR): [Search] - [QR] - [Input/Form Box]
+
+        // العناصر بالترتيب في الكود هي: [QR] - [Search] - [Input]
+        
+        if ($isRTL) {
+            // العربية (RTL): Input أولاً (order-first)، ثم QR، ثم Search
+            $inputOrderSm = 'sm:order-first';
+            $qrOrderSm = 'sm:order-2';
+            $searchOrderSm = 'sm:order-last';
+        } else {
+            // الإنجليزية (LTR): Search أولاً (order-first)، ثم QR، ثم Input
+            $inputOrderSm = 'sm:order-last';
+            $qrOrderSm = 'sm:order-2';
+            $searchOrderSm = 'sm:order-first';
+        }
+    @endphp
+
     <form action="{{ auth()->check() ? route('home.users') : route('homeForGuests') }}" method="GET" class="relative flex flex-col sm:flex-row items-stretch sm:items-center w-full">
-        {{-- جزء حقل الإدخال (Input) --}}
+        
+        {{-- 1. زرار الـ QR Code (سيظهر دائمًا كأول عنصر في الشاشات الصغيرة) --}}
+        @if(!auth()->check() || auth()->user()->hasRole(['user', 'eventor']) || auth()->user()->hasAnyPermission([
+            'full access to events', 'search by qr code', 'full access'
+        ]))
+            <i
+                id="start-qr-btn"
+                class="icon bi bi-qr-code text-3xl sm:text-2xl text-gray-500 hover:text-blue-600 cursor-pointer p-2 sm:ml-2 mt-3 sm:mt-0 order-first sm:order-none {{ $qrOrderSm }}"
+            ></i>
+        @endif
+
+        {{-- 2. زرار البحث (Search Button) --}}
+        <button
+            type="submit"
+            class="w-full sm:w-auto mt-3 sm:mt-0 bg-blue-600 text-white rounded-lg px-4 py-2 sm:mr-2 hover:bg-blue-700 {{ $searchOrderSm }}"
+        >
+            {{ trans_db('buttons.search') }}
+        </button>
+
+        {{-- 3. جزء حقل الإدخال (Input/Form Box) --}}
         @if(
             !auth()->check() ||
             auth()->user()->hasAnyRole(['eventor', 'super admin', 'user', 'employee']) ||
             auth()->user()->hasAnyPermission(['full access to events', 'search for a document', 'full access'])
         )
             @php
-                // هذا الجزء يجب أن يكون معرّفًا مرة واحدة في بداية ملف الـ Blade
-                $isRTL = app()->getLocale() === 'ar';
-                $direction = $isRTL ? 'rtl' : 'ltr';
                 $paddingStart = $isRTL ? 'pr-4' : 'pl-4'; // المسافة في بداية النص
                 $paddingEnd = $isRTL ? 'pl-3' : 'pr-3';   // المسافة في نهاية النص
                 $textAlignment = $isRTL ? 'text-right' : 'text-left'; // محاذاة النص داخل الحقل
             @endphp
 
-            <div class="relative flex-grow">
+            <div class="relative flex-grow {{ $inputOrderSm }}">
                 <input
                     name="query"
                     type="text"
                     placeholder="{{ trans_db('placeholder.search') }}"
                     required
                     class="w-full border border-gray-300 rounded-lg
-               {{ $paddingStart }} {{ $paddingEnd }} py-2
-               focus:outline-none focus:ring-2 focus:ring-blue-400
-               text-xs sm:text-base {{ $textAlignment }}"
+                   {{ $paddingStart }} {{ $paddingEnd }} py-2
+                   focus:outline-none focus:ring-2 focus:ring-blue-400
+                   text-xs sm:text-base {{ $textAlignment }}"
                     dir="{{ $direction }}"
                 />
             </div>
         @endif
-
-        @if(!auth()->check() ||  auth()->user()->hasRole(['user', 'eventor']) || auth()->user()->hasAnyPermission([
-            'full access to events', 'search by qr code', 'full access'
-        ]))
-            <i
-                id="start-qr-btn"
-                class="icon bi bi-qr-code text-3xl sm:text-2xl text-gray-500 hover:text-blue-600 cursor-pointer p-2 sm:ml-2 mt-3 sm:mt-0 order-first sm:order-none"
-            ></i>
-        @endif
-
-        <button
-            type="submit"
-            class="w-full sm:w-auto mt-3 sm:mt-0 bg-blue-600 text-white rounded-lg px-4 py-2 sm:mr-2 hover:bg-blue-700"
-        >
-            {{ trans_db('buttons.search') }}
-        </button>
     </form>
-    <p class="mt-3 text-gray-700 text-center text-sm sm:text-base">
-       {{ trans_db('search.title') }}
-    </p>
+    
+    {{-- تعديل هام: تم إلغاء الـ margin-left الثابت هنا لضمان محاذاة النص مع حقل الإدخال في كل الاتجاهات --}}
+   <p class="mt-3 text-gray-700 text-center text-sm sm:text-base"
+   style="{{ app()->getLocale() === 'ar' ? 'margin-left: 115px;' : 'margin-right: 115px;' }}">
+    {{ trans_db('search.title') }}
+</p>
 
 
-    <!-- Modal -->
     <div id="qr-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-lg p-4 max-w-md w-full relative">
             <button id="close-qr-modal" class="absolute top-2 right-2 text-gray-600 hover:text-red-600 text-xl">&times;</button>
-            <h2 class="text-lg font-semibold mb-4">امسح رمز QR</h2>
+            <h2 class="text-lg font-semibold mb-4">{{trans_db('scan.qr')}}</h2>
             <div id="qr-reader" style="width: 100%"></div>
         </div>
     </div>
@@ -143,10 +169,3 @@
         });
     });
 </script>
-
-
-
-
-
-
-

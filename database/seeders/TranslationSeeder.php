@@ -2080,6 +2080,66 @@ class TranslationSeeder extends Seeder
                     'ar' => 'ملف بيانات المشاركين' ,
                    'en' => 'Participants Data File',
             ],
+            'register.email.placeholder' => [ 
+            'en' => 'e.g: example@example.com',
+            'ar' => 'مثال: name@example.com', // <--- هذه هي القيمة العربية الجديدة
+        ],
+        'register.phone.placeholder' => [ 
+            'en' => 'e.g: 01012345678',
+            'ar' => 'مثال: 01012345678', // <--- القيمة العربية الجديدة
+        ],
+        'terms' => [ 
+            'ar' => 'الشروط والاحكام وسياسه الخصوصيه',
+            'en' => 'Terms and Conditions and Privacy Policy ', // <--- القيمة العربية الجديدة
+        ],
+        'scan.qr' => [ 
+            'ar' => "امسح رمز QR",
+            'en' => 'Scan Qr ', // <--- القيمة العربية الجديدة
+        ],
+        'viewing.shared.profile' => [ 
+            'ar' => "أنت تشاهد حاليًا ملفًا شخصيًا تمت مشاركته معك من قبل مستخدم آخر.",
+            'en' => 'You are currently viewing a profile shared with you by another user.', 
+        ],
+        'Profile.Information..' => [ 
+            'ar' => "معلومات الملف الشخصي",
+            'en' => 'Profile Information', 
+        ],
+        'documents.Information.' => [ 
+            'ar' => "  هذه هي الوثائق",
+            'en' => 'These are the documents of', 
+        ],
+        'documents.Information.user' => [ 
+            'ar' => "  هذه هي المستندات التي سمح المستخدم للآخرين بالاطلاع عليها.",
+            'en' => 'These are the documents that the user has allowed others to view.', 
+        ],
+         'available.documents.' => [ 
+            'ar' => "لا توجد مستندات متاحة هنا!.",
+            'en' => 'No documents available here!', 
+        ],
+         'verify.owner.allowed' => [ 
+            'ar' => "يرجى التحقق من أن صاحب الحساب قد سمح بإظهار مستنداته..",
+            'en' => 'Please verify that the account owner has allowed their documents to be visible.', 
+        ],
+         'events.of' => [ 
+            'ar' => "هذه هي أحداث",
+            'en' => 'These are the Events of', 
+        ],
+        'organizer.allowed.events' => [ 
+            'ar' => "هذه هي الفعاليات التي سمح المنظم بإظهارها على ملفه الشخصي.",
+            'en' => 'These are the events that the organizer has allowed to be visible on their personal profile.', 
+        ],
+        'subscription.success' => [ 
+            'ar' => "تم تحديث إعداد التجديد التلقائي بنجاح.",
+            'en' => 'The automatic renewal setting has been updated successfully.', 
+        ],
+        'subscription.error' => [ 
+            'ar' => "لا يوجد اشتراك مرتبط بهذا الحساب.",
+            'en' => 'There is no subscription associated with this account.', 
+        ],
+        'subscription.renewed' => [ 
+            'ar' => "تم تجديد الباقة بنجاح ",
+            'en' => 'The package has been successfully renewed.', 
+        ],
 
 
         ];

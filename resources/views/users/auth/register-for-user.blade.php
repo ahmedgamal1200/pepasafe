@@ -106,8 +106,9 @@
 </head>
 <body>
 
-
-<div dir="ltr" class="text-right">
+    {{-- <div dir="ltr" class="text-right"> --}}
+        
+<div dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" class="text-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}">
     @include('partials.navbar')
 </div>
 

@@ -8,7 +8,7 @@
 
         <div class="mb-6 p-4 bg-blue-100 rounded-lg shadow-md border-l-4 border-blue-500">
             <p class="text-sm font-medium text-blue-700">
-                {{ __('You are currently viewing a profile shared with you by another user.') }}
+                {{trans_db('viewing.shared.profile')}} 
             </p>
         </div>
 
@@ -20,7 +20,7 @@
                     <section>
                         <header>
                             <h2 class="text-lg font-medium text-gray-900">
-                                {{ __('Profile Information') }}
+                               {{trans_db('Profile.Information..')}}
                             </h2><br>
                         </header>
 
@@ -30,10 +30,10 @@
                                      alt="Current Profile Avatar" class="h-16 w-16 rounded-full object-cover">
                             </div>
                             <div>
-                                <x-input-label for="profile_picture" :value="__('Profile Picture')" />
+                                <x-input-label for="profile_picture"/>
                                 <input type="file" id="profile_picture" name="profile_picture" accept="image/*" class="hidden" onchange="updateFileName(this)" />
 {{--                                --}}
-                                <span id="file_name" class="ml-2 text-sm text-gray-500">{{ $user->profile_picture ? ($user->profile_picture) : __('No file chosen') }}</span>
+                                {{-- <span id="file_name" class="ml-2 text-sm text-gray-500">{{ $user->profile_picture ? ($user->profile_picture) : __('No file chosen') }}</span> --}}
                                 <x-input-error class="mt-2" :messages="$errors->get('profile_picture')" />
                             </div>
                         </div>
@@ -41,7 +41,7 @@
 
                         <br>
                         <div class="flex items-center gap-2">
-                            <x-input-label for="name" :value="__('Name:')" />
+                            <x-input-label for="name"/>
 
                             <div class="flex items-center gap-2 text-gray-900 dark:text-gray-100 text-lg font-semibold" style="color: #1a202c;">
                                 <span>{{ $user->name }}</span>
@@ -58,7 +58,7 @@
 
 
                         <div class="flex items-start gap-2">
-                            <x-input-label for="bio" :value="__('Bio:')" />
+                            <x-input-label for="bio" />
 
                             <div class="text-gray-900 dark:text-gray-100">
                                 @if($user->bio)
@@ -77,16 +77,15 @@
 {{--                                                الجزء الخاص بالوثيقة     --}}
                 <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                     <div class="max-w-6xl mx-auto">
-
                         <section>
                             @if($documents->isNotEmpty())
                             <header>
                                 <h2 class="text-lg font-medium text-gray-900">
-                                    {{ __('These are the documents of') }} {{ $user->name }}
+                                    {{trans_db('documents.Information.')}} {{ $user->name }}
                                 </h2>
 
                                 <p class="mt-1 text-sm text-gray-600">
-                                    {{ __('These are the documents that the user has allowed others to view.') }}
+                                    {{trans_db('documents.Information.user')}}
                                 </p>
                             </header>
 
@@ -133,9 +132,9 @@
                                         <i class="fas fa-file-alt text-4xl text-blue-400 mb-4"></i>
                                         <i class="fas fa-times-circle text-red-500 absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 text-xl"></i>
                                     </div>
-                                    <h2 class="text-lg font-semibold mb-2">No documents available here!</h2>
+                                    <h2 class="text-lg font-semibold mb-2"> {{trans_db('available.documents.')}}</h2>
                                     <p class="text-sm text-red-600">
-                                        Please verify that the account owner has allowed their documents to be visible.
+                                        {{trans_db('verify.owner.allowed')}}
                                     </p>
                                 </div>
 
@@ -160,16 +159,16 @@
                 @if($events->isNotEmpty() && $events->where('visible_on_profile', 1)->isNotEmpty())
                     <header>
                         <h2 class="text-lg font-medium text-gray-900">
-                            {{ __('These are the Events of ') }} <strong>{{ $user->name }}</strong>
+                            {{trans_db('events.of')}} <strong>{{ $user->name }}</strong>
                         </h2>
 
                         <p class="mt-1 text-sm text-gray-600">
-                            {{ __('These are the events that the organizer has allowed to be visible on their personal profile.') }}
+                            {{trans_db('organizer.allowed.events')}}
                         </p>
                     </header>
 
 
-
+                    
                     <div class="container mx-auto px-4"><br>
 
 

@@ -69,39 +69,44 @@
 
 {{--                   section search for event --}}
 @if(request()->has('query') && $event)
+    @php $isAr = app()->getLocale() == 'ar'; @endphp
     <a href="#">
         <section class="max-w-xs bg-white shadow-lg rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105
-                        mr-4 ml-auto px-4 sm:px-0">
+                        {{ $isAr ? 'mr-4 ml-auto' : 'ml-4 mr-auto' }} px-4 sm:px-0">
 
-            <div class="p-3 space-y-2 text-right">
+            <div class="p-3 space-y-2 {{ $isAr ? 'text-right' : 'text-left' }}">
                 <h2 class="text-xl font-bold mb-3">
                     {{ trans_db('search.event.title') }}: {{ $event->title }}
                 </h2>
 
-                <div class="flex items-center text-gray-600 text-sm justify-start">
-                    <i class="bi bi-calendar-check-fill text-lg text-blue-600"></i>
-                    <span class="font-medium ml-4">
+                {{-- Start Date --}}
+                <div class="flex items-center text-gray-600 text-sm {{ $isAr ? 'justify-between flex-row-reverse' : 'justify-start' }}">
+                    <i class="bi bi-calendar-check-fill text-lg text-blue-600 {{ $isAr ? 'ml-2' : 'mr-2' }}"></i>
+                    <span class="font-medium">
                         {{ trans_db('search.event.start.date') }}: {{ $event->start_date }}
                     </span>
                 </div>
 
-                <div class="flex items-center text-gray-600 text-sm justify-start">
-                    <i class="bi bi-send-fill text-lg text-gray-500"></i>
-                    <span class="font-medium ml-4">
+                {{-- End Date --}}
+                <div class="flex items-center text-gray-600 text-sm {{ $isAr ? 'justify-between flex-row-reverse' : 'justify-start' }}">
+                    <i class="bi bi-send-fill text-lg text-gray-500 {{ $isAr ? 'ml-2' : 'mr-2' }}"></i>
+                    <span class="font-medium">
                         {{ trans_db('search.event.end.date') }}: {{ $event->end_date }}
                     </span>
                 </div>
 
-                <div class="flex items-center text-gray-600 text-sm justify-start">
-                    <i class="bi bi-file-earmark-fill text-lg text-gray-500"></i>
-                    <span class="font-medium ml-4">
+                {{-- Template Count --}}
+                <div class="flex items-center text-gray-600 text-sm {{ $isAr ? 'justify-between flex-row-reverse' : 'justify-start' }}">
+                    <i class="bi bi-file-earmark-fill text-lg text-gray-500 {{ $isAr ? 'ml-2' : 'mr-2' }}"></i>
+                    <span class="font-medium">
                         {{ trans_db('search.event.count.template') }}: {{ $templateCount }}
                     </span>
                 </div>
 
-                <div class="flex items-center text-gray-600 text-sm mb-4 justify-start">
-                    <i class="bi bi-people-fill text-lg text-gray-500"></i>
-                    <span class="font-medium ml-4">
+                {{-- Participants Count --}}
+                <div class="flex items-center text-gray-600 text-sm mb-4 {{ $isAr ? 'justify-between flex-row-reverse' : 'justify-start' }}">
+                    <i class="bi bi-people-fill text-lg text-gray-500 {{ $isAr ? 'ml-2' : 'mr-2' }}"></i>
+                    <span class="font-medium">
                         {{ trans_db('search.event.count.participants') }}: {{ $recipientCount }}
                     </span>
                 </div>
