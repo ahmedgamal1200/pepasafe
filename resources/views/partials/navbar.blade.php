@@ -1,6 +1,26 @@
 <nav id="navbar" class="bg-white p-4 flex justify-between items-center shadow-md">
 
-    {{-- 1. مجموعة تسجيل الدخول ومبدل اللغة (أصبحت العنصر الأول) --}}
+    {{-- 2. الشعار واسم الموقع (أصبح العنصر الأول ليكون على الطرف الأقصى) --}}
+    @php
+        // جلب بيانات الشعار واسم الموقع
+        $branding = \App\Models\Logo::first(); 
+    @endphp
+
+    {{-- 👈 هذا العنصر سيظهر في الأقصى (يمين في AR، يسار في EN) --}}
+    <a href="{{ route('homeForGuests') }}" class="flex items-center space-x-2 rtl:space-x-reverse">
+        @if($branding && $branding->path)
+            <img src="{{ asset('storage/' . $branding->path) }}" alt="Logo" class="h-8 md:h-10">
+        @else
+            <img src="{{ asset('assets/logo.jpg') }}" alt="Default Logo" class="h-8 md:h-10">
+        @endif
+
+        <span class="text-gray-800 text-xl font-semibold hidden md:block">
+            {{ $branding->site_name ?? 'pepasafe' }}
+        </span>
+    </a>
+
+
+    {{-- 1. مجموعة تسجيل الدخول ومبدل اللغة (أصبح العنصر الثاني) --}}
     <div class="flex items-center
     space-x-4
     rtl:space-x-0 rtl:gap-4">
@@ -19,33 +39,15 @@
     </div>
 
 
-    {{-- 2. الشعار واسم الموقع (أصبح العنصر الثاني) --}}
-    @php
-        $branding = \App\Models\Logo::first();
-    @endphp
-
-    <a href="{{ route('homeForGuests') }}" class="flex items-center space-x-2 rtl:space-x-reverse">
-        @if($branding && $branding->path)
-            <img src="{{ asset('storage/' . $branding->path) }}" alt="Logo" class="h-8 md:h-10">
-        @else
-            <img src="{{ asset('assets/logo.jpg') }}" alt="Default Logo" class="h-8 md:h-10">
-        @endif
-
-        <span class="text-gray-800 text-xl font-semibold hidden md:block">
-            {{ $branding->site_name ?? 'pepasafe' }}
-        </span>
-    </a>
-
-
 </nav>
 
-{{-- الكود الخاص بـ JavaScript لم يتم تغييره لأنه يعتمد على الـ ID وليس الترتيب --}}
+{{-- الكود الخاص بـ JavaScript --}}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
 
 // ** إضافة قيمة اللغة الحالية واللغة المستهدفة من Blade **
 // $currentLocale هي اللغة الحالية للموقع (مثل 'ar' أو 'en')
-        const currentLocale = '{{ app()->getLocale() }}'; // 👈 نستخدم دالة app()->getLocale()
+        const currentLocale = '{{ app()->getLocale() }}';
 // targetLocale هو رمز اللغة التي سيتم التبديل إليها ('en' إذا كانت الحالية 'ar', والعكس)
         const targetLocale = (currentLocale === 'ar') ? 'en' : 'ar';
 // targetLangDisplay: اللغة التي سيتم التبديل إليها (النص الظاهر على الزر)

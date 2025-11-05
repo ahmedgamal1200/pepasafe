@@ -305,17 +305,20 @@
                     </span>
                     </div>
 
-                @if (Setting::getValue('show_events_in_profile') === '1')
-                <div class="inline-block border border-gray-300 p-1 rounded hover:border-blue-600 transition relative">
-                    <form method="POST" action="{{ route('events.toggleVisibility', $event->slug) }}">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit" class="text-gray-500 hover:text-blue-600">
-                            <i class="bi {{ $event->visible_on_profile ? 'bi-eye-fill' : 'bi-eye-slash-fill' }}"></i>
-                        </button>
-                    </form>
-                </div>
-                @endif
+               @if (Setting::getValue('show_events_in_profile') === '1')
+    <div class="inline-block p-1 rounded transition relative border
+        {{ $event->visible_on_profile ? 'border-gray-300 hover:border-blue-600' : 'border-red-400 bg-red-50' }}">
+        <form method="POST" action="{{ route('events.toggleVisibility', $event->slug) }}">
+            @csrf
+            @method('PATCH')
+            <button type="submit" 
+                    class="{{ $event->visible_on_profile ? 'text-blue-600 hover:text-blue-800' : 'text-red-500 hover:text-red-700' }}">
+                <i class="bi {{ $event->visible_on_profile ? 'bi-eye-fill' : 'bi-eye-slash-fill' }}"></i>
+            </button>
+        </form>
+    </div>
+@endif
+
 
                     @if(auth()->check() && auth()->user()->hasAnyPermission(['manage events', 'full access', 'full access to events']))
                         <div class="flex justify-center items-center mt-4">
@@ -347,7 +350,7 @@
     </script>
 
 
-    <script>
+    {{-- <script>
         document.addEventListener('DOMContentLoaded', () => {
             const sortButton = document.getElementById('sort-button');
             const container = document.getElementById('events-container');
@@ -410,7 +413,64 @@
             // لضمان عرض النص الصحيح عند التحميل الأولي
             updateButtonText('desc'); // نبدأ بالافتراضي وهو 'desc' (الأحدث أولاً)
         });
-    </script>
+    </script> --}}
+
+<script>
+    window.i18n = {
+        event_sort_older: "{{ trans_db('event.sort.older') }}",
+        event_sort_newest: "{{ trans_db('event.sort.newest') }}",
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const sortButton = document.getElementById('sort-button');
+
+        if (!sortButton) return;
+
+        // 1. قراءة حالة الفرز الحالية من الـ URL عند تحميل الصفحة
+        const urlParams = new URLSearchParams(window.location.search);
+        // نستخدم 'sort' كمعامل في الـ URL. القيمة الافتراضية هي 'desc' (الأحدث أولاً).
+        let currentSortOrder = urlParams.get('sort') || 'desc'; 
+        
+        // **2. دالة تحديث نص الزر**
+        function updateButtonText(order) {
+            const icon = sortButton.querySelector('i');
+            const textSpan = sortButton.querySelector('span');
+
+            // الترتيب الذي سيتم تفعيله عند الضغطة التالية
+            const nextOrder = order === 'desc' ? 'asc' : 'desc';
+
+            if (nextOrder === 'asc') {
+                // الترتيب التالي سيكون الأقدم أولاً.
+                icon.classList.remove('bi-sort-up');
+                icon.classList.add('bi-sort-down'); // الأيقونة تشير إلى الترتيب التالي: 'الأقدم أولاً'
+                textSpan.textContent = window.i18n.event_sort_older; 
+            } else {
+                // الترتيب التالي سيكون الأحدث أولاً.
+                icon.classList.remove('bi-sort-down');
+                icon.classList.add('bi-sort-up'); // الأيقونة تشير إلى الترتيب التالي: 'الأحدث أولاً'
+                textSpan.textContent = window.i18n.event_sort_newest;
+            }
+        }
+
+        // تطبيق حالة الزر بناءً على الـ URL
+        updateButtonText(currentSortOrder === 'desc' ? 'asc' : 'desc'); // نعكس القيمة لقراءة ما هو متوقع
+
+        // **3. وظيفة معالج الضغط على الزرار (المهم)**
+        sortButton.addEventListener('click', () => {
+            // الترتيب الجديد هو عكس الترتيب الحالي المقروء من الـ URL
+            const newSortOrder = currentSortOrder === 'desc' ? 'asc' : 'desc';
+
+            // بناء الرابط الجديد
+            const url = new URL(window.location.href);
+            url.searchParams.set('sort', newSortOrder); // وضع معامل الفرز الجديد
+            url.searchParams.set('page', 1); // **العودة للصفحة الأولى دائماً عند تغيير الفرز**
+
+            // إعادة توجيه المستخدم لكي يقوم الخادم بفرز البيانات كاملة
+            window.location.href = url.toString();
+        });
+    });
+</script>
+
 @include('partials.footer')
 
 </body>

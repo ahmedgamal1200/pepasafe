@@ -2,15 +2,16 @@
     // تحديد ما إذا كانت اللغة الحالية هي العربية (RTL)
     $isRtl = (app()->getLocale() === 'ar');
     $dirClass = $isRtl ? 'rtl' : 'ltr';
-    // تحديد فئة المحاذاة المناسبة
+    // تحديد فئة المحاذاة المناسبة للبدء (مثل المحاذاة لليمين في RTL)
     $textAlignStart = $isRtl ? 'text-right' : 'text-left';
+    // تحديد محاذاة العناوين (يمين في AR، وفي EN وسط في الجوال ويسار في MD)
     $textAlignCenterOrStart = $isRtl ? 'text-right' : 'text-center md:text-left';
-    // تحديد محاذاة عناصر القائمة للروابط السريعة
+    // تحديد محاذاة عناصر القائمة للروابط السريعة وعناصر الاتصال
     $listItemAlignment = $isRtl ? 'items-end w-full' : 'items-center md:items-start';
-    // تحديد عرض القائمة للغة العربية
+    // تحديد عرض القائمة للغة العربية (لضمان محاذاة العناصر إلى اليمين داخل العمود)
     $listWidth = $isRtl ? 'w-full' : '';
-    // تحديد ترتيب العناصر داخل الروابط
-    $flexDirection = 'flex-row';
+    // تحديد اتجاه عناصر الـ Flex في الروابط: معكوس (الأيقونة يمين) في AR وعادي في EN
+    $linkFlexDirection = $isRtl ? 'flex-row-reverse' : 'flex-row';
 
     $branding = \App\Models\Logo::first();
     $siteName = $branding->site_name ?? 'Pepasafe';
@@ -32,36 +33,36 @@
                         <img src="{{ asset('assets/logo.jpg') }}" alt="{{ trans_db('logo.default_alt') }}" class="h-8 md:h-10">
                     @endif
                 </div>
-                <h3 class="text-lg font-semibold mb-2">{{ trans_db('footer.about_pepasafe_title') }}</h3>
+                <h3 class="text-lg font-semibold mb-2 {{ $textAlignStart }}">{{ trans_db('footer.about_pepasafe_title') }}</h3>
                 <p class="text-sm text-gray-400 max-w-xs {{ $textAlignStart }}">
                     {{ trans_db('footer.about_pepasafe_desc') }}
                 </p>
             </div>
 
             {{-- العمود الثاني: روابط سريعة --}}
-            <div class="{{ $isRtl ? 'w-full' : '' }}">
+            <div class="{{ $listWidth }}">
                 <h3 class="text-lg font-semibold mb-4 {{ $textAlignCenterOrStart }}">{{ trans_db('footer.quick_links_title') }}</h3>
                 <ul class="space-y-3 text-sm flex flex-col {{ $listItemAlignment }}">
                     <li class="w-full">
-                        <a href="{{ route('privacy') }}" class="transition-colors duration-200 hover:text-blue-400 flex items-center gap-2 {{ $flexDirection }} {{ $isRtl ? 'justify-end' : '' }}">
+                        <a href="{{ route('privacy') }}" class="transition-colors duration-200 hover:text-blue-400 flex items-center gap-2 {{ $linkFlexDirection }} {{ $isRtl ? 'justify-end' : '' }}">
                             <i class="fas fa-shield-alt text-blue-300"></i>
                             {{ trans_db('footer.privacy_policy') }}
                         </a>
                     </li>
                     <li class="w-full">
-                        <a href="{{ route('terms') }}" class="transition-colors duration-200 hover:text-blue-400 flex items-center gap-2 {{ $flexDirection }} {{ $isRtl ? 'justify-end' : '' }}">
+                        <a href="{{ route('terms') }}" class="transition-colors duration-200 hover:text-blue-400 flex items-center gap-2 {{ $linkFlexDirection }} {{ $isRtl ? 'justify-end' : '' }}">
                             <i class="fas fa-file-contract text-blue-300"></i>
                             {{ trans_db('footer.terms_and_conditions') }}
                         </a>
                     </li>
                     <li class="w-full">
-                        <a href="{{ route('about') }}#contact" class="transition-colors duration-200 hover:text-blue-400 flex items-center gap-2 {{ $flexDirection }} {{ $isRtl ? 'justify-end' : '' }}">
+                        <a href="{{ route('about') }}#contact" class="transition-colors duration-200 hover:text-blue-400 flex items-center gap-2 {{ $linkFlexDirection }} {{ $isRtl ? 'justify-end' : '' }}">
                             <i class="fas fa-headset text-blue-300"></i>
                             {{ trans_db('footer.contact_us') }}
                         </a>
                     </li>
                     <li class="w-full">
-                        <a href="{{ route('about') }}#about-us" class="transition-colors duration-200 hover:text-blue-400 flex items-center gap-2 {{ $flexDirection }} {{ $isRtl ? 'justify-end' : '' }}">
+                        <a href="{{ route('about') }}#about-us" class="transition-colors duration-200 hover:text-blue-400 flex items-center gap-2 {{ $linkFlexDirection }} {{ $isRtl ? 'justify-end' : '' }}">
                             <i class="fas fa-info-circle text-blue-300"></i>
                             {{ trans_db('footer.about_us') }}
                         </a>
@@ -70,17 +71,17 @@
             </div>
 
             {{-- العمود الثالث: تواصل معنا (بيانات الاتصال) --}}
-            <div>
+            <div class="{{ $listWidth }}">
                 <h3 class="text-lg font-semibold mb-4 {{ $textAlignCenterOrStart }}">{{ trans_db('footer.contact_title') }}</h3>
                 <ul class="space-y-3 text-sm flex flex-col {{ $listItemAlignment }}">
-                    <li>
-                        <a href="mailto:info@example.com" class="transition-colors duration-200 hover:text-blue-400 flex items-center gap-2 {{ $flexDirection }}">
+                    <li class="w-full">
+                        <a href="mailto:info@example.com" class="transition-colors duration-200 hover:text-blue-400 flex items-center gap-2 {{ $linkFlexDirection }} {{ $isRtl ? 'justify-end' : '' }}">
                             <i class="fas fa-envelope text-blue-300"></i>
                             info@example.com
                         </a>
                     </li>
-                    <li>
-                        <a href="tel:+201234567890" class="transition-colors duration-200 hover:text-blue-400 flex items-center gap-2 {{ $flexDirection }}">
+                    <li class="w-full">
+                        <a href="tel:+201234567890" class="transition-colors duration-200 hover:text-blue-400 flex items-center gap-2 {{ $linkFlexDirection }} {{ $isRtl ? 'justify-end' : '' }}">
                             <i class="fas fa-phone-alt text-blue-300"></i>
                             +20 123 456 7890
                         </a>

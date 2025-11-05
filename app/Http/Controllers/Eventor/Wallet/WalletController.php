@@ -37,7 +37,7 @@ class WalletController extends Controller
         $subscription = $user->subscription; // افترض أن دي علاقة صحيحة وموجودة في موديل User
 
         if (! $subscription) {
-            return back()->with('error', 'لا يوجد اشتراك مرتبط بهذا الحساب.');
+            return back()->with('error', trans_db('subscription.error'));
         }
 
         // هنا بنستخدم request->boolean() للتحويل
@@ -45,7 +45,7 @@ class WalletController extends Controller
 
         $subscription->save();
 
-        return back()->with('success', 'تم تحديث إعداد التجديد التلقائي بنجاح.');
+        return back()->with('success', trans_db('subscription.success'));
     }
 
     public function renewNow(RenewSubscriptionNow $service): RedirectResponse
@@ -55,6 +55,6 @@ class WalletController extends Controller
         return back()->with(is_bool($result) &&
         $result ? 'success' : 'error',
             is_string($result) ?
-                $result : 'تم تجديد الباقة بنجاح .');
+                $result : trans_db('subscription.renewed'));
     }
 }

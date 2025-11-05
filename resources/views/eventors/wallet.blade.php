@@ -64,27 +64,36 @@
 @include('partials.auth-navbar')
 
 @if (session('success'))
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+    <div id="flash-message-success" 
+         class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 
+                max-w-xs sm:max-w-sm 
+                bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded shadow-lg" 
+         role="alert">
         <span class="block sm:inline">{{ session('success') }}</span>
     </div>
 @endif
 
 @if (session('error'))
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+    <div id="flash-message-error" 
+         class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 
+                max-w-xs sm:max-w-sm 
+                bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow-lg" 
+         role="alert">
         <span class="block sm:inline">{{ session('error') }}</span>
     </div>
 @endif
 
 @if ($errors->any())
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+    <div id="flash-message-errors" 
+         class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 
+                max-w-xs sm:max-w-sm 
+                bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow-lg" 
+         role="alert">
         <strong class="font-bold">خطأ!</strong>
-        <ul class="mt-3 list-disc list-inside">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
+        {{-- ... باقي رسائل الأخطاء --}}
     </div>
 @endif
+
 
 
 <!-- المحتوى الرئيسي -->
@@ -117,7 +126,7 @@
 
             {{--  1. عنوان ملخص الباقة  --}}
             {{--  استبدلنا justify-end بـ text-start/text-end أو استخدمنا flex justify-end / flex justify-start بناءً على $isRtl  --}}
-            <div class="flex {{ $isRtl ? 'justify-start' : 'justify-end' }}">
+            <div class="flex {{ $isRtl ? 'text-right' : 'text-left' }}">
                 <h3 class="text-xl font-semibold">{{ trans_db('subscription.summary_title') }}</h3>
             </div>
 
@@ -199,7 +208,7 @@
         <div id="recharge" class="flex-1 bg-white shadow rounded-lg p-6 hover:shadow-lg hover:scale-105 transition-transform transition-shadow duration-200" dir="{{ $isRtl ? 'rtl' : 'ltr' }}">
 
             {{--  1. عنوان الرصيد المتاح  --}}
-            <div class="flex {{ $isRtl ? 'justify-start' : 'justify-end' }}">
+            <div class="flex {{ $isRtl ? 'text-right' : 'text-left' }}">
                 <h3 class="text-xl font-semibold">{{ trans_db('wallet.available_balance_title') }}</h3>
             </div>
 
@@ -899,5 +908,28 @@
 </script>
 
 <script src=" {{ asset('js/cash.js') }}"></script>
+<script>
+        function hideFlashMessage(elementId, delayInSeconds) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                // إضافة فئة للانتقال السلس (اختياري)
+                element.style.transition = 'opacity 0.5s ease-out';
+                
+                setTimeout(() => {
+                    element.style.opacity = '0'; // التلاشي (Fade out)
+                    setTimeout(() => element.remove(), 500); // الإزالة بعد انتهاء التلاشي
+                }, delayInSeconds * 1000); 
+            }
+        }
+
+        // إخفاء رسالة النجاح بعد 5 ثوانٍ
+        hideFlashMessage('flash-message-success', 5);
+
+        // إخفاء رسالة الخطأ بعد 7 ثوانٍ
+        hideFlashMessage('flash-message-error', 7);
+        
+        // إذا أردت إخفاء رسائل الـ $errors تلقائياً (لا يفضل)
+        // hideFlashMessage('flash-message-errors', 10); 
+    </script>
 </body>
 </html>
