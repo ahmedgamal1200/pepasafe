@@ -361,7 +361,7 @@
                 ]))
                     <a href="{{ route('editEvent', $event->slug) }}">
                         <button
-                            class="w-full hidden sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition {{ $flexDirection }}">
+                            class="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition {{ $flexDirection }}">
                             <i class="fas fa-edit text-sm sm:text-base {{ $isRTL ? 'ml-1' : 'mr-1' }}"></i>
                             <span class="text-sm sm:text-base">{{ $isRTL ? 'تعديل الحدث' : 'Edit Event' }}</span>
                         </button>

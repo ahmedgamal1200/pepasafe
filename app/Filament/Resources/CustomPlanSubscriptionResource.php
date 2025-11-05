@@ -18,6 +18,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder; // أضيفي هذا السطر
 
 class CustomPlanSubscriptionResource extends Resource
 {
@@ -261,6 +262,7 @@ class CustomPlanSubscriptionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->whereNotNull('user_id'))
             ->columns([
                 // trans_db
                 Tables\Columns\TextColumn::make('name')->label(trans_db('custom_plans.plan_name'))->searchable()->sortable(),

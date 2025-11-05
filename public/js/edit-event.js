@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateNumbers() {
         container.querySelectorAll('.form-card').forEach((card, idx) => {
             const title = card.querySelector('h3');
-            if (title) title.textContent = `نموذج ${idx + 1}`;
+            if (title) title.textContent = `${window.i18n.form_count} ${idx + 1}`;
         });
     }
     updateNumbers();
@@ -235,17 +235,17 @@ function updateUI(input) {
     const track   = wrapper.querySelector('.toggle-track');
 
     if (input.checked) {
-        label.textContent = 'إلغاء الحضور';
-        label.classList.replace('text-blue-600', 'text-red-600');
-        wrapper.classList.replace('border-blue-600', 'border-red-600');
-        wrapper.classList.replace('bg-blue-100', 'bg-red-100');
-        track.classList.replace('peer-checked:bg-blue-600', 'peer-checked:bg-red-600');
+        label.textContent = window.i18n.off_attendance;
+        label.classList.replace('text-blue-600', 'text-blue-600');
+        wrapper.classList.replace('border-blue-600', 'border-blue-600');
+        wrapper.classList.replace('bg-blue-100', 'bg-blue-100');
+        track.classList.replace('peer-checked:bg-blue-600', 'peer-checked:bg-blue-600');
     } else {
-        label.textContent = 'تفعيل الحضور';
-        label.classList.replace('text-red-600', 'text-blue-600');
-        wrapper.classList.replace('border-red-600', 'border-blue-600');
-        wrapper.classList.replace('bg-red-100', 'bg-blue-100');
-        track.classList.replace('peer-checked:bg-red-600', 'peer-checked:bg-blue-600');
+        label.textContent = window.i18n.on_attendance;
+        label.classList.replace('text-blue-600', 'text-blue-600');
+        wrapper.classList.replace('border-blue-600', 'border-blue-600');
+        wrapper.classList.replace('bg-blue-100', 'bg-blue-100');
+        track.classList.replace('peer-checked:bg-blue-600', 'peer-checked:bg-blue-600');
     }
 }
 
@@ -314,6 +314,61 @@ let isPanning = false;
 let lastPosX = 0;
 let lastPosY = 0;
 
+const STANDARD_SIZES = {
+    'A4': { width: 794, height: 1123 },      // 210mm x 297mm @ 96 DPI
+    'Letter': { width: 816, height: 1056 },  // 8.5in x 11in @ 96 DPI
+    'Card': { width: 324, height: 204 },     // CR80 - 85.6mm x 54mm @ 96 DPI
+    'A5': { width: 560, height: 794 },       // 148mm x 210mm @ 96 DPI
+    'B5': { width: 665, height: 945 },        // 176mm x 250mm @ 96 DPI
+
+
+    '10x15': { width: 378, height: 567 },
+    '16:9': { width: 386, height: 684 },
+    '16K': { width: 737, height: 1020 },
+    '5x7': { width: 480, height: 673 },
+    '5x8': { width: 480, height: 767 },
+    '8x10': { width: 767, height: 960 },
+    '8.5x13': { width: 816, height: 1247 },
+    '9x13': { width: 336, height: 480 },
+    'A0': { width: 3179, height: 4494 },
+    'A1': { width: 2245, height: 3179 },
+    'A2': { width: 1587, height: 2245 },
+    'A3': { width: 1123, height: 1587 },
+    'A3+': { width: 1243, height: 1826 },
+    'A6': { width: 397, height: 559 },
+    'A7': { width: 280, height: 397 },
+    'A8': { width: 197, height: 280 },
+    'A9': { width: 140, height: 197 },
+    'A10': { width: 98, height: 140 },
+    'B0': { width: 3779, height: 5346 },
+    'B1': { width: 2676, height: 3779 },
+    'B2': { width: 1890, height: 2676 },
+    'B3': { width: 1361, height: 1890 },
+    'B4': { width: 945, height: 1361 },
+    'B6': { width: 472, height: 668 },
+    'B7': { width: 332, height: 472 },
+    'B8': { width: 235, height: 332 },
+    'B9': { width: 166, height: 235 },
+    'B10': { width: 117, height: 166 },
+    'BusinessCard': { width: 322, height: 208 },
+    'CR100': { width: 378, height: 265 },
+    'Envelope#10': { width: 397, height: 911 },
+    'EnvelopeC6': { width: 431, height: 612 },
+    'EnvelopeDL': { width: 416, height: 831 },
+    'F4': { width: 794, height: 1247 },
+    'GovernmentLetter': { width: 767, height: 1009 },
+    'HalfLetter': { width: 529, height: 816 },
+    'ID-2': { width: 397, height: 280 },
+    'IndianLegal': { width: 813, height: 1304 },
+    'JISB4': { width: 971, height: 1376 },
+    'JISB5': { width: 688, height: 971 },
+    'JISB6': { width: 484, height: 688 },
+    'Legal': { width: 816, height: 1346 },
+    'MexicanLegal': { width: 813, height: 1285 },
+    'PostCard': { width: 378, height: 559 },
+    'Tabloid': { width: 1054, height: 1633 }
+};
+
 
 function getCardDataType(fileHub) {
     if (fileHub.classList.contains('attendance-filehub')) {
@@ -334,7 +389,8 @@ function getCardDataType(fileHub) {
     function updateNumbers() {
         container.querySelectorAll('.form-card').forEach((card, idx) => {
             const title = card.querySelector('h3');
-            if (title) title.textContent = `نموذج ${idx + 1}`;
+            if (title) title.textContent = `${window.i18n.form_count} ${idx + 1}`;
+
         });
     }
     updateNumbers();
@@ -468,17 +524,17 @@ function updateUI(input) {
     const track   = wrapper.querySelector('.toggle-track');
 
     if (input.checked) {
-        label.textContent = 'إلغاء الحضور';
-        label.classList.replace('text-blue-600', 'text-red-600');
-        wrapper.classList.replace('border-blue-600', 'border-red-600');
-        wrapper.classList.replace('bg-blue-100', 'bg-red-100');
-        track.classList.replace('peer-checked:bg-blue-600', 'peer-checked:bg-red-600');
+        label.textContent = window.i18n.off_attendance;
+        label.classList.replace('text-blue-600', 'text-blue-600');
+        wrapper.classList.replace('border-blue-600', 'border-blue-600');
+        wrapper.classList.replace('bg-blue-100', 'bg-blue-100');
+        track.classList.replace('peer-checked:bg-blue-600', 'peer-checked:bg-blue-600');
     } else {
-        label.textContent = 'تفعيل الحضور';
-        label.classList.replace('text-red-600', 'text-blue-600');
-        wrapper.classList.replace('border-red-600', 'border-blue-600');
-        wrapper.classList.replace('bg-red-100', 'bg-blue-100');
-        track.classList.replace('peer-checked:bg-red-600', 'peer-checked:bg-blue-600');
+        label.textContent = window.i18n.on_attendance;
+        label.classList.replace('text-blue-600', 'text-blue-600');
+        wrapper.classList.replace('border-blue-600', 'border-blue-600');
+        wrapper.classList.replace('bg-blue-100', 'bg-blue-100');
+        track.classList.replace('peer-checked:bg-blue-600', 'peer-checked:bg-blue-600');
     }
 }
 
@@ -648,6 +704,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const texts = canvas.getObjects()
             .filter(obj => obj.selectable && (obj.type === 'i-text')) // نركز على i-text للفالديشن
             .map(obj => ({
+                id: obj.id,
                 text: obj.text,
                 left: obj.left,
                 top: obj.top,
@@ -661,6 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const qrCodes = canvas.getObjects()
             .filter(obj => obj.selectable && obj.type === 'qr-code')
             .map(obj => ({
+                id: obj.id,
                 type: obj.type,
                 left: obj.left,
                 top: obj.top,
@@ -711,7 +769,8 @@ document.addEventListener('DOMContentLoaded', () => {
             type: cardId.includes('front') ? 'certificate-front' : 'certificate-back',
             canvasWidth: allCardData[cardId].canvasWidth,
             canvasHeight: allCardData[cardId].canvasHeight,
-            texts: texts
+            texts: texts,
+            qrCodes: qrCodes,
         };
 
         inputField.value = JSON.stringify(currentInputData);
@@ -778,6 +837,7 @@ document.addEventListener('DOMContentLoaded', () => {
             objectsData.forEach(data => {
                 if (data.type === 'i-text') {
                     const textObject = new fabric.IText(data.text, {
+                        id: data.id,
                         left: data.left,
                         top: data.top,
                         fontFamily: data.fontFamily,
@@ -833,23 +893,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function initializeTemplateCanvas(canvasElement, imageUrl, cardIdentifier) {
+// تم إضافة explicitWidth و explicitHeight إلى توقيع الدالة مع قيم افتراضية 0
+    function initializeTemplateCanvas(canvasElement, imageUrl, cardIdentifier, explicitWidth = 0, explicitHeight = 0) {
         if (!canvasElement) {
             console.error('Canvas element not provided or found.');
             return;
         }
 
-        // تأكد من أن cardData موجود ككائن عام
-        // إذا لم يكن معرفًا بعد، ستحتاج إلى تعريفه كـ `let cardData = {};` في النطاق العام.
+        // ❌ تم حذف الكود هنا الذي كان يستدعي:
+        // cardData[cardIdentifier].fabricCanvas.dispose();
+        // لأن عملية التنظيف (Dispose) يجب أن تتم بالكامل وحصرياً في معالج حدث الحذف (removePreviewBtn.addEventListener)
+        // لتجنب خطأ TypeError: Cannot read properties of undefined (reading 'removeChild')
+        // عند محاولة التخلص من Canvas تم تدميره بالفعل أو إزالة عنصر الـ DOM الخاص به.
 
-        if (cardData[cardIdentifier] && cardData[cardIdentifier].fabricCanvas) {
-            cardData[cardIdentifier].fabricCanvas.dispose();
-            cardData[cardIdentifier].fabricCanvas = null;
+
+        // 🌟 التعديل هنا: إعطاء الأولوية للأبعاد الصريحة التي تم تمريرها
+        let finalCanvasWidth = explicitWidth;
+        let finalCanvasHeight = explicitHeight;
+
+        if (finalCanvasWidth === 0 || finalCanvasHeight === 0) {
+            // إذا لم يتم تمرير أبعاد صريحة (كالحالة عند أول رفع للصورة)، نقرأ من DOM
+            const rect = canvasElement.getBoundingClientRect();
+            finalCanvasWidth = rect.width;
+            finalCanvasHeight = rect.height;
+            // console.log(`[INIT] - ${cardIdentifier} أبعاد الـ Canvas HTML: ${finalCanvasWidth}x${finalCanvasHeight}`);
         }
-
-        const rect = canvasElement.getBoundingClientRect();
-        let finalCanvasWidth = rect.width;
-        let finalCanvasHeight = rect.height;
 
         if (finalCanvasWidth === 0 || finalCanvasHeight === 0) {
             const parentContainer = canvasElement.parentElement;
@@ -857,13 +925,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 finalCanvasWidth = parentContainer.offsetWidth;
                 finalCanvasHeight = parentContainer.offsetHeight;
             } else {
+                // ملاحظة: تم الاحتفاظ بأبعاد افتراضية لتجنب القيم الصفرية
                 finalCanvasWidth = 900;
                 finalCanvasHeight = 600;
                 console.warn(`Canvas dimensions are zero for ${cardIdentifier}. Using default width: ${finalCanvasWidth}, height: ${finalCanvasHeight}`);
             }
         }
+
+        // لضمان أن الـ Canvas لا يقل عن حجم أدنى
         if (finalCanvasWidth < 400) finalCanvasWidth = 400;
         if (finalCanvasHeight < 300) finalCanvasHeight = 300;
+        // console.log(`[INIT] - ${cardIdentifier} الأبعاد النهائية للـ Fabric Canvas: ${finalCanvasWidth}x${finalCanvasHeight}`);
 
         canvasElement.style.width = `${finalCanvasWidth}px`;
         canvasElement.style.height = `${finalCanvasHeight}px`;
@@ -877,20 +949,18 @@ document.addEventListener('DOMContentLoaded', () => {
             height: finalCanvasHeight,
             preserveObjectStacking: true
         });
-        currentCanvas.cardIdentifier = cardIdentifier; // <--- هذا هو التعديل الرئيسي هنا
+        currentCanvas.cardIdentifier = cardIdentifier;
 
-        // **تعديل مهم:** تأكد من تهيئة cardData[cardIdentifier] هنا
         cardData[cardIdentifier] = cardData[cardIdentifier] || {};
         cardData[cardIdentifier].fabricCanvas = currentCanvas;
 
         // تعيين الكانفاس النشط
-        // **تعديل:** استخدام دالة عادية لضمان أن 'this' تشير إلى الكانفاس
         currentCanvas.on('mouse:down', function() {
-            activeCanvas = this; // 'this' هو currentCanvas
-            console.log(`Mouse down, activeCanvas set to: ${this.cardIdentifier}`);
+            activeCanvas = this;
+            // console.log(`Mouse down, activeCanvas set to: ${this.cardIdentifier}`);
         });
 
-        // إعداد محرر النصوص بناءً على نوع الكارد
+        // إعداد محرر النصوص
         const isAttendance = cardIdentifier.includes('attendance_template_data_file_path');
         const editorPanelId = isAttendance ? 'attendance-text-editor-panel' : 'text-editor-panel';
         const textEditorPanel = document.getElementById(editorPanelId);
@@ -911,8 +981,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     fontFamily: fontFamily.value
                 });
                 activeCanvas.renderAll();
-                // **تعديل:** تمرير cardData إلى saveITextObjectsFromSpecificCanvas
-                saveITextObjectsFromSpecificCanvas(activeCanvas, activeCanvas.cardIdentifier, cardData);
+                // يجب تمرير cardData هنا بدلاً من المتغير العام
+                // saveITextObjectsFromSpecificCanvas(activeCanvas, activeCanvas.cardIdentifier, cardData);
             }
         }
 
@@ -956,13 +1026,36 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const imageUrlToLoad = cardData[cardIdentifier].imageUrl || imageUrl;
+        let finalImageUrl;
 
-        fabric.Image.fromURL(imageUrlToLoad, function(img) {
+        // 🌟🌟 التحقق من نوع الـ URL وتطبيق Cache Busting 🌟🌟
+        if (imageUrlToLoad && imageUrlToLoad.startsWith('data:')) {
+            // إذا كان Base64 URI، نستخدمه كما هو
+            finalImageUrl = imageUrlToLoad;
+        } else if (imageUrlToLoad) {
+            // إذا كان URL عادي، نضيف Timestamp لكسر الـ Cache وإجبار التحميل بالحجم الكامل
+            finalImageUrl = `${imageUrlToLoad}?t=${new Date().getTime()}`;
+        } else {
+            console.warn(`No image URL provided for canvas initialization: ${cardIdentifier}`);
+            // لا نحتاج لتهيئة الخلفية، لكن قد نحتاج لإعادة العناصر النصية
+            restoreITextObjectsOnSpecificCanvas(currentCanvas, cardIdentifier, cardData);
+            currentCanvas.renderAll();
+            return currentCanvas;
+        }
+
+
+        fabric.Image.fromURL(finalImageUrl, function(img) { // استخدام finalImageUrl
+            if (!img) {
+                console.error('Failed to load image for canvas initialization.');
+                return;
+            }
+
             const scaleX = finalCanvasWidth / img.width;
             const scaleY = finalCanvasHeight / img.height;
-            const scale = Math.min(scaleX * 0.97, scaleY * 0.97);
 
-            img.scale(scale);
+            // التحجيم الصحيح لضمان عدم القص أو الفراغات
+            const scale = Math.min(scaleX, scaleY);
+            // console.log(`[INIT] - ${cardIdentifier} تحجيم صورة الخلفية: Scale=${scale.toFixed(3)}, Original=${img.width}x${img.height}`);
 
             currentCanvas.setBackgroundImage(img, currentCanvas.renderAll.bind(currentCanvas), {
                 scaleX: scale,
@@ -974,36 +1067,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 absolutePositioned: true
             });
 
-            // **تعديل:** تمرير cardData إلى restoreITextObjectsOnSpecificCanvas
+            // استعادة عناصر النص بعد تحميل الخلفية
             restoreITextObjectsOnSpecificCanvas(currentCanvas, cardIdentifier, cardData);
             currentCanvas.renderAll();
         }, { crossOrigin: 'Anonymous' });
 
-        // منطق السحب والإفلات
-        // **تعديل:** استخدام دالة عادية لضمان أن 'this' تشير إلى الكانفاس
+        // --------------------------------------------------------------------------------
+        // ... باقي منطق السحب والإفلات (كما هو) ...
+        // --------------------------------------------------------------------------------
+
         currentCanvas.on('mouse:down', function(opt) {
             const evt = opt.e;
             const target = opt.target;
-
-            if (target && target.type === 'i-text') {
+            // التعديل 1: دعم QR Code في mouse:down
+            if (target && (target.type === 'i-text' || target.type === 'qr-code')) {
                 isDragging = true;
                 currentlyDraggedFabricObject = target;
-                startDragCanvas = this; // 'this' هو الكانفاس الحالي
+                startDragCanvas = this;
 
                 target.set({ opacity: 0, selectable: false, evented: false });
-                startDragCanvas.renderAll(); // استخدام startDragCanvas
+                startDragCanvas.renderAll();
 
                 draggingProxyElement = document.createElement('div');
-                draggingProxyElement.textContent = target.text;
                 draggingProxyElement.style.position = 'fixed';
                 draggingProxyElement.style.zIndex = '99999';
                 draggingProxyElement.style.pointerEvents = 'none';
-                draggingProxyElement.style.backgroundColor = 'rgba(0, 0, 255, 0.6)';
-                draggingProxyElement.style.color = 'white';
-                draggingProxyElement.style.padding = '5px 10px';
-                draggingProxyElement.style.borderRadius = '5px';
-                draggingProxyElement.style.fontFamily = target.fontFamily;
-                draggingProxyElement.style.fontSize = `${target.fontSize * target.scaleX}px`;
+
+                if (target.type === 'i-text') {
+                    draggingProxyElement.textContent = target.text;
+                    draggingProxyElement.style.backgroundColor = 'rgba(0, 0, 255, 0.6)';
+                    draggingProxyElement.style.color = 'white';
+                    draggingProxyElement.style.padding = '5px 10px';
+                    draggingProxyElement.style.borderRadius = '5px';
+                    draggingProxyElement.style.fontFamily = target.fontFamily;
+                    draggingProxyElement.style.fontSize = `${target.fontSize * target.scaleX}px`;
+                } else if (target.type === 'qr-code') {
+                    draggingProxyElement.textContent = 'QR Code';
+                    draggingProxyElement.style.backgroundColor = 'rgba(255, 165, 0, 0.8)';
+                    draggingProxyElement.style.color = 'black';
+                    draggingProxyElement.style.padding = '5px 10px';
+                    draggingProxyElement.style.borderRadius = '5px';
+                }
+
                 document.body.appendChild(draggingProxyElement);
             }
         });
@@ -1016,10 +1121,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.addEventListener('mouseup', (evt) => {
-            if (isDragging && currentlyDraggedFabricObject) {
-                let targetCanvas = null;
-                let targetCardId = null;
+            // تصحيح خطأ targetCanvas is not defined (تحديد النطاق)
+            let targetCanvas = null;
+            let targetCardId = null;
 
+            if (isDragging && currentlyDraggedFabricObject) {
+                // تحديد الكانفاس المستهدف
                 for (const id in cardData) {
                     const canvasInstance = cardData[id].fabricCanvas;
                     if (canvasInstance && canvasInstance.getElement() &&
@@ -1034,46 +1141,102 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (targetCanvas && targetCanvas !== startDragCanvas) {
+                    // منطق الإفلات الناجح على كانفاس آخر
                     const pointer = targetCanvas.getPointer(evt, true);
 
                     startDragCanvas.remove(currentlyDraggedFabricObject);
-                    // **تعديل:** تمرير cardData
-                    if (cardData[startDragCanvas.cardIdentifier]) { // استخدام cardIdentifier من الكانفاس مباشرة
+                    // حفظ التغييرات على الكانفاس الأصلي (الحذف)
+                    if (cardData[startDragCanvas.cardIdentifier]) {
                         saveITextObjectsFromSpecificCanvas(startDragCanvas, startDragCanvas.cardIdentifier, cardData);
                     }
 
-                    const newObject = new fabric.IText(currentlyDraggedFabricObject.text, {
-                        left: pointer.x,
-                        top: pointer.y,
-                        fontFamily: currentlyDraggedFabricObject.fontFamily,
-                        fontSize: currentlyDraggedFabricObject.fontSize,
-                        fill: currentlyDraggedFabricObject.fill,
-                        selectable: true,
-                        hasControls: true,
-                        // **تعديل:** تغيير 'alphabetic' إلى 'top'
-                        textBaseline: 'top',
-                        scaleX: currentlyDraggedFabricObject.scaleX,
-                        scaleY: currentlyDraggedFabricObject.scaleY,
-                        angle: currentlyDraggedFabricObject.angle
-                    });
+                    if (currentlyDraggedFabricObject.type === 'qr-code') {
 
-                    targetCanvas.add(newObject);
-                    newObject.bringToFront();
-                    targetCanvas.setActiveObject(newObject);
-                    targetCanvas.renderAll();
+                        // 💥 التعديل الأهم لحل مشكلة تكرار QR Code (حذف القديم قبل إضافة الجديد)
+                        targetCanvas.getObjects().filter(obj => obj.type === 'qr-code').forEach(qr => {
+                            targetCanvas.remove(qr);
+                        });
 
-                    // **تعديل:** تمرير cardData
-                    if (cardData[targetCardId]) {
-                        saveITextObjectsFromSpecificCanvas(targetCanvas, targetCardId, cardData);
+                        const qrImageUrl = '/assets/qr-code.jpg';
+                        const originalObject = currentlyDraggedFabricObject; // حفظ مرجع
+                        const targetCard = targetCardId;
+
+                        // إنشاء كائن QR Code جديد بشكل غير متزامن
+                        fabric.Image.fromURL(qrImageUrl, (img) => {
+                            // التحقق من نجاح التحميل أولاً (يحل مشكلة الاختفاء عند فشل التحميل)
+                            if (!img) {
+                                console.error('Failed to load QR code image for drag and drop. Reverting drag.');
+                                return;
+                            }
+
+                            img.set({
+                                left: pointer.x,
+                                top: pointer.y,
+                                scaleX: originalObject.scaleX,
+                                scaleY: originalObject.scaleY,
+                                angle: originalObject.angle,
+                                selectable: true,
+                                hasControls: true,
+                                type: 'qr-code',
+                                subtype: originalObject.subtype,
+                                width: originalObject.width,
+                                height: originalObject.height,
+                                id: `qr_${Math.random().toString(36).substr(2, 9)}` // ID فريد
+                            });
+
+                            targetCanvas.add(img);
+                            img.bringToFront();
+                            targetCanvas.setActiveObject(img);
+                            targetCanvas.renderAll();
+
+                            // حفظ التغييرات على الكانفاس الهدف (الإضافة)
+                            if (cardData[targetCard]) {
+                                saveITextObjectsFromSpecificCanvas(targetCanvas, targetCard, cardData);
+                            }
+                            // console.log(`تم إفلات QR Code على ${targetCard} في (${pointer.x}, ${pointer.y})`);
+                        }, { crossOrigin: 'Anonymous' }, (err) => {
+                            // معالج خطأ مخصص للتحميل
+                            console.error('Error loading QR code during drag-and-drop:', err);
+                        });
+
+                    } else if (currentlyDraggedFabricObject.type === 'i-text') {
+                        // منطق I-Text
+                        const newObject = new fabric.IText(currentlyDraggedFabricObject.text, {
+                            left: pointer.x,
+                            top: pointer.y,
+                            fontFamily: currentlyDraggedFabricObject.fontFamily,
+                            fontSize: currentlyDraggedFabricObject.fontSize,
+                            fill: currentlyDraggedFabricObject.fill,
+                            selectable: true,
+                            hasControls: true,
+                            textBaseline: 'top',
+                            scaleX: currentlyDraggedFabricObject.scaleX,
+                            scaleY: currentlyDraggedFabricObject.scaleY,
+                            angle: currentlyDraggedFabricObject.angle,
+                            id: `text_${Math.random().toString(36).substr(2, 9)}` // ID فريد
+                        });
+
+                        targetCanvas.add(newObject);
+                        newObject.bringToFront();
+                        targetCanvas.setActiveObject(newObject);
+                        targetCanvas.renderAll();
+
+                        // حفظ التغييرات على الكانفاس الهدف (الإضافة)
+                        if (cardData[targetCardId]) {
+                            saveITextObjectsFromSpecificCanvas(targetCanvas, targetCardId, cardData);
+                        }
+                        // console.log(`تم إفلات النص '${newObject.text}' على ${targetCardId} في (${pointer.x}, ${pointer.y})`);
                     }
-                    console.log(`تم إفلات النص '${newObject.text}' على ${targetCardId} في (${pointer.x}, ${pointer.y})`);
+
                 } else {
+                    // منطق الإفلات الفاشل أو الإفلات على نفس الكانفاس (إرجاع العنصر)
                     currentlyDraggedFabricObject.set({ opacity: 1, selectable: true, evented: true });
                     startDragCanvas.renderAll();
                     startDragCanvas.setActiveObject(currentlyDraggedFabricObject);
-                    console.log('تم إرجاع النص للكانفاس الأصلي.');
+                    // console.log('تم إرجاع العنصر للكانفاس الأصلي.');
                 }
 
+                // خطوة حاسمة: مسح المتغيرات المؤقتة والـ Proxy لإنهاء عملية السحب
                 if (draggingProxyElement) {
                     draggingProxyElement.remove();
                     draggingProxyElement = null;
@@ -1084,18 +1247,175 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // يجب أن تكون دالة setupDragDrop منفصلة ويتم استدعاؤها لكل كانفاس.
-        // ولكن نظرًا لأن الكود الخاص بك يدمج جزءًا من drag-drop هنا،
-        // فإن التعديلات تم تضمينها مباشرة حيثما كانت موجودة.
-        // يفضل فصلها إلى دالة setupDragDrop(currentCanvas, cardIdentifier)
-        // واستدعاؤها بعد تهيئة الكانفاس.
-
         return currentCanvas;
     }
+    // ملاحظة: افترض أن STANDARD_SIZES و saveITextObjectsFromSpecificCanvas
+// و initializeTemplateCanvas دوال أو متغيرات عامة ومعدلة لتقبل cardDataRef.
 
+    /**
+     * تطبيق حجم القالب على مجموعة محددة من العناصر باستخدام بياناتها الخاصة.
+     * * @param {string} selectedSizeKey - مفتاح الحجم المختار (مثل 'A4', 'Card').
+     * @param selectedSizeKey
+     * @param {string} containerSelector - محدد CSS للحاوية الرئيسية (مثل '.certificate-filehub' أو '.attendance-filehub').
+     * @param {object} cardDataRef - مرجع لكائن البيانات (certificateCardData أو attendanceCardData).
+     */
+    /**
+     * تطبيق حجم القالب على مجموعة محددة من العناصر باستخدام بياناتها الخاصة.
+     * @param {string} selectedSizeKey - مفتاح الحجم المختار (مثل 'A4', 'Card').
+     * @param {string} containerSelector - محدد CSS للحاوية الرئيسية.
+     * @param {object} cardDataRef - مرجع لكائن البيانات.
+     * @param {string} currentOrientation - الاتجاه الحالي ('portrait' أو 'landscape'). 👈 مُعامل إضافي
+     */
+    function applyTemplateSize(selectedSizeKey, containerSelector, cardDataRef, currentOrientation = 'portrait') {
+        const targetFileHub = document.querySelector(containerSelector);
 
+        if (!targetFileHub) {
+            console.warn(`Target file hub not found for selector: ${containerSelector}`);
+            return;
+        }
 
+        // البحث عن الكروت داخل الحاوية المستهدفة فقط
+        const allCardElements = targetFileHub.querySelectorAll('.filebox-card');
+        const baseDimensions = STANDARD_SIZES[selectedSizeKey] || STANDARD_SIZES['A4'];
 
+        let newDimensions = { ...baseDimensions }; // نسخ الأبعاد الأساسية
+
+        // 💥 تطبيق الاتجاه (Rotation) 💥
+        if (currentOrientation === 'landscape') {
+            // إذا كان الاتجاه أفقيًا، يتم عكس العرض والارتفاع
+            newDimensions.width = baseDimensions.height;
+            newDimensions.height = baseDimensions.width;
+        }
+        // ------------------------------------
+
+        if (allCardElements.length === 0) {
+            console.warn(`No .filebox-card elements found in ${containerSelector}.`);
+            return;
+        }
+
+        console.log(`[APPLY] - بدء تغيير الحجم إلى: ${selectedSizeKey} (${currentOrientation}) لـ ${containerSelector}`);
+
+        allCardElements.forEach(cardElement => {
+            const canvasEl = cardElement.querySelector('canvas');
+            const cardId = canvasEl ? canvasEl.getAttribute('data-card-id') : null;
+            const cardData = cardDataRef;
+
+            // 🛑 حفظ الاتجاه والمقاس في كائن البيانات
+            if (cardData[cardId]) {
+                cardData[cardId].sizeKey = selectedSizeKey;
+                cardData[cardId].orientation = currentOrientation;
+            }
+
+            if (!canvasEl || !cardId || !cardData[cardId] || !cardData[cardId].imageUrl) {
+                // تطبيق الأبعاد الجديدة
+                cardElement.style.width = `${newDimensions.width}px`;
+                cardElement.style.height = `${newDimensions.height}px`;
+                return;
+            }
+
+            const currentCanvas = cardData[cardId].fabricCanvas;
+            let scaleFactor = 1;
+
+            if (currentCanvas) {
+                const oldWidth = currentCanvas.width;
+                const oldHeight = currentCanvas.height;
+
+                saveITextObjectsFromSpecificCanvas(currentCanvas, cardId, cardData);
+
+                // حساب معامل التحجيم
+                if (oldWidth > 0 && oldHeight > 0) {
+                    const widthScale = newDimensions.width / oldWidth;
+                    const heightScale = newDimensions.height / oldHeight;
+                    scaleFactor = Math.min(widthScale, heightScale);
+                }
+
+                // 1. تدمير Canvas القديم
+                currentCanvas.dispose();
+                cardData[cardId].fabricCanvas = null;
+            }
+
+            // 2. تطبيق أبعاد الحاوية وعنصر الـ Canvas HTML الجديدة
+            cardElement.style.width = `${newDimensions.width}px`;
+            cardElement.style.height = `${newDimensions.height}px`;
+
+            canvasEl.style.width = `${newDimensions.width}px`;
+            canvasEl.style.height = `${newDimensions.height}px`;
+            canvasEl.width = newDimensions.width;
+            canvasEl.height = newDimensions.height;
+
+            // 3. تطبيق التحجيم على العناصر المحفوظة
+            if (scaleFactor !== 1 && cardData[cardId].iTextObjects.length > 0) {
+                cardData[cardId].iTextObjects.forEach(obj => {
+                    obj.scaleX *= scaleFactor;
+                    obj.scaleY *= scaleFactor;
+                    obj.left *= scaleFactor;
+                    obj.top *= scaleFactor;
+                });
+            }
+
+            // 4. إعادة التهيئة
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    if (cardData[cardId] && cardData[cardId].imageUrl) {
+                        initializeTemplateCanvas(
+                            canvasEl,
+                            cardData[cardId].imageUrl,
+                            cardId,
+                            cardData // تمرير مرجع البيانات
+                        );
+
+                        if (cardData[cardId].iTextObjects.length > 0 && cardData[cardId].fabricCanvas) {
+                            restoreITextObjectsOnSpecificCanvas(cardData[cardId].fabricCanvas, cardId, cardData);
+                            cardData[cardId].fabricCanvas.renderAll();
+                        }
+                    }
+                }, 50);
+            });
+        });
+
+        console.log(`[APPLY] - انتهى تغيير الحجم لـ ${containerSelector}.`);
+    }
+// ----------------------------------------------------------------------------------
+
+    const certSelect = document.getElementById('template-size-select');
+
+    $(document).ready(function() {
+        // 1. تهيئة Select2 لجميع العناصر التي تحمل الكلاس 'searchable'
+        // (هذا يجب أن يكون موجوداً لتشغيل خاصية البحث)
+        $('.searchable').select2({
+            placeholder: "{{ trans_db('search_for_template_size') }}",
+            allowClear: true,
+        });
+
+        // ------------------------------------------------------------------
+        // 2. الاستماع لحدث التغيير الخاص بـ "الشهادات" (الكود الموجود لديك)
+        // ------------------------------------------------------------------
+        $('#template-size-select').on('change', function (event) {
+            const selectedValue = $(this).val();
+
+            applyTemplateSize(
+                selectedValue,
+                '.js-filehub:not(.attendance-filehub)', // مُحدد حاوية الشهادات
+                certificateCardData                     // كائن بيانات الشهادات
+            );
+        });
+
+        // ------------------------------------------------------------------
+        // 3. إضافة الاستماع لحدث التغيير الخاص بـ "الحضور" (الكود المفقود)
+        // ------------------------------------------------------------------
+        $('#attendance-size-select').on('change', function (event) {
+            const selectedValue = $(this).val();
+
+            applyTemplateSize(
+                selectedValue,
+                // المُحدد الصحيح لحاوية الحضور فقط (نستخدم الكلاس الذي قمت باستثنائه في الشهادات)
+                '.attendance-filehub',
+                // كائن بيانات بطاقات الحضور (يجب أن يكون معرّفاً ومتاحاً)
+                attendanceCardData
+            );
+        });
+
+    });
 
 
     // ---------------------------------------------------------------------------------------
@@ -1160,7 +1480,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     fill: '#000000',
                     selectable: true,
                     hasControls: true,
-                    textBaseline: 'top' // تصحيح textBaseline
+                    textBaseline: 'top', // تصحيح textBaseline
+                    id: `text_${Math.random().toString(36).substr(2, 9)}`
                 });
                 canvas.add(text);
                 console.log(`Added header "${header}" to canvas at (${position.left}, ${position.top})`);
@@ -1413,7 +1734,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             canvas.on('object:moving', (e) => {
                 const obj = e.target;
-                if (obj.type === 'i-text') {
+                if (obj.type === 'i-text' || obj.type === 'qr-code') {
                     const pointer = canvas.getPointer(e.e);
                     const currentCanvasId = canvas.cardIdentifier || cardIdentifier;
                     const targetCanvasId = findTargetCanvas(e.e.clientX, e.e.clientY);
@@ -1427,16 +1748,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                         canvas.renderAll();
                         activeCanvas = canvas;
-                        updateObjectPosition(currentCanvasId, obj);
+                        updateObjectPosition(currentCanvasId, canvas, obj);
                     }
                 }
             });
 
             canvas.on('object:modified', function(e) {
                 const obj = e.target;
-                if (obj.type === 'i-text') {
+                if (obj.type === 'i-text' || obj.type === 'qr-code') {
                     activeCanvas = this;
-                    updateObjectPosition(this.cardIdentifier, obj);
+                    updateObjectPosition(this.cardIdentifier, canvas, obj);
                 }
             });
 
@@ -1489,10 +1810,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function updateObjectPosition(cardIdentifier, canvas, object) {
-            if (!canvas || !object) {
-                console.error('Invalid canvas or object in updateObjectPosition');
-                return;
-            }
+            // if (!canvas || !object || !object.id) { // التحقق من وجود الـ ID
+            //     console.error('Invalid canvas or object ID in updateObjectPosition');
+            //     return;
+            // }
 
             let inputFieldName;
             if (cardIdentifier.includes('attendance_template_data_file_path')) {
@@ -1523,17 +1844,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentInputData[cardIdentifier] = {
                     canvasWidth: canvas.width,
                     canvasHeight: canvas.height,
-                    objects: []
+                    texts: [], // استخدم 'texts' بدلاً من 'objects' لتوضيح المحتوى
+                    qrCodes: []
                 };
             }
 
-            const objects = currentInputData[cardIdentifier].objects || [];
-            const objectIndex = objects.findIndex(obj =>
-                (obj.type === 'i-text' && obj.text === object.text) ||
-                (obj.type === 'qr-code' && obj.subtype === object.subtype)
-            );
+            const texts = currentInputData[cardIdentifier].texts || [];
+            const qrCodes = currentInputData[cardIdentifier].qrCodes || [];
+
+            // الحل هنا: ابحث عن العنصر بالـ ID
+            const objectIndex = texts.findIndex(obj => obj.id === object.id);
+            const qrCodeIndex = qrCodes.findIndex(obj => obj.id === object.id);
 
             const objectData = {
+                id: object.id,
                 type: object.type,
                 left: object.left,
                 top: object.top,
@@ -1543,6 +1867,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             if (object.type === 'i-text') {
+                // ... (باقي البيانات كما هي)
                 objectData.text = object.text;
                 objectData.fontFamily = object.fontFamily || 'Arial';
                 objectData.fontSize = object.fontSize || 20;
@@ -1551,25 +1876,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 objectData.textAlign = object.textAlign || 'left';
                 objectData.fontWeight = object.fontWeight || 'normal';
                 objectData.zIndex = object.zIndex || 1;
+
+                if (objectIndex !== -1) {
+                    texts[objectIndex] = objectData;
+                } else {
+                    texts.push(objectData);
+                }
             } else if (object.type === 'qr-code') {
+                // ... (باقي البيانات كما هي)
                 objectData.subtype = object.subtype;
                 objectData.width = object.width * (object.scaleX || 1);
                 objectData.height = object.height * (object.scaleY || 1);
+
+                if (qrCodeIndex !== -1) {
+                    qrCodes[qrCodeIndex] = objectData;
+                } else {
+                    qrCodes.push(objectData);
+                }
             }
 
-            if (objectIndex !== -1) {
-                objects[objectIndex] = objectData;
-            } else {
-                objects.push(objectData);
-            }
-
-            currentInputData[cardIdentifier].objects = objects;
+            currentInputData[cardIdentifier].texts = texts;
+            currentInputData[cardIdentifier].qrCodes = qrCodes;
             currentInputData[cardIdentifier].canvasWidth = canvas.width;
             currentInputData[cardIdentifier].canvasHeight = canvas.height;
 
             inputField.value = JSON.stringify(currentInputData);
             console.log(`Value set to ${inputFieldName} input:`, inputField.value);
-            console.log(`Updated position for ${object.type === 'i-text' ? object.text : object.subtype} in ${cardIdentifier}`, objects);
+            console.log(`Updated position for ${object.type === 'i-text' ? object.text : object.subtype} in ${cardIdentifier}`, objectData);
         }
 
         function saveITextObjectsFromSpecificCanvas(cardId, canvas) {
@@ -1621,16 +1954,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         removePreviewBtn.addEventListener('click', () => {
+            // 1. مسح قيمة حقل الملفات
             fileInput.value = '';
-            updateCardDisplayState(false);
+
+            // 2. التخلص من كائن Fabric Canvas (مهم لتحرير الموارد)
             if (cardData[cardIdentifier].fabricCanvas) {
                 cardData[cardIdentifier].fabricCanvas.dispose();
                 cardData[cardIdentifier].fabricCanvas = null;
             }
+
+            // 3. **الخطوة الحاسمة لإزالة عنصر <canvas> الذي تم إنشاؤه ديناميكياً:**
+            // نستخدم querySelectorAll لإزالة عنصر <canvas> تحديداً.
+            fabricCanvasContainer.querySelectorAll('canvas, iframe').forEach(el => el.remove());
+
+            // 4. إفراغ ما تبقى في الحاوية (قد يكون عناصر DOM أخرى)
+            // **ملاحظة:** بما أن الزر الأحمر (removePreviewBtn) في كودك الأصلي موجود داخل fabric-canvas-container،
+            // فإن إفراغ innerHTML قد يحذفه. سنقوم بالتنظيف ثم إعادة إضافته لضمان وجوده في مكانه الثابت.
             fabricCanvasContainer.innerHTML = '';
             fabricCanvasContainer.appendChild(removePreviewBtn);
+
+            // 5. مسح المراجع
             cardData[cardIdentifier].imageUrl = null;
             currentTemplateCanvasElement = null;
+
+            // 6. تحديث حالة العرض (إظهار زر الرفع الأولي وإخفاء الحاوية الحالية)
+            updateCardDisplayState(false);
         });
 
         // إضافة حدث للتحقق من أسماء الحقول عند إرسال النموذج
@@ -1767,7 +2115,7 @@ document.addEventListener('DOMContentLoaded', () => {
         hub.innerHTML = '';
 
         const f = document.importNode(fileTpl, true);
-        f.querySelector('.card-title').textContent = 'تحميل مستندات – الوجه الأمامي';
+        f.querySelector('.card-title').textContent = window.i18n.documents_front_side;
         f.querySelector('.side-input').name = 'template_sides[]'; // تعديل اسم الإدخال
         f.querySelector('.side-input').value = 'front';
         f.querySelector('.file-input').name = 'document_template_file_path[]';
@@ -1808,7 +2156,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (backRadio && backRadio.checked) {
             const b = document.importNode(fileTpl, true);
-            b.querySelector('.card-title').textContent = 'تحميل مستندات – الوجه الخلفي';
+            b.querySelector('.card-title').textContent = window.i18n.documents_back_side;
             b.querySelector('.side-input').name = 'certificate_template_sides[]'; // تعديل اسم الإدخال
             b.querySelector('.side-input').value = 'back';
             b.querySelector('.file-input').name = 'document_template_file_path[]';
@@ -1864,8 +2212,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(`Cleared back card data for ${backCardId}`);
             }
         }
-    }
 
+        // 🌟🌟 الإضافة الجديدة لتطبيق الأبعاد القياسية بعد إنشاء الكارد 🌟🌟
+        const sizeSelect = document.getElementById('template-size-select');
+        if (sizeSelect) {
+            // نستخدم requestAnimationFrame و setTimeout لضمان استقرار العناصر في الـ DOM قبل محاولة قياس أبعادها
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    applyTemplateSize(sizeSelect.value || 'A4');
+                }, 50); // تأخير بسيط
+            });
+        }
+    }
 
     function renderAttendanceCards(block, initial = false) {
         const containers = block.querySelectorAll('.attachments-container');
@@ -2186,23 +2544,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const previewContainer = document.createElement('div');
         previewContainer.className = 'preview-container';
         previewContainer.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center;
-        align-items: center; z-index: 1000; overflow: auto;
-    `;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center;
+    align-items: center; z-index: 1000; overflow: auto;
+`;
+
+        // 🌟🌟 الإضافة المطلوبة هنا 🌟🌟
+        previewContainer.onclick = (event) => {
+            // نتحقق مما إذا كان النقر حدث على العنصر الحاوية نفسه وليس على أي من أبنائه
+            if (event.target === previewContainer) {
+                previewContainer.remove();
+                if (previewCanvas) previewCanvas.dispose();
+            }
+        };
+        // 🌟🌟 نهاية الإضافة المطلوبة 🌟🌟
 
         const previewWrapper = document.createElement('div');
         previewWrapper.style.cssText = `
-        position: relative; background: white; border-radius: 8px; padding: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; align-items: center;
-    `;
+    position: relative; background: white; border-radius: 8px; padding: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; align-items: center;
+`;
 
         const closeButton = document.createElement('button');
         closeButton.innerHTML = 'X';
         closeButton.className = 'absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors';
         closeButton.style.cssText = `
-        position: absolute; top: 10px; right: 10px; z-index: 1001;
-    `;
+    position: absolute; top: 10px; right: 10px; z-index: 1001;
+`;
+
         closeButton.onclick = () => {
             previewContainer.remove();
             if (previewCanvas) previewCanvas.dispose();
@@ -2235,30 +2604,30 @@ document.addEventListener('DOMContentLoaded', () => {
             // margin-top: -5px;
             // `;
 
-            bottomCard.style.cssText =`
-    background-color: white; border: 1px solid #ccc; border-radius: 4px;
-    padding: 3px 8px; display: flex; flex-direction: row-reverse; gap: 8px;
-    align-items: center; width: 64%; box-sizing: border-box;
-    margin-top: -5px`;
+//             bottomCard.style.cssText =`
+// background-color: white; border: 1px solid #ccc; border-radius: 4px;
+// padding: 3px 8px; display: flex; flex-direction: row-reverse; gap: 8px;
+// align-items: center; width: 64%; box-sizing: border-box;
+// margin-top: -5px`;
 
 
 
-            const logoImg = document.createElement('img');
-            logoImg.src = '/assets/logo.jpg'; // 👈 **تأكد من هذا المسار**
-            logoImg.alt = 'شعار الموقع';
-            logoImg.style.height = '40px';
+            //     const logoImg = document.createElement('img');
+            //     logoImg.src = '/assets/logo.jpg'; // 👈 **تأكد من هذا المسار**
+            //     logoImg.alt = 'شعار الموقع';
+            //     logoImg.style.height = '40px';
+            //
+            //     // ⭐⭐ هنا التعديل: استبدال الـ QR code بالنص ⭐⭐
+            //     const verifiedText = document.createElement('span');
+            //     verifiedText.textContent = 'Verified by Pepasafe';
+            //     verifiedText.style.cssText = `
+            // font-weight: bold;
+            // font-size: 14px;
+            // color: #4a5568;
+            // `;
 
-            // ⭐⭐ هنا التعديل: استبدال الـ QR code بالنص ⭐⭐
-            const verifiedText = document.createElement('span');
-            verifiedText.textContent = 'Verified by Pepasafe';
-            verifiedText.style.cssText = `
-            font-weight: bold;
-            font-size: 14px;
-            color: #4a5568;
-        `;
-
-            bottomCard.appendChild(logoImg);
-            bottomCard.appendChild(verifiedText); // إضافة النص بدلاً من الصورة
+            // bottomCard.appendChild(logoImg);
+            // bottomCard.appendChild(verifiedText); // إضافة النص بدلاً من الصورة
             previewWrapper.appendChild(bottomCard);
         }
         // ⭐⭐ نهاية التعديلات الجديدة ⭐⭐
@@ -2272,15 +2641,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalWidth = originalCanvas.width;
             const originalHeight = originalCanvas.height;
 
-            const maxWidth = window.innerWidth * 0.8;
-            const maxHeight = window.innerHeight * 0.6;
+            // const maxWidth = window.innerWidth * 0.8;
+            // const maxHeight = window.innerHeight * 0.6;
 
             let scale = 1;
-            if (originalWidth > maxWidth || originalHeight > maxHeight) {
-                const scaleX = maxWidth / originalWidth;
-                const scaleY = maxHeight / originalHeight;
-                scale = Math.min(scaleX, scaleY);
-            }
+            // if (originalWidth > maxWidth || originalHeight > maxHeight) {
+            //     const scaleX = maxWidth / originalWidth;
+            //     const scaleY = maxHeight / originalHeight;
+            //     scale = Math.min(scaleX, scaleY);
+            // }
 
             const previewWidth = originalWidth * scale;
             const previewHeight = originalHeight * scale;
@@ -2312,6 +2681,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (obj.type === 'i-text' && excelFirstRowData && obj.text) {
                     const headerText = obj.text.trim();
                     if (excelFirstRowData.hasOwnProperty(headerText)) {
+                        // هذا هو الجزء الذي يقوم بالاستبدال
                         clonedObj.set('text', String(excelFirstRowData[headerText]));
                     }
                 }
