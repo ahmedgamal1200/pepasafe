@@ -73,7 +73,7 @@ public function index(Request $request): View|Application|Factory // ⬅️ تم
 
     // 2. التحقق من صحة القيمة وتعيين الحقل المراد الفرز به
     $sortField = 'start_date'; // نستخدم تاريخ بدء الحدث للفرز (الأحدث/الأقدم)
-    
+
     // تأكد أن القيمة المأخوذة إما 'asc' أو 'desc' فقط
     if (!in_array($sortOrder, ['asc', 'desc'])) {
         $sortOrder = 'desc';
@@ -86,7 +86,7 @@ public function index(Request $request): View|Application|Factory // ⬅️ تم
             ->where('user_id', $user->id)
             ->with(['documentTemplates', 'recipients'])
             // 3. ⬅️ تطبيق الفرز على مستوى قاعدة البيانات
-            ->orderBy($sortField, $sortOrder); 
+            ->orderBy($sortField, $sortOrder);
 
         // 4. تطبيق الترقيم على الاستعلام المُرتب
         $events = $eventsQuery->paginate(12); // 12 عنصر لكل صفحة (يمكنك تعديلها)
@@ -98,6 +98,8 @@ public function index(Request $request): View|Application|Factory // ⬅️ تم
     } else {
         $events = collect();
     }
+
+
 
     return view('eventors.home', compact(
         'user',
