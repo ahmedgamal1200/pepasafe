@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Mail;
 
+
 class RegisteredUserController extends Controller
 {
     public function create(): View|Application|Factory
@@ -26,7 +27,15 @@ class RegisteredUserController extends Controller
 
     public function store(RegisterUserRequest $request, RegisteredRepository $repo): Application|Redirector|RedirectResponse
     {
-        $user = $repo->register($request->validated());
+        // 1. الحصول على البيانات التي تم التحقق منها (بما في ذلك حقل 'phone' المدمج)
+        $validatedData = $request->validated();
+        
+        // 2. حذف الحقول الإضافية (country_code و phone_number) قبل الإرسال إلى الـ Repository
+        unset($validatedData['country_code']);
+        unset($validatedData['phone_number']);
+        
+        // الآن $validatedData تحتوي على حقل 'phone' بالصيغة الكاملة الموحدة
+        $user = $repo->register($validatedData);
 
         event(new Registered($user));
 

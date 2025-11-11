@@ -8,11 +8,13 @@
     "require": {
         "php": "^8.2",
         "ext-curl": "*",
+        "ext-fileinfo": "*",
         "ext-zip": "*",
         "barryvdh/laravel-dompdf": "^3.1",
         "chillerlan/php-qrcode": "^5.0",
         "codeat3/blade-phosphor-icons": "^2.3",
         "filament/filament": "^3.3",
+        "giggsey/libphonenumber-for-php": "^9.0",
         "intervention/image": "^3.11",
         "intervention/image-laravel": "^1.5",
         "laravel/framework": "^11.31",
@@ -20,13 +22,14 @@
         "laravel/socialite": "^5.21",
         "laravel/tinker": "^2.9",
         "maatwebsite/excel": "^3.1",
+        "pragmarx/countries": "*",
+        "propaganistas/laravel-phone": "^6.0",
         "pusher/pusher-php-server": "^7.2",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-permission": "^6.19",
         "spatie/laravel-translatable": "^6.11",
         "twilio/sdk": "^8.6",
-        "webmozart/json": "^1.1",
-        "ext-fileinfo": "*"
+        "webmozart/json": "^1.1"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.16",
