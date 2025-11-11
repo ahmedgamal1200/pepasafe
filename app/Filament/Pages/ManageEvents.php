@@ -9,6 +9,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\QueryException; // ⬅️ تم استيراد QueryException
 
 class ManageEvents extends Page implements HasForms
 {
@@ -82,12 +83,14 @@ class ManageEvents extends Page implements HasForms
 
     public function createUser()
     {
-        // الفاليديشن خارج الـ try-catch ليتمكن Filament من عرض الأخطاء تلقائيًا
+        // ⬅️ تم تحديث قواعد الفاليديشن لإضافة unique:users,phone
         $this->validate([
             'name' => ['required', 'string', 'max:255'],
+            // الفاليديشن التلقائي للـ email يجب أن يمنع تكرار البريد قبل الوصول للـ try-catch
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6'],
-            'phone' => ['required', 'string'],
+            // هذا الفاليديشن يمنع تكرار رقم الهاتف قبل الوصول للـ try-catch
+            'phone' => ['required', 'string', 'unique:users,phone'],
             'permissions' => ['nullable', 'array'],
         ]);
 
@@ -100,7 +103,6 @@ class ManageEvents extends Page implements HasForms
                     ->title(trans_db('Events.max_users_exhausted'))
                     ->danger()
                     ->send();
-
                 return;
             }
 
@@ -132,10 +134,36 @@ class ManageEvents extends Page implements HasForms
                 ->success()
                 ->send();
 
+        } catch (QueryException $e) {
+            // ⬅️ اعتراض خطأ تكرار الإدخال (SQLSTATE 23000)
+            if ($e->getCode() === '23000' && str_contains($e->getMessage(), 'Duplicate entry')) {
+
+                $errorMessageKey = 'Events.error_duplicate_entry_generic';
+
+                // محاولة تحديد الحقل المكرر بدقة (email أو phone)
+                if (str_contains($e->getMessage(), 'users_email_unique')) {
+                    $errorMessageKey = 'Events.error_duplicate_email';
+                } elseif (str_contains($e->getMessage(), 'users_phone_unique')) {
+                    $errorMessageKey = 'Events.error_duplicate_phone';
+                }
+
+                Notification::make()
+                    ->title(trans_db($errorMessageKey))
+                    ->danger()
+                    ->send();
+            } else {
+                // إظهار رسالة خطأ عامة لأي خطأ آخر في قاعدة البيانات
+                Notification::make()
+                    ->title(trans_db('Events.error_generic_db'))
+                    ->body($e->getMessage()) // يمكن إظهار رسالة الخطأ التقنية هنا إذا لزم الأمر
+                    ->danger()
+                    ->send();
+            }
         } catch (\Throwable $e) {
-            // إشعار بالخطأ (تم استخدام مفتاح ترجمة)
+            // اعتراض أي خطأ عام آخر
             Notification::make()
-                ->title(trans_db('Events.error_prefix') . $e->getMessage())
+                ->title(trans_db('Events.error_prefix'))
+                ->body(trans_db('Events.error_unexpected')) // رسالة خطأ غير متوقعة
                 ->danger()
                 ->send();
         }

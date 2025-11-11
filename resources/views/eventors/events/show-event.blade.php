@@ -5,6 +5,8 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/logo.jpg') }}">
+
 
     <title>عرض الاحداث</title>
     <!-- Tailwind CSS -->
@@ -20,6 +22,35 @@
 
 </head>
 <body class="space-y-12 bg-white">
+<style>
+    /* 1. القواعد الافتراضية (لشاشات الكمبيوتر/التابلت الكبيرة) */
+    .custom-placeholder-small::placeholder {
+        font-size: 0.8rem !important; /* حجم قياسي (أكبر قليلاً) */
+    }
+
+    .custom-placeholder-small::-webkit-input-placeholder {
+        font-size: 0.8rem !important;
+    }
+
+    /* 2. قواعد شاشات الموبايل (أقل من 640px) */
+    @media (max-width: 639px) {
+        /* هذا هو breakpoint:sm-1 في Tailwind */
+        .custom-placeholder-small::placeholder {
+            font-size: 0.6rem !important; /* ⬅️ تصغير حجم الخط على الموبايل */
+        }
+
+        .custom-placeholder-small::-webkit-input-placeholder {
+            font-size: 0.6rem !important; /* ⬅️ تصغير حجم الخط على الموبايل */
+        }
+        /* لا تنس إضافة قواعد الـ -moz- و -ms- لضمان التوافق الكامل */
+        .custom-placeholder-small::-moz-placeholder {
+            font-size: 0.6rem !important;
+        }
+        .custom-placeholder-small:-ms-input-placeholder {
+            font-size: 0.6rem !important;
+        }
+    }
+</style>
 
 @include('partials.auth-navbar')
 
@@ -48,9 +79,9 @@
                     placeholder="{{ trans_db('show.event.search.placholder') }}"
                     required
                     class="w-full border border-gray-300 rounded-lg
-               {{ $paddingStart }} {{ $paddingEnd }} py-2
-               focus:outline-none focus:ring-2 focus:ring-blue-400
-               text-xs sm:text-base {{ $textAlignment }}"
+           {{ $paddingStart }} {{ $paddingEnd }} py-2
+           focus:outline-none focus:ring-2 focus:ring-blue-400
+           text-xs sm:text-base {{ $textAlignment }} custom-placeholder-small"
                     dir="{{ $direction }}"
                 />
             </div>
@@ -169,38 +200,35 @@
     });
 </script>
 
+
 <!-- بطاقة النتيجة صغيرة على اليمين -->
-@if(request()->has('query') && $user)
-    <!-- ======================= الإطار الجديد ======================= -->
-    <!-- حاوية خارجية للإطار المتدرج الأنيق -->
+@if($searchedUser)
     <div class="max-w-4xl mx-auto p-1 bg-blue-300 rounded-xl shadow-lg">
 
-        <!-- الصندوق الأبيض الداخلي (الكود الأصلي الخاص بك) -->
         <div class="bg-white rounded-lg p-6">
-            <!-- حاوية رئيسية باستخدام Flexbox -->
             <div class="flex justify-between items-start gap-4">
 
-                <!-- قسم المعلومات -->
                 <div id="personal-info" class="flex flex-col">
-                    <h2 id="name" class="text-xl font-bold text-gray-800 mb-2">{{ $user->name }}</h2>
+                    {{-- تم تغيير $user->name إلى $searchedUser->name --}}
+                    <h2 id="name" class="text-xl font-bold text-gray-800 mb-2">{{ $searchedUser->name }}</h2>
                     <div class="contact-item flex items-center gap-2 text-gray-600 mb-2">
                         <i class="fa-solid fa-phone-alt w-4 text-center"></i>
-                        <span id="phone">{{ $user->phone }}</span>
+                        {{-- تم تغيير $user->phone إلى $searchedUser->phone --}}
+                        <span id="phone">{{ $searchedUser->phone }}</span>
                     </div>
                     <div class="contact-item flex items-center gap-2 text-gray-600 mb-2">
                         <i class="fa-solid fa-envelope w-4 text-center"></i>
-                        <span id="email">{{ $user->email }}</span>
+                        {{-- تم تغيير $user->email إلى $searchedUser->email --}}
+                        <span id="email">{{ $searchedUser->email }}</span>
                     </div>
-{{--                    <div class="contact-item flex items-center gap-2 text-gray-600">--}}
-{{--                        <i class="fa-solid fa-certificate w-4 text-center"></i>--}}
-{{--                        <span id="certificate-label">شهادة الحضور</span>--}}
-{{--                    </div>--}}
+                    {{--                    <div class="contact-item flex items-center gap-2 text-gray-600">--}}
+                    {{--                        <i class="fa-solid fa-certificate w-4 text-center"></i>--}}
+                    {{--                        <span id="certificate-label">شهادة الحضور</span>--}}
+                    {{--                    </div>--}}
                 </div>
 
-                <!-- قسم الأزرار مع السويتش الجديد -->
                 <div class="flex flex-col items-end gap-4">
                     @if(optional($documents->first())->file_path != null)
-                        <!-- الأزرار الأصلية -->
                         <div class="flex flex-wrap justify-end gap-3">
                             <button
                                 id="print-btn"
@@ -233,14 +261,16 @@
                     @endif
 
                     @if($enable_attendance)
-                        <!-- ======================= السويتش الجديد ======================= -->
-                        <div class="flex items-center gap-3" data-user-id="{{ $user->id }}">
+                        {{-- تم تغيير data-user-id="{{ $user->id }}" إلى $searchedUser->id --}}
+                        <div class="flex items-center gap-3" data-user-id="{{ $searchedUser->id }}">
                             <span class="text-sm font-medium text-gray-700">{{ trans_db('attendance_enable') }}</span>
-                            <label for="toggle-{{ $user->id }}"
+                            {{-- تم تغيير id="toggle-{{ $user->id }}" إلى $searchedUser->id --}}
+                            <label for="toggle-{{ $searchedUser->id }}"
                                    class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="toggle-{{ $user->id }}"
+                                <input type="checkbox" id="toggle-{{ $searchedUser->id }}"
                                        class="sr-only peer attendance-toggle"
-                                       @if($user->is_attendance) checked @endif>
+                                       {{-- تم تغيير @if($user->is_attendance) إلى $searchedUser->is_attendance --}}
+                                       @if($searchedUser->is_attendance) checked @endif>
                                 <div
                                     class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-green-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
                             </label>
@@ -263,12 +293,9 @@
         </div>
     </div>
 @endif
-
-@if(request()->has('query') && !$user)
+@if(session('search_performed') && !$searchedUser)
     <div class="max-w-md mx-auto bg-red-50 border-l-4 border-red-500 rounded-lg p-5 shadow-sm">
         <div class="flex items-center gap-4">
-            <!-- الأيقونة -->
-            <!-- النصوص -->
             @php
                 $isRTL = app()->getLocale() === 'ar';
                 $direction = $isRTL ? 'rtl' : 'ltr';
@@ -285,7 +312,6 @@
         </div>
     </div>
 @endif
-
 <!-- كارد التحكم بالأحداث -->
 <section
     class="w-full mx-auto bg-white rounded-lg p-4 sm:p-6 shadow-md mb-6 hover:shadow-lg transition-shadow duration-300">
@@ -992,6 +1018,20 @@
     function closePasswordModal() {
         document.getElementById('passwordModal').classList.add('hidden');
     }
+</script>
+
+<script>
+    // لما الصفحة تتحمل، امسح قيمة البحث والنتائج لو الصفحة تم عملها refresh
+    window.addEventListener('load', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (!urlParams.has('query')) {
+            // امسح قيمة input
+            document.getElementById('search-input').value = '';
+            // امسح النتائج
+            const results = document.getElementById('search-results');
+            if(results) results.innerHTML = '';
+        }
+    });
 </script>
 
 

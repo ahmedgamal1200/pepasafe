@@ -2080,66 +2080,87 @@ class TranslationSeeder extends Seeder
                     'ar' => 'ملف بيانات المشاركين' ,
                    'en' => 'Participants Data File',
             ],
-            'register.email.placeholder' => [ 
+            'register.email.placeholder' => [
             'en' => 'e.g: example@example.com',
             'ar' => 'مثال: name@example.com', // <--- هذه هي القيمة العربية الجديدة
         ],
-        'register.phone.placeholder' => [ 
+        'register.phone.placeholder' => [
             'en' => 'e.g: 01012345678',
             'ar' => 'مثال: 01012345678', // <--- القيمة العربية الجديدة
         ],
-        'terms' => [ 
+        'terms' => [
             'ar' => 'الشروط والاحكام وسياسه الخصوصيه',
             'en' => 'Terms and Conditions and Privacy Policy ', // <--- القيمة العربية الجديدة
         ],
-        'scan.qr' => [ 
+        'scan.qr' => [
             'ar' => "امسح رمز QR",
             'en' => 'Scan Qr ', // <--- القيمة العربية الجديدة
         ],
-        'viewing.shared.profile' => [ 
+        'viewing.shared.profile' => [
             'ar' => "أنت تشاهد حاليًا ملفًا شخصيًا تمت مشاركته معك من قبل مستخدم آخر.",
-            'en' => 'You are currently viewing a profile shared with you by another user.', 
+            'en' => 'You are currently viewing a profile shared with you by another user.',
         ],
-        'Profile.Information..' => [ 
+        'Profile.Information..' => [
             'ar' => "معلومات الملف الشخصي",
-            'en' => 'Profile Information', 
+            'en' => 'Profile Information',
         ],
-        'documents.Information.' => [ 
+        'documents.Information.' => [
             'ar' => "  هذه هي الوثائق",
-            'en' => 'These are the documents of', 
+            'en' => 'These are the documents of',
         ],
-        'documents.Information.user' => [ 
+        'documents.Information.user' => [
             'ar' => "  هذه هي المستندات التي سمح المستخدم للآخرين بالاطلاع عليها.",
-            'en' => 'These are the documents that the user has allowed others to view.', 
+            'en' => 'These are the documents that the user has allowed others to view.',
         ],
-         'available.documents.' => [ 
+         'available.documents.' => [
             'ar' => "لا توجد مستندات متاحة هنا!.",
-            'en' => 'No documents available here!', 
+            'en' => 'No documents available here!',
         ],
-         'verify.owner.allowed' => [ 
+         'verify.owner.allowed' => [
             'ar' => "يرجى التحقق من أن صاحب الحساب قد سمح بإظهار مستنداته..",
-            'en' => 'Please verify that the account owner has allowed their documents to be visible.', 
+            'en' => 'Please verify that the account owner has allowed their documents to be visible.',
         ],
-         'events.of' => [ 
+         'events.of' => [
             'ar' => "هذه هي أحداث",
-            'en' => 'These are the Events of', 
+            'en' => 'These are the Events of',
         ],
-        'organizer.allowed.events' => [ 
+        'organizer.allowed.events' => [
             'ar' => "هذه هي الفعاليات التي سمح المنظم بإظهارها على ملفه الشخصي.",
-            'en' => 'These are the events that the organizer has allowed to be visible on their personal profile.', 
+            'en' => 'These are the events that the organizer has allowed to be visible on their personal profile.',
         ],
-        'subscription.success' => [ 
+        'subscription.success' => [
             'ar' => "تم تحديث إعداد التجديد التلقائي بنجاح.",
-            'en' => 'The automatic renewal setting has been updated successfully.', 
+            'en' => 'The automatic renewal setting has been updated successfully.',
         ],
-        'subscription.error' => [ 
+        'subscription.error' => [
             'ar' => "لا يوجد اشتراك مرتبط بهذا الحساب.",
-            'en' => 'There is no subscription associated with this account.', 
+            'en' => 'There is no subscription associated with this account.',
         ],
-        'subscription.renewed' => [ 
+        'subscription.renewed' => [
             'ar' => "تم تجديد الباقة بنجاح ",
-            'en' => 'The package has been successfully renewed.', 
+            'en' => 'The package has been successfully renewed.',
         ],
+            'payment_receipts.created_at' => [
+            'ar' => "تاريخ ألإنشاء",
+            'en' => 'Created at',
+        ],
+
+            'payment_receipts.sort_order' => [
+                'ar' => 'الترتيب',
+                'en' => 'Sort order',
+            ],
+            'payment_receipts.sort_order_desc' => [
+                'ar' => 'من الأحدث للأقدم',
+                'en' => 'From newest to oldest',
+            ],
+            'payment_receipts.sort_order_ASC' => [
+                'ar' => 'من ألأقدم للأحدث',
+                'en' => 'From oldest to newest',
+            ],
+            'profile.link.copy' => [
+                'ar' => 'تم نسخ الرابط الي الحافظة',
+                'en' => 'Link copied to clipboard!',
+            ]
 
 
         ];

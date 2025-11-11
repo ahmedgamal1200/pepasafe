@@ -12,7 +12,10 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\ViewColumn;
 use Filament\Tables\Actions\Action;
-use Filament\Support\Enums\Alignment; // لاستخدام Alignment::Right
+use Filament\Support\Enums\Alignment;
+use Illuminate\Database\Eloquent\Builder;
+
+// لاستخدام Alignment::Right
 
 class PaymentReceiptResource extends Resource
 {
@@ -77,6 +80,115 @@ class PaymentReceiptResource extends Resource
                     ->label(trans_db('payment_receipts.user_name'))
                     ->relationship('user', 'name')
                     ->preload()
+                    ->searchable()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     ->required(),
                 Forms\Components\Select::make('plan_id')
                     // trans_db
@@ -110,7 +222,7 @@ class PaymentReceiptResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name')
+                Tables\Columns\TextColumn::make('user.name')->searchable()->sortable()
                     // trans_db
                     ->label(trans_db('payment_receipts.user_name'))
                     ->searchable(),
@@ -132,6 +244,11 @@ class PaymentReceiptResource extends Resource
                         'danger' => 'rejected',
                     ])
                     ->formatStateUsing(fn (string $state): string => trans_db("payment_receipts.status_{$state}")), // ترجمة حالة Badge
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label(trans_db('payment_receipts.created_at'))
+                    ->dateTime()
+                    ->sortable() //
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->actions([
                 Action::make('approve')
@@ -187,12 +304,26 @@ class PaymentReceiptResource extends Resource
                         // trans_db
                         'rejected' => trans_db('payment_receipts.status_rejected'),
                     ]),
+
+                // ⬅️ الفلتر الجديد للترتيب حسب التاريخ
+                Tables\Filters\SelectFilter::make('sort_order')
+                    ->label(trans_db('payment_receipts.sort_order'))
+                    ->options([
+                        'desc' => trans_db('payment_receipts.sort_order_desc'),
+                        'asc' => trans_db('payment_receipts.sort_order_ASC'),
+                    ])
+                    ->default('desc')
+                    ->query(fn (Builder $query, array $data): Builder =>
+                        // تطبيق الترتيب بناءً على القيمة المختارة (desc أو asc)
+                    $query->orderBy('created_at', $data['value'] ?? 'desc')
+                    ),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
+            ->defaultSort('created_at', 'desc')
             // تفعيل RTL للعربية
             ->modifyQueryUsing(fn ($query) => $query)
             ->defaultSort('id', 'asc');

@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->string('type'); // خاص او حكومة الخ
+            $table->string('type'); // خاص أو حكومة الخ
             $table->string('icon')->nullable();
             $table->timestamps();
         });
