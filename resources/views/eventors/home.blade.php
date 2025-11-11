@@ -72,43 +72,38 @@
         @include('partials.search-bar')
     </div>
 @endif
-
-<button id="sort-button" data-sort-order="desc"
+<div class="flex flex-wrap items-center justify-start gap-2">
+    {{-- الزر الأول (Sort Button) --}}
+    <button id="sort-button" data-sort-order="desc"
         class="bg-blue-600 hover:bg-blue-700 text-white font-semibold
-              py-1 px-2 sm:py-2 sm:px-4
-              rounded-lg transition-colors duration-200
-              block sm:inline-block w-full sm:w-auto text-center order-2 sm:order-1
-              rtl:mr-2 ltr:ml-2">
-    <i class="bi bi-sort-up ltr:mr-2 rtl:ml-2"></i>
-    <span>{{ trans_db('event.sort.newest') }}</span>
-</button>
+               py-1 px-2 sm:py-2 sm:px-4
+               rounded-lg transition-colors duration-200
+               inline-block w-auto text-center order-2 sm:order-1">
+        <i class="bi bi-sort-up ltr:mr-2 rtl:ml-2"></i>
+        <span>{{ trans_db('event.sort.newest') }}</span>
+    </button>
 
-@if($events->isNotEmpty())
-    <a href="{{ route('home.users') }}"
-       class="bg-gray-600 hover:bg-green-700 text-white font-semibold
+    {{-- الروابط الأخرى (Conditional Links) --}}
+    @if($events->isNotEmpty())
+        {{-- الرابط الثاني (Your Docs) --}}
+        <a href="{{ route('home.users') }}"
+           class="bg-gray-600 hover:bg-green-700 text-white font-semibold
                   py-1 px-2 sm:py-2 sm:px-4
                   rounded-lg transition-colors duration-200
-                  ms-0 sm:ms-40 mt-4 sm:mt-0
-                  block sm:inline-block sm:w-auto w-full text-center">
-        {{ trans_db('event.your.docs') }}
-    </a>
-@endif
+                  inline-block w-auto text-center order-1 sm:order-2">
+            {{ trans_db('event.your.docs') }}
+        </a>
 
-
-
-
-@if($events->isNotEmpty())
-    <a href="{{ route('create-event') }}"
-       class="bg-green-600 hover:bg-green-700 text-white font-semibold
-              py-1 px-2 sm:py-2 sm:px-4
-              rounded-lg transition-colors duration-200
-              ms-0 sm:ms-40 mt-4 sm:mt-0
-              block sm:inline-block sm:w-auto w-full text-center">
-        + {{ trans_db('home.event.create.event') }}
-    </a>
-@endif
-
-
+        {{-- الرابط الثالث (Create Event) --}}
+        <a href="{{ route('create-event') }}"
+           class="bg-green-600 hover:bg-green-700 text-white font-semibold
+                  py-1 px-2 sm:py-2 sm:px-4
+                  rounded-lg transition-colors duration-200
+                  inline-block w-auto text-center order-3">
+            + {{ trans_db('home.event.create.event') }}
+        </a>
+    @endif
+</div>
 
 
 
@@ -244,19 +239,6 @@
             <p class="mt-4 text-gray-700 leading-relaxed text-sm sm:text-base">
                 {{ trans_db('cta.create_event_description') }}
             </p>
-
-            <a
-                href="{{ route('create-event') }}"
-                class="mt-6 w-full sm:w-auto bg-blue-600 text-white rounded-lg px-6 py-3 hover:bg-blue-700 flex items-center justify-center mx-auto"
-            >
-
-                <i class="bi bi-plus-lg {{ $iconMarginClass }}"></i>
-                {{ trans_db('cta.create_event_button') }}
-            </a>
-            @endif
-        </div>
-</section>
-
 
 
 

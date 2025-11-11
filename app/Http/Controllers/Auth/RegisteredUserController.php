@@ -43,33 +43,41 @@ class RegisteredUserController extends Controller
      * @throws \Exception
      */
     public function store(EventorRegisterRequest $request, EventorAuthRepository $repo): RedirectResponse
-    {
+{
+    // 1. الحصول على البيانات المتحقق منها (تشمل الآن 'phone' المدمج)
+    $validatedData = $request->validated();
+    
+    // 2. حذف الحقول المنفصلة التي تم استخدامها للـ Validation فقط
+    unset($validatedData['country_code']);
+    unset($validatedData['phone_number']);
+    
+    // 3. دمج البيانات المُنظّفة مرة أخرى في الـ Request قبل إرسالها إلى الـ Repository
+    $request->merge($validatedData);
 
-        $user = $repo->registerEventor($request);
+    $user = $repo->registerEventor($request);
 
-        event(new Registered($user));
+    event(new Registered($user));
 
-        $emailOtpSetting = Setting::where('key', 'email_otp_active')->first();
-        $emailOtpActive = $emailOtpSetting && $emailOtpSetting->value == '1';
+    $emailOtpSetting = Setting::where('key', 'email_otp_active')->first();
+    $emailOtpActive = $emailOtpSetting && $emailOtpSetting->value == '1';
 
-        if ($emailOtpActive) {
-            // ✅ توليد كود OTP
-            $otp = rand(100000, 999999);
+    if ($emailOtpActive) {
+        // ✅ توليد كود OTP
+        $otp = rand(100000, 999999);
 
-            Cookie::queue('otp', $otp, 5);
+        Cookie::queue('otp', $otp, 5);
 
-            Auth::login($user);
+        Auth::login($user);
 
-            Mail::to($user->email)->send(new OtpMail($otp));
+        Mail::to($user->email)->send(new OtpMail($otp));
 
-            return redirect()->route('verify.otp');
-        } else {
-            Auth::login($user);
+        return redirect()->route('verify.otp');
+    } else {
+        Auth::login($user);
 
-            return redirect(route('home.eventor', absolute: false));
-        }
-
+        return redirect(route('home.eventor', absolute: false));
     }
+}
 
     public function showOtpForm(): \Illuminate\Contracts\View\View|Application|Factory
     {

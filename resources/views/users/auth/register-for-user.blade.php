@@ -167,7 +167,7 @@
                    class="w-full p-2 border border-gray-300 rounded mb-4 {{ $textAlignment }}"
                    dir="{{ $direction }}">
 
-            <label for="phone" class="block text-sm font-medium {{ $textAlignment }} mb-1" dir="{{ $direction }}">
+            {{-- <label for="phone" class="block text-sm font-medium {{ $textAlignment }} mb-1" dir="{{ $direction }}">
                 {{ trans_db('register.phone') }}
             </label>
             <input type="text"
@@ -177,7 +177,41 @@
                    placeholder="{{ trans_db('register.phone.placeholder') }}"
                    value="{{ old('phone') }}"
                    class="w-full p-2 border border-gray-300 rounded mb-4 {{ $textAlignment }}"
-                   dir="{{ $direction }}">
+                   dir="{{ $direction }}"> --}}
+                   
+                   <label for="phone_number" class="block text-sm font-medium {{ $textAlignment }} mb-1" dir="{{ $direction }}">
+    {{ trans_db('register.phone') }}
+</label>
+
+{{-- استدعاء أكواد الدول من ملف الكونفيج --}}
+@php
+    $countryCodes = config('country_codes.country_codes');
+    $defaultCode = config('country_codes.default_code');
+@endphp
+            
+<div class="flex w-full mb-4 gap-2" dir="{{ $direction }}">
+    {{-- حقل مفتاح الدولة (Country Code) --}}
+    <select name="country_code" 
+            id="country_code"
+            class="p-2 border border-gray-300 rounded {{ $textAlignment }} max-w-[120px]"
+            required>
+        @foreach ($countryCodes as $code => $label)
+            <option value="{{ $code }}" 
+                    {{ old('country_code', $defaultCode) == $code ? 'selected' : '' }}>
+                {{ $label }}
+            </option>
+        @endforeach
+    </select>
+
+    {{-- حقل رقم الهاتف --}}
+    <input type="text"
+            id="phone_number"
+            name="phone_number"
+            required
+            placeholder="{{ trans_db('register.phone.placeholder') }}"
+            value="{{ old('phone_number') }}"
+            class="w-full p-2 border border-gray-300 rounded {{ $textAlignment }} flex-1">
+</div>
 
             <label for="email" class="block text-sm font-medium {{ $textAlignment }} mb-1" dir="{{ $direction }}">
                 {{ trans_db('register.email') }}
