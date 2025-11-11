@@ -8,7 +8,7 @@
 
         <div class="mb-6 p-4 bg-blue-100 rounded-lg shadow-md border-l-4 border-blue-500">
             <p class="text-sm font-medium text-blue-700">
-                {{trans_db('viewing.shared.profile')}} 
+                {{trans_db('viewing.shared.profile')}}
             </p>
         </div>
 
@@ -53,18 +53,19 @@
                                 @endif
                             </div>
                         </div>
-                        <br>
 
 
 
-                        <div class="flex items-start gap-2">
+                        <div class="flex items-start gap-1"> {{-- ⬅️ تم تقليل الـ gap من 2 إلى 1 --}}
                             <x-input-label for="bio" />
 
-                            <div class="text-gray-900 dark:text-gray-100">
+                            <div class="whitespace-pre-wrap">
                                 @if($user->bio)
-                                    <p>{{ $user->bio }}</p>
+                                    {{-- ⬅️ تم إضافة m-0 لإزالة المسافة العلوية والسفلية الافتراضية لـ <p> --}}
+                                    <p class="text-black m-0">{{ $user->bio }}</p>
                                 @else
-                                    <p class="text-gray-500 italic">{{ __('No bio available.') }}</p>
+                                    {{-- ⬅️ إضافة m-0 هنا أيضًا --}}
+                                    <p class="text-gray-600 italic dark:text-gray-400 m-0">{{ __('No bio available.') }}</p>
                                 @endif
                             </div>
                         </div>
@@ -168,7 +169,7 @@
                     </header>
 
 
-                    
+
                     <div class="container mx-auto px-4"><br>
 
 

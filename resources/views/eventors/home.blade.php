@@ -7,6 +7,7 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/logo.jpg') }}">
     <title>بحث وعرض النتائج وإنشاء الأحداث</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -311,7 +312,7 @@
         <form method="POST" action="{{ route('events.toggleVisibility', $event->slug) }}">
             @csrf
             @method('PATCH')
-            <button type="submit" 
+            <button type="submit"
                     class="{{ $event->visible_on_profile ? 'text-blue-600 hover:text-blue-800' : 'text-red-500 hover:text-red-700' }}">
                 <i class="bi {{ $event->visible_on_profile ? 'bi-eye-fill' : 'bi-eye-slash-fill' }}"></i>
             </button>
@@ -429,8 +430,8 @@
         // 1. قراءة حالة الفرز الحالية من الـ URL عند تحميل الصفحة
         const urlParams = new URLSearchParams(window.location.search);
         // نستخدم 'sort' كمعامل في الـ URL. القيمة الافتراضية هي 'desc' (الأحدث أولاً).
-        let currentSortOrder = urlParams.get('sort') || 'desc'; 
-        
+        let currentSortOrder = urlParams.get('sort') || 'desc';
+
         // **2. دالة تحديث نص الزر**
         function updateButtonText(order) {
             const icon = sortButton.querySelector('i');
@@ -443,7 +444,7 @@
                 // الترتيب التالي سيكون الأقدم أولاً.
                 icon.classList.remove('bi-sort-up');
                 icon.classList.add('bi-sort-down'); // الأيقونة تشير إلى الترتيب التالي: 'الأقدم أولاً'
-                textSpan.textContent = window.i18n.event_sort_older; 
+                textSpan.textContent = window.i18n.event_sort_older;
             } else {
                 // الترتيب التالي سيكون الأحدث أولاً.
                 icon.classList.remove('bi-sort-down');

@@ -28,7 +28,7 @@ class CustomPlanSubscriptionResource extends Resource
 
     protected static ?string $navigationGroup = 'Subscriptions';
 
-    // تم التعديل: استخدام دالة ثابتة بدلاً من خاصية ثابتة لضمان عمل الترجمة
+    // تم التعديل: استخدام دالة ثابتة بدلًا من خاصية ثابتة لضمان عمل الترجمة
     public static function getNavigationLabel(): string
     {
         return trans_db('custom_plans.navigation_label');

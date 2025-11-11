@@ -65,40 +65,63 @@ class EventController extends Controller
 
     public function show(Event $event, Request $request)
     {
-
-        $user = Auth::user();
-
+        // 1. تحديد المستخدم المسجل دخوله
+        $loggedInUser = Auth::user(); // هذا هو المستخدم المسجل دخوله
         $documents = collect();
+        $searchedUser = null; // المتغير الذي سيحمل المستخدم الذي تم البحث عنه
 
-        if ($user && $user->subscription) {
-            $enable_attendance = $user->subscription->plan->enable_attendance;
+        // 2. تحديد إمكانية الحضور بناءً على المستخدم المسجل دخوله
+        if ($loggedInUser && $loggedInUser->subscription) {
+            $enable_attendance = $loggedInUser->subscription->plan->enable_attendance;
         } else {
             $enable_attendance = collect();
         }
 
+        // 3. معالجة طلب البحث
         if ($request->has('query')) {
             $query = $request->query('query');
 
-            $user = User::query()
+            // البحث عن المستخدم باستخدام اسم متغير مختلف
+            $searchedUser = User::query()
                 ->where('name', 'like', "%{$query}%")
                 ->orWhere('phone', $query)
                 ->orWhere('email', $query)
                 ->orWhere('slug', $query)
                 ->first();
 
-            if ($user) {
-                // هات كل الوثائق اللي ليها recipient مربوط بالـ user ده
+            if ($searchedUser) {
+                // جلب الوثائق المرتبطة بالمستخدم الذي تم البحث عنه
                 $documents = Document::with('recipient')
-                    ->whereHas('recipient', function ($q) use ($user, $event) {
-                        $q->where('user_id', $user->id)
+                    ->whereHas('recipient', function ($q) use ($searchedUser, $event) {
+                        $q->where('user_id', $searchedUser->id)
                             ->where('event_id', $event->id); // عشان تتأكد انها لنفس الـ event
                     })
                     ->get();
             } else {
                 $documents = collect();
             }
+
+            // ⬅️ التعديل الجوهري: Redirect إلى نفس الصفحة بدون Query String مع تخزين النتائج
+            // يتم استخدام with() لتخزين البيانات لجولة طلب واحدة (Flash Data)
+            return redirect()->route('showEvent', $event->slug)->with([
+                'searched_user_data' => $searchedUser,
+                'searched_documents_data' => $documents,
+                'search_performed' => true,
+            ]);
         }
 
+        // 4. استرجاع البيانات المخزنة من الـ Session في حالة عمل Redirect
+        if ($request->session()->has('searched_user_data')) {
+            $searchedUser = $request->session()->get('searched_user_data');
+            $documents = $request->session()->get('searched_documents_data');
+        }
+
+        // إذا لم يتم العثور على مستخدم في البحث (مباشر أو من الـ Session)، نضمن أن الـ documents فارغة
+        if (!$searchedUser) {
+            $documents = collect();
+        }
+
+        // 5. جلب بيانات الفعالية العادية (Event Data)
         $templateCount = 0;
         $recipientCount = 0;
         $templates = collect();
@@ -106,7 +129,6 @@ class EventController extends Controller
         $templateDataFile = collect();
 
         if ($event) {
-
             $templates = DocumentTemplate::with(['templateFiles', 'documents'])
                 ->where('event_id', $event->id)->get();
             $attendances = AttendanceTemplate::with('templateFiles')
@@ -116,16 +138,18 @@ class EventController extends Controller
             $templateDataFile = $event->excelUploads;
         }
 
+        // 6. إرجاع الـ View
         return view('eventors.events.show-event', compact(
             'event',
             'templateCount',
             'recipientCount',
             'templates',
             'attendances',
-            'user',
+            'loggedInUser', // ⬅️ تمرير المستخدم المسجل دخوله
             'enable_attendance',
             'templateDataFile',
-            'documents'
+            'documents', // نتائج الوثائق (من البحث أو فارغة)
+            'searchedUser' // ⬅️ المستخدم الذي تم البحث عنه (للعرض)
         ));
     }
 
