@@ -73,6 +73,7 @@
         @include('partials.search-bar')
     </div>
 @endif
+    @if($events->isNotEmpty())
 <div class="flex flex-wrap items-center justify-start gap-2">
     {{-- الزر الأول (Sort Button) --}}
     <button id="sort-button" data-sort-order="desc"
@@ -85,7 +86,6 @@
     </button>
 
     {{-- الروابط الأخرى (Conditional Links) --}}
-    @if($events->isNotEmpty())
         {{-- الرابط الثاني (Your Docs) --}}
         <a href="{{ route('home.users') }}"
            class="bg-gray-600 hover:bg-green-700 text-white font-semibold
@@ -313,6 +313,7 @@
                     @endif
                 </div>
             </section>
+
         </a>
             </div>
     @endforeach
@@ -454,6 +455,8 @@
     });
 </script>
 
+
+            @endif
 @include('partials.footer')
 
 </body>
