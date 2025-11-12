@@ -66,11 +66,12 @@ class EventController extends Controller
     public function show(Event $event, Request $request)
     {
         // 1. تحديد المستخدم المسجل دخوله
-        $loggedInUser = Auth::user(); // هذا هو المستخدم المسجل دخوله
+        $loggedInUser = Auth::user();
         $documents = collect();
-        $searchedUser = null; // المتغير الذي سيحمل المستخدم الذي تم البحث عنه
+        // ⬅️ تم تغيير $searchedUser إلى $searchedUsers ليعكس مجموعة من المستخدمين
+        $searchedUsers = collect();
 
-        // 2. تحديد إمكانية الحضور بناءً على المستخدم المسجل دخوله
+        // 2. تحديد إمكانية الحضور بناءً على المستخدم المسجل دخوله (لا تغيير)
         if ($loggedInUser && $loggedInUser->subscription) {
             $enable_attendance = $loggedInUser->subscription->plan->enable_attendance;
         } else {
@@ -80,48 +81,47 @@ class EventController extends Controller
         // 3. معالجة طلب البحث
         if ($request->has('query')) {
             $query = $request->query('query');
+            $searchKey = "%{$query}%"; // ⬅️ مفتاح البحث الجزئي
 
-            // البحث عن المستخدم باستخدام اسم متغير مختلف
-            $searchedUser = User::query()
-                ->where('name', 'like', "%{$query}%")
-                ->orWhere('phone', $query)
-                ->orWhere('email', $query)
+            // ⬅️ التعديل الجوهري: البحث عن مجموعة من المستخدمين باستخدام LIKE و get()
+            $searchedUsers = User::query()
+                ->where('name', 'like', $searchKey) // ⬅️ البحث الجزئي بالاسم
+                ->orWhere('phone', 'like', $searchKey) // ⬅️ البحث الجزئي بالهاتف
+                ->orWhere('email', 'like', $searchKey) // ⬅️ البحث الجزئي بالإيميل
+                // تم إبقاء البحث الكامل بـ slug لـ URL القصير إذا كان مطلوبًا
                 ->orWhere('slug', $query)
-                ->first();
+                ->get(); // ⬅️ لاسترجاع مجموعة (Collection) بدلاً من مستخدم واحد (first())
 
-            if ($searchedUser) {
-                // جلب الوثائق المرتبطة بالمستخدم الذي تم البحث عنه
+            // ⬅️ تعديل: جلب الوثائق لجميع المستخدمين الذين تم العثور عليهم
+            if ($searchedUsers->isNotEmpty()) {
+                $userIds = $searchedUsers->pluck('id');
+
+                // جلب الوثائق المرتبطة بجميع المستخدمين الذين تم البحث عنهم ولنفس الـ event
                 $documents = Document::with('recipient')
-                    ->whereHas('recipient', function ($q) use ($searchedUser, $event) {
-                        $q->where('user_id', $searchedUser->id)
-                            ->where('event_id', $event->id); // عشان تتأكد انها لنفس الـ event
+                    ->whereHas('recipient', function ($q) use ($userIds, $event) {
+                        $q->whereIn('user_id', $userIds) // ⬅️ استخدام whereIn
+                        ->where('event_id', $event->id);
                     })
                     ->get();
             } else {
                 $documents = collect();
             }
 
-            // ⬅️ التعديل الجوهري: Redirect إلى نفس الصفحة بدون Query String مع تخزين النتائج
-            // يتم استخدام with() لتخزين البيانات لجولة طلب واحدة (Flash Data)
+            // ⬅️ التعديل الجوهري: Redirect وتخزين النتائج الجديدة (المجموعة)
             return redirect()->route('showEvent', $event->slug)->with([
-                'searched_user_data' => $searchedUser,
+                'searched_users_data' => $searchedUsers, // ⬅️ تم تغيير الاسم إلى 'searched_users_data'
                 'searched_documents_data' => $documents,
                 'search_performed' => true,
             ]);
         }
 
         // 4. استرجاع البيانات المخزنة من الـ Session في حالة عمل Redirect
-        if ($request->session()->has('searched_user_data')) {
-            $searchedUser = $request->session()->get('searched_user_data');
+        if ($request->session()->has('searched_users_data')) { // ⬅️ استخدام الاسم الجديد
+            $searchedUsers = $request->session()->get('searched_users_data');
             $documents = $request->session()->get('searched_documents_data');
         }
 
-        // إذا لم يتم العثور على مستخدم في البحث (مباشر أو من الـ Session)، نضمن أن الـ documents فارغة
-        if (!$searchedUser) {
-            $documents = collect();
-        }
-
-        // 5. جلب بيانات الفعالية العادية (Event Data)
+        // 5. جلب بيانات الفعالية العادية (لا تغيير)
         $templateCount = 0;
         $recipientCount = 0;
         $templates = collect();
@@ -145,14 +145,13 @@ class EventController extends Controller
             'recipientCount',
             'templates',
             'attendances',
-            'loggedInUser', // ⬅️ تمرير المستخدم المسجل دخوله
+            'loggedInUser',
             'enable_attendance',
             'templateDataFile',
             'documents', // نتائج الوثائق (من البحث أو فارغة)
-            'searchedUser' // ⬅️ المستخدم الذي تم البحث عنه (للعرض)
+            'searchedUsers' // ⬅️ المجموعة الجديدة من المستخدمين
         ));
     }
-
     public function toggleAttendance(Request $request)
     {
         try {

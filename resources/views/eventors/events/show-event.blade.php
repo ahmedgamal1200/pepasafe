@@ -21,7 +21,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
 </head>
-<body class="space-y-12 bg-white">
+<body>
 <style>
     /* 1. القواعد الافتراضية (لشاشات الكمبيوتر/التابلت الكبيرة) */
     .custom-placeholder-small::placeholder {
@@ -53,8 +53,10 @@
 </style>
 
 @include('partials.auth-navbar')
+<br>
 
 <section class="space max-w-xl mx-auto px-4 sm:px-0">
+
 
     <form action="{{ route('showEvent', $event->slug) }}" method="GET" class="relative flex flex-col sm:flex-row items-stretch sm:items-center w-full">
         {{-- جزء حقل الإدخال (Input) --}}
@@ -201,96 +203,100 @@
 </script>
 
 
-<!-- بطاقة النتيجة صغيرة على اليمين -->
-@if($searchedUser)
-    <div class="max-w-4xl mx-auto p-1 bg-blue-300 rounded-xl shadow-lg">
+{{-- ⬅️ التعديل: تكرار البطاقة لكل مستخدم في المجموعة --}}
+@if($searchedUsers->isNotEmpty())
+    @foreach($searchedUsers as $searchedUser)
+        <div class="max-w-4xl mx-auto p-1 bg-blue-300 rounded-xl shadow-lg mb-4"> {{-- أضفنا هامش سفلي للمسافة بين النتائج --}}
 
-        <div class="bg-white rounded-lg p-6">
-            <div class="flex justify-between items-start gap-4">
+            <div class="bg-white rounded-lg p-6">
+                <div class="flex justify-between items-start gap-4">
 
-                <div id="personal-info" class="flex flex-col">
-                    {{-- تم تغيير $user->name إلى $searchedUser->name --}}
-                    <h2 id="name" class="text-xl font-bold text-gray-800 mb-2">{{ $searchedUser->name }}</h2>
-                    <div class="contact-item flex items-center gap-2 text-gray-600 mb-2">
-                        <i class="fa-solid fa-phone-alt w-4 text-center"></i>
-                        {{-- تم تغيير $user->phone إلى $searchedUser->phone --}}
-                        <span id="phone">{{ $searchedUser->phone }}</span>
-                    </div>
-                    <div class="contact-item flex items-center gap-2 text-gray-600 mb-2">
-                        <i class="fa-solid fa-envelope w-4 text-center"></i>
-                        {{-- تم تغيير $user->email إلى $searchedUser->email --}}
-                        <span id="email">{{ $searchedUser->email }}</span>
-                    </div>
-                    {{--                    <div class="contact-item flex items-center gap-2 text-gray-600">--}}
-                    {{--                        <i class="fa-solid fa-certificate w-4 text-center"></i>--}}
-                    {{--                        <span id="certificate-label">شهادة الحضور</span>--}}
-                    {{--                    </div>--}}
-                </div>
-
-                <div class="flex flex-col items-end gap-4">
-                    @if(optional($documents->first())->file_path != null)
-                        <div class="flex flex-wrap justify-end gap-3">
-                            <button
-                                id="print-btn"
-                                class="flex items-center gap-2 bg-purple-100 text-purple-700 py-2 px-4 rounded-lg hover:bg-purple-200 transition-colors">
-                                <i class="fa-solid fa-print"></i>
-                                <span id="print-btn">{{ trans_db('buttons.print') }}</span>
-                            </button>
-                            <button
-                                id="download-btn"
-                                class="flex items-center gap-2 bg-green-100 text-green-700 py-2 px-4 rounded-lg hover:bg-green-200 transition-colors">
-                                <i class="fa-solid fa-download"></i>
-                                <span id="download-btn">{{ trans_db('buttons.download') }}</span>
-                            </button>
-                            <button
-                                onclick="previewFile('{{ asset('storage/' . optional($documents->first())->file_path) }}')"
-                                class="flex items-center gap-2 bg-blue-100 text-blue-700 py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors">
-                                <i class="fa-solid fa-eye"></i>
-                                <span>{{ trans_db('show.preview') }}</span>
-                            </button>
+                    <div id="personal-info" class="flex flex-col">
+                        <h2 id="name" class="text-xl font-bold text-gray-800 mb-2">{{ $searchedUser->name }}</h2>
+                        <div class="contact-item flex items-center gap-2 text-gray-600 mb-2">
+                            <i class="fa-solid fa-phone-alt w-4 text-center"></i>
+                            <span id="phone">{{ $searchedUser->phone }}</span>
                         </div>
-                    @else
-                        <div class="flex items-center justify-end">
-                            <div
-                                class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2"
-                                role="alert">
-                                <i class="fa-solid fa-circle-xmark"></i>
-                                <span class="font-bold">لا يوجد وثيقة لهذا الشخص.</span>
+                        <div class="contact-item flex items-center gap-2 text-gray-600 mb-2">
+                            <i class="fa-solid fa-envelope w-4 text-center"></i>
+                            <span id="email">{{ $searchedUser->email }}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col items-end gap-4">
+                        {{-- ⬅️ التعديل: فلترة الوثائق للمستخدم الحالي في الحلقة --}}
+                        @php
+                            $userDocument = $documents->first(function ($doc) use ($searchedUser, $event) {
+                                return optional($doc->recipient)->user_id === $searchedUser->id;
+                            });
+                        @endphp
+
+                        @if(optional($userDocument)->file_path != null)
+                            <div class="flex flex-wrap justify-end gap-3">
+                                {{-- استخدام $userDocument->file_path --}}
+                                <button
+                                    id="print-btn"
+                                    class="flex items-center gap-2 bg-purple-100 text-purple-700 py-2 px-4 rounded-lg hover:bg-purple-200 transition-colors">
+                                    <i class="fa-solid fa-print"></i>
+                                    <span id="print-btn">{{ trans_db('buttons.print') }}</span>
+                                </button>
+                                <button
+                                    id="download-btn"
+                                    class="flex items-center gap-2 bg-green-100 text-green-700 py-2 px-4 rounded-lg hover:bg-green-200 transition-colors">
+                                    <i class="fa-solid fa-download"></i>
+                                    <span id="download-btn">{{ trans_db('buttons.download') }}</span>
+                                </button>
+                                <button
+                                    onclick="previewFile('{{ asset('storage/' . $userDocument->file_path) }}')"
+                                    class="flex items-center gap-2 bg-blue-100 text-blue-700 py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors">
+                                    <i class="fa-solid fa-eye"></i>
+                                    <span>{{ trans_db('show.preview') }}</span>
+                                </button>
                             </div>
-                        </div>
-                    @endif
-
-                    @if($enable_attendance)
-                        {{-- تم تغيير data-user-id="{{ $user->id }}" إلى $searchedUser->id --}}
-                        <div class="flex items-center gap-3" data-user-id="{{ $searchedUser->id }}">
-                            <span class="text-sm font-medium text-gray-700">{{ trans_db('attendance_enable') }}</span>
-                            {{-- تم تغيير id="toggle-{{ $user->id }}" إلى $searchedUser->id --}}
-                            <label for="toggle-{{ $searchedUser->id }}"
-                                   class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="toggle-{{ $searchedUser->id }}"
-                                       class="sr-only peer attendance-toggle"
-                                       {{-- تم تغيير @if($user->is_attendance) إلى $searchedUser->is_attendance --}}
-                                       @if($searchedUser->is_attendance) checked @endif>
+                        @else
+                            <div class="flex items-center justify-end">
                                 <div
-                                    class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-green-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                            </label>
-                        </div>
-                    @endif
+                                    class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2"
+                                    role="alert">
+                                    <i class="fa-solid fa-circle-xmark"></i>
+                                    <span class="font-bold">لا يوجد وثيقة لهذا الشخص.</span>
+                                </div>
+                            </div>
+                        @endif
 
-                    <div id="toast"
-                         class="fixed top-5 right-5 z-50 hidden
-                            min-w-[200px] max-w-xs
-                            bg-white border shadow-lg rounded-md p-4
-                            flex items-start gap-3
-                            transition transform duration-300 ease-out">
+                        @if($enable_attendance)
+                            {{-- استخدام $searchedUser->id --}}
+                            <div class="flex items-center gap-3" data-user-id="{{ $searchedUser->id }}">
+                                <span class="text-sm font-medium text-gray-700">{{ trans_db('attendance_enable') }}</span>
+                                {{-- استخدام $searchedUser->id --}}
+                                <label for="toggle-{{ $searchedUser->id }}"
+                                       class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="toggle-{{ $searchedUser->id }}"
+                                           class="sr-only peer attendance-toggle"
+                                           {{-- استخدام $searchedUser->is_attendance --}}
+                                           @if($searchedUser->is_attendance) checked @endif>
+                                    <div
+                                        class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-green-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                                </label>
+                            </div>
+                        @endif
 
-                        <i id="toast-icon" class="text-lg"></i>
-                        <span id="toast-message" class="text-sm font-medium text-gray-800"></span>
+                        {{-- يمكنك الاحتفاظ بالـ toast خارج حلقة foreach إذا كان استخدامه عامًا --}}
                     </div>
-                </div>
 
+                </div>
             </div>
         </div>
+    @endforeach
+    <div id="toast"
+         class="fixed top-5 right-5 z-50 hidden
+            min-w-[200px] max-w-xs
+            bg-white border shadow-lg rounded-md p-4
+            flex items-start gap-3
+            transition transform duration-300 ease-out">
+
+        <i id="toast-icon" class="text-lg"></i>
+        <span id="toast-message" class="text-sm font-medium text-gray-800"></span>
     </div>
 @endif
 @if(session('search_performed') && !$searchedUser)
